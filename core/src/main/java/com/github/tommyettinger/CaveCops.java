@@ -10,25 +10,12 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.viewport.StretchViewport;
 import squidpony.ArrayTools;
-import squidpony.FakeLanguageGen;
-import squidpony.NaturalLanguageCipher;
-import squidpony.panel.IColoredString;
 import squidpony.squidai.DijkstraMap;
 import squidpony.squidgrid.Direction;
 import squidpony.squidgrid.FOV;
 import squidpony.squidgrid.Measurement;
 import squidpony.squidgrid.Radius;
-import squidpony.squidgrid.gui.gdx.DefaultResources;
-import squidpony.squidgrid.gui.gdx.FilterBatch;
-import squidpony.squidgrid.gui.gdx.FloatFilters;
-import squidpony.squidgrid.gui.gdx.GDXMarkup;
-import squidpony.squidgrid.gui.gdx.MapUtility;
-import squidpony.squidgrid.gui.gdx.PanelEffect;
-import squidpony.squidgrid.gui.gdx.SColor;
-import squidpony.squidgrid.gui.gdx.SparseLayers;
-import squidpony.squidgrid.gui.gdx.SquidInput;
-import squidpony.squidgrid.gui.gdx.SquidMouse;
-import squidpony.squidgrid.gui.gdx.TextCellFactory;
+import squidpony.squidgrid.gui.gdx.*;
 import squidpony.squidgrid.mapping.DungeonGenerator;
 import squidpony.squidgrid.mapping.DungeonUtility;
 import squidpony.squidgrid.mapping.LineKit;
@@ -59,7 +46,7 @@ public class CaveCops extends ApplicationAdapter {
     private GWTRNG rng;
     // rendering classes that show only the chars and backgrounds that they've been told to render, unlike some earlier
     // classes in SquidLib.
-    private SparseLayers display, languageDisplay;
+    private SparseLayers display;
     // generates a dungeon as a 2D char array; can also fill some simple features into the dungeon.
     private DungeonGenerator dungeonGen;
     // decoDungeon stores the dungeon map with features like grass and water, if present, as chars like '"' and '~'.
@@ -84,24 +71,22 @@ public class CaveCops extends ApplicationAdapter {
     //one cell; resizing the window can make the units cellWidth and cellHeight use smaller or larger than a pixel.
 
     /** In number of cells */
-    private static final int gridWidth = 90;
+    private static final int gridWidth = 64;
     /** In number of cells */
-    private static final int gridHeight = 25;
+    private static final int gridHeight = 32;
 
     /** In number of cells */
     private static final int bigWidth = gridWidth * 2;
     /** In number of cells */
     private static final int bigHeight = gridHeight * 2;
 
-    /** In number of cells */
-    private static final int bonusHeight = 7;
     /** The pixel width of a cell */
-    private static final int cellWidth = 10;
+    private static final int cellWidth = 16;
     /** The pixel height of a cell */
-    private static final int cellHeight = 20;
+    private static final int cellHeight = 16;
     private SquidInput input;
     private Color bgColor;
-    private Stage stage, languageStage;
+    private Stage stage;
     private DijkstraMap playerToCursor;
     private Coord cursor, player;
     private ArrayList<Coord> toCursor;
@@ -110,38 +95,8 @@ public class CaveCops extends ApplicationAdapter {
     private Vector2 screenPosition;
 
 
-    // a passage from the ancient text The Art of War, which remains relevant in any era but is mostly used as a basis
-    // for translation to imaginary languages using the NaturalLanguageCipher and FakeLanguageGen classes.
-    // markup has been added to color some words differently and italicize/bold/upper-case/lower-case others.
-    // see GDXMarkup's docs for more info.
-    private final String artOfWar =
-            "[@ 0.8 0.06329113 0.30980393][/]Sun Tzu[/] said: In the [!]practical[!] art of war, the best thing of all is " +
-                    "to take the enemy's country whole and intact; to shatter and destroy it is not so good. So, " +
-                    "too, it is better to recapture an army entire than to destroy it, to capture " +
-                    "a regiment, a detachment or a company entire than to destroy them. Hence to fight " +
-                    "and conquer in all your battles is not [!]supreme[,] excellence; [!]supreme[=] EXCELLENCE[,] " +
-                    "consists in breaking the enemy's resistance without fighting.[]";
-    // A translation dictionary for going back and forth between English and an imaginary language that this generates
-    // words for, using some of the rules that the English language tends to follow to determine if two words should
-    // share a common base word (such as "read" and "reader" needing similar translations). This is given randomly
-    // selected languages from the FakeLanguageGen class, which is able to produce text that matches a certain style,
-    // usually that of a natural language but some imitations of fictional languages, such as languages spoken by elves,
-    // goblins, or demons, are present as well. An unusual trait of FakeLanguageGen is that it can mix two or more
-    // languages to make a new one, which most other kinds of generators have a somewhat-hard time doing.
-    private NaturalLanguageCipher translator;
-    // this is initialized with the word-wrapped contents of artOfWar, then has translations of that text to imaginary
-    // languages appended after the plain-English version. The contents have the first item removed with each step, and
-    // have new translations added whenever the line count is too low.
-    private ArrayList<IColoredString<Color>> lang;
     private double[][] resistance;
     private double[][] visible;
-    // GreasedRegion is a hard-to-explain class, but it's an incredibly useful one for map generation and many other
-    // tasks; it stores a region of "on" cells where everything not in that region is considered "off," and can be used
-    // as a Collection of Coord points. However, it's more than that! Because of how it is implemented, it can perform
-    // bulk operations on as many as 64 points at a time, and can efficiently do things like expanding the "on" area to
-    // cover adjacent cells that were "off", retracting the "on" area away from "off" cells to shrink it, getting the
-    // surface ("on" cells that are adjacent to "off" cells) or fringe ("off" cells that are adjacent to "on" cells),
-    // and generally useful things like picking a random point from all "on" cells.
     // Here, we use a GreasedRegion to store all floors that the player can walk on, a small rim of cells just beyond
     // the player's vision that blocks pathfinding to areas we can't see a path to, and we also store all cells that we
     // have seen in the past in a GreasedRegion (in most roguelikes, there would be one of these per dungeon floor).
@@ -178,7 +133,7 @@ public class CaveCops extends ApplicationAdapter {
 
         // SquidLib has many methods that expect an IRNG instance, and there's several classes to choose from.
         // In this program we'll use GWTRNG, which will behave better on the HTML target than other generators.
-        rng = new GWTRNG(artOfWar);
+        rng = new GWTRNG(1337);
         // YCwCmFilter multiplies the brightness (Y), warmth (Cw), and mildness (Cm) of a color 
         warmMildFilter = new FloatFilters.YCwCmFilter(0.875f, 0.6f, 0.6f);
 
@@ -189,14 +144,10 @@ public class CaveCops extends ApplicationAdapter {
         // changed at runtime, and the putMap() method does this. This can be very powerful; you might increase the
         // warmth of all colors (additively) if the player is on fire, for instance.
         batch = new FilterBatch(warmMildFilter);
-        StretchViewport mainViewport = new StretchViewport(gridWidth * cellWidth, gridHeight * cellHeight),
-                languageViewport = new StretchViewport(gridWidth * cellWidth, bonusHeight * cellHeight);
+        StretchViewport mainViewport = new StretchViewport(gridWidth * cellWidth, gridHeight * cellHeight);
         mainViewport.setScreenBounds(0, 0, gridWidth * cellWidth, gridHeight * cellHeight);
-        languageViewport
-                .setScreenBounds(0, 0, gridWidth * cellWidth, bonusHeight * cellHeight);
         //Here we make sure our Stage, which holds any text-based grids we make, uses our Batch.
         stage = new Stage(mainViewport, batch);
-        languageStage = new Stage(languageViewport, batch);
         // the font will try to load Iosevka Slab as an embedded bitmap font with a MSDF effect (multi scale distance
         // field, a way to allow a bitmap font to stretch while still keeping sharp corners and round curves).
         // the MSDF effect is handled internally by a shader in SquidLib, and will switch to a different shader if a SDF
@@ -204,21 +155,9 @@ public class CaveCops extends ApplicationAdapter {
         // this font is covered under the SIL Open Font License (fully free), so there's no reason it can't be used.
         // it also includes 4 text faces (regular, bold, oblique, and bold oblique) so methods in GDXMarkup can make
         // italic or bold text without switching fonts (they can color sections of text too).
-        display = new SparseLayers(bigWidth, bigHeight + bonusHeight, cellWidth, cellHeight,
+        display = new SparseLayers(bigWidth, bigHeight, cellWidth, cellHeight,
                 DefaultResources.getCrispSlabFamily());
-
-        // a bit of a hack to increase the text height slightly without changing the size of the cells they're in.
-        // this causes a tiny bit of overlap between cells, which gets rid of an annoying gap between vertical lines.
-        // if you use '#' for walls instead of box drawing chars, you don't need this.
-        //display.font.tweakWidth(cellWidth * 1.075f).tweakHeight(cellHeight * 1.1f).initBySize();
-
-        languageDisplay = new SparseLayers(gridWidth, bonusHeight - 1, cellWidth, cellHeight, display.font);
-        // SparseDisplay doesn't currently use the default background fields, but this isn't really a problem; we can
-        // set the background colors directly as floats with the SparseDisplay.backgrounds field, and it can be handy
-        // to hold onto the current color we want to fill that with in the defaultPackedBackground field.
-        // SparseLayers has fillBackground() and fillArea() methods for coloring all or part of the backgrounds.
-        languageDisplay.defaultPackedBackground = FLOAT_LIGHTING; // happens to be the same color used for lighting
-
+        
         //This uses the seeded RNG we made earlier to build a procedural dungeon using a method that takes rectangular
         //sections of pre-drawn dungeon and drops them into place in a tiling pattern. It makes good winding dungeons
         //with rooms by default, but in the later call to dungeonGen.generate(), you can use a TilesetType such as
@@ -357,7 +296,7 @@ public class CaveCops extends ApplicationAdapter {
         //same size as decoDungeon that store the colors for the foregrounds and backgrounds of each cell as packed
         //floats (a format SparseLayers can use throughout its API), using the colors for the cell with the same x and
         //y. By changing an item in SColor.LIMITED_PALETTE, we also change the color assigned by MapUtility to floors.
-        bgColor = SColor.DARK_SLATE_GRAY;
+        bgColor = SColor.DB_INK;
         SColor.LIMITED_PALETTE[3] = SColor.DB_GRAPHITE;
         colors = MapUtility.generateDefaultColorsFloat(decoDungeon);
         bgColors = MapUtility.generateDefaultBGColorsFloat(decoDungeon);
@@ -369,20 +308,6 @@ public class CaveCops extends ApplicationAdapter {
 //        }
         //places the player as an '@' at his position in orange.
         pg = display.glyph('@', SColor.SAFETY_ORANGE, player.x, player.y);
-
-        // here we build up a List of IColoredString values formed by formatting the artOfWar text (this colors the
-        // whole thing dark gray and puts the name at the start in italic/oblique face) and wrapping it to fit within
-        // the width we want, filling up lang with the results.
-        lang = new ArrayList<>(16);
-        GDXMarkup.instance.colorString(artOfWar).wrap(gridWidth - 2, lang);
-        // here we choose a random language from all the hand-made FakeLanguageGen text generators, and make a
-        // NaturalLanguageCipher out of it. This Cipher takes words it finds in artOfWar and translates them to the
-        // fictional language it selected.
-        translator = new NaturalLanguageCipher(rng.getRandomElement(FakeLanguageGen.registered));
-        // this is just like the call above except we work on the translated artOfWar text instead of the original.
-        GDXMarkup.instance.colorString(translator.cipher(artOfWar)).wrap(gridWidth - 2, lang);
-        // now we change the language again and tell the NaturalLanguageCipher, translator, what we chose.
-        translator.initialize(rng.getRandomElement(FakeLanguageGen.registered), 0L);
 
         // this is a big one.
         // SquidInput can be constructed with a KeyHandler (which just processes specific keypresses), a SquidMouse
@@ -485,7 +410,6 @@ public class CaveCops extends ApplicationAdapter {
                         // that's special to DijkstraMap; because the whole map has already been fully analyzed by the
                         // DijkstraMap.scan() method at the start of the program, and re-calculated whenever the player
                         // moves, we only need to do a fraction of the work to find the best path with that info.
-                        toCursor.clear();
                         playerToCursor.findPathPreScanned(toCursor, cursor);
                         //findPathPreScanned includes the current cell (goal) by default, which is helpful when
                         // you're finding a path to a monster or loot, and want to bump into it, but here can be
@@ -544,7 +468,6 @@ public class CaveCops extends ApplicationAdapter {
         //Gdx.input.setInputProcessor(input);
         // and then add display, our one visual component, to the list of things that act in Stage.
         stage.addActor(display);
-        languageStage.addActor(languageDisplay);
 
         screenPosition = new Vector2(cellWidth, cellHeight);
     }
@@ -602,16 +525,6 @@ public class CaveCops extends ApplicationAdapter {
             });
             //display.addAction(new PanelEffect.ExplosionEffect(display, 1f, floors, player, 6));
         }
-        // removes the first line displayed of the Art of War text or its translation.
-        lang.remove(0);
-        // if the last line reduced the number of lines we can show to less than what we try to show, we fill in more
-        // lines using a randomly selected fake language to translate the same Art of War text.
-        while (lang.size() < bonusHeight - 1)
-        {
-            // refills lang with wrapped lines from the translated artOfWar text
-            GDXMarkup.instance.colorString(translator.cipher(artOfWar)).wrap(gridWidth - 2, lang);
-            translator.initialize(rng.getRandomElement(FakeLanguageGen.registered), 0L);
-        }
     }
 
     /**
@@ -655,16 +568,11 @@ public class CaveCops extends ApplicationAdapter {
             // use a brighter light to trace the path to the cursor, mixing the background color with mostly white.
             display.put(pt.x, pt.y, SColor.lightenFloat(bgColors[pt.x][pt.y], 0.85f));
         }
-        languageDisplay.clear(0);
-        languageDisplay.fillBackground(languageDisplay.defaultPackedBackground);
-        for (int i = 0; i < 6; i++) {
-            languageDisplay.put(1, i, lang.get(i));
-        }
     }
     @Override
     public void render () {
         // standard clear the background routine for libGDX
-        Gdx.gl.glClearColor(bgColor.r / 255.0f, bgColor.g / 255.0f, bgColor.b / 255.0f, 1.0f);
+        Gdx.gl.glClearColor(bgColor.r, bgColor.g, bgColor.b, 1.0f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         stage.getCamera().position.x = pg.getX();
@@ -707,12 +615,6 @@ public class CaveCops extends ApplicationAdapter {
         }
         //else
         //    move(0,0);
-        // we need to do some work with viewports here so the language display (or game info messages in a real game)
-        // will display in the same place even though the map view will move around. We have the language stuff set up
-        // its viewport so it is in place and won't be altered by the map. Then we just tell the Stage for the language
-        // texts to draw.
-        languageStage.getViewport().apply(false);
-        languageStage.draw();
         // certain classes that use scene2d.ui widgets need to be told to act() to process input.
         stage.act();
         // we have the main stage set itself up after the language stage has already drawn.
@@ -735,48 +637,17 @@ public class CaveCops extends ApplicationAdapter {
         // message box won't respond to clicks on the far right if the stage hasn't been updated with a larger size
         float currentZoomX = (float)width / gridWidth;
         // total new screen height in pixels divided by total number of rows on the screen
-        float currentZoomY = (float)height / (gridHeight + bonusHeight);
-        // message box should be given updated bounds since I don't think it will do this automatically
-        languageDisplay.setBounds(0, 0, width, currentZoomY * bonusHeight);
+        float currentZoomY = (float)height / gridHeight;
+        
         // SquidMouse turns screen positions to cell positions, and needs to be told that cell sizes have changed
         // a quirk of how the camera works requires the mouse to be offset by half a cell if the width or height is odd
         // (gridWidth & 1) is 1 if gridWidth is odd or 0 if it is even; it's good to know and faster than using % , plus
         // in some other cases it has useful traits (x % 2 can be 0, 1, or -1 depending on whether x is negative, while
         // x & 1 will always be 0 or 1).
         input.getMouse().reinitialize(currentZoomX, currentZoomY, gridWidth, gridHeight,
-                (gridWidth & 1) * (int)(currentZoomX * -0.5f), (gridHeight & 1) * (int) (currentZoomY * -0.5f));        // the viewports are updated separately so each doesn't interfere with the other's drawn area.
-        languageStage.getViewport().update(width, height, false);
+                (gridWidth & 1) * (int)(currentZoomX * -0.5f), (gridHeight & 1) * (int) (currentZoomY * -0.5f));
         // we also set the bounds of that drawn area here for each viewport.
-        languageStage.getViewport().setScreenBounds(0, 0, width, (int)languageDisplay.getHeight());
-        // we did this for the language viewport, now again for the main viewport
         stage.getViewport().update(width, height, false);
-        stage.getViewport().setScreenBounds(0, (int)languageDisplay.getHeight(),
-                width, height - (int)languageDisplay.getHeight());
+        stage.getViewport().setScreenBounds(0, 0, width, height);
     }
 }
-// An explanation of hexadecimal float/double literals was mentioned earlier, so here it is.
-// The literal 0x1p-9f is a good example; it is essentially the same as writing 0.001953125f,
-// (float)Math.pow(2.0, -9.0), or (1f / 512f), but is possibly faster than the last two if the
-// compiler can't optimize float division effectively, and is a good tool to have because these
-// hexadecimal float or double literals always represent numbers accurately. To contrast,
-// 0.3 - 0.2 is not equal to 0.1 with doubles, because tenths are inaccurate with floats and
-// doubles, and hex literals won't have the option to write an inaccurate float or double.
-// There's some slightly confusing syntax used to write these literals; the 0x means the first
-// part uses hex digits (0123456789ABCDEF), but the p is not a hex digit and is used to start
-// the "p is for power" exponent section. In the example, I used -9 for the power; this is a
-// base 10 number, and is used to mean a power of 2 that the hex digits will be multiplied by.
-// Because the -9 is a base 10 number, the f at the end is not a hex digit, and actually just
-// means the literal is a float, in the same way 1.5f is a float. 2.0 to the -9 is the same as
-// 1.0 / Math.pow(2.0, 9.0), but re-calculating Math.pow() is considerably slower if you run it
-// for every cell during every frame. Though this is most useful for negative exponents because
-// there are a lot of numbers after the decimal point to write out with 0.001953125 or the like,
-// it is also sometimes handy when you have an integer or long written in hexadecimal and want
-// to make it a float or double. You could use the hex long 0x9E3779B9L, for instance, but to
-// write that as a double you would use 0x9E3779B9p0 , not the invalid syntax 0x9E3779B9.0 .
-// We use p0 there because 2 to the 0 is 1, so multiplying by 1 gets us the same hex number.
-// Very large numbers can also benefit by using a large positive exponent; using p10 and p+10
-// as the last part of a hex literal are equivalent. You can see the hex literal for any given
-// float with Float.toHexString(float), or for a double with Double.toHexString(double) .
-// SColor provides the packed float versions of all color constants as hex literals in the
-// documentation for each SColor.
-// More information here: https://blogs.oracle.com/darcy/hexadecimal-floating-point-literals
