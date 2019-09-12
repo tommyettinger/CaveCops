@@ -165,26 +165,26 @@ public class CaveCops extends ApplicationAdapter {
         font.getData().scale(2f);
 
         charMapping = new IntMap<>(64);
-        solid = atlas.findRegion("totally lit tile");
+        solid = atlas.findRegion("day tile floor c");
         playerSprite = atlas.createSprite("keystone kop");
         charMapping.put('.', solid);
-        charMapping.put(',', atlas.findRegion("shallow water tile"      ));
-        charMapping.put('~', atlas.findRegion("deep water tile"      ));
+        charMapping.put(',', atlas.findRegion("brick clear pool center"      ));
+        charMapping.put('~', atlas.findRegion("brick murky pool center"      ));
         charMapping.put('"', atlas.findRegion("dusk grass floor c"      ));
-        charMapping.put('#', atlas.findRegion("lit rock wall center"     ));
+        charMapping.put('#', atlas.findRegion("lit brick wall center"     ));
         charMapping.put('+', atlas.findRegion("closed wooden door front"));
         charMapping.put('/', atlas.findRegion("closed wooden door side"  ));
-        charMapping.put('└', atlas.findRegion("lit rock wall right up"            ));
-        charMapping.put('┌', atlas.findRegion("lit rock wall right down"            ));
-        charMapping.put('┬', atlas.findRegion("lit rock wall left right down"           ));
-        charMapping.put('┴', atlas.findRegion("lit rock wall left right up"           ));
-        charMapping.put('─', atlas.findRegion("lit rock wall left right"            ));
-        charMapping.put('│', atlas.findRegion("lit rock wall up down"            ));
-        charMapping.put('├', atlas.findRegion("lit rock wall right up down"           ));
-        charMapping.put('┼', atlas.findRegion("lit rock wall left right up down"          ));
-        charMapping.put('┤', atlas.findRegion("lit rock wall left up down"           ));
-        charMapping.put('┐', atlas.findRegion("lit rock wall left down"            ));
-        charMapping.put('┘', atlas.findRegion("lit rock wall left up"            ));
+        charMapping.put('└', atlas.findRegion("lit brick wall right down"            ));
+        charMapping.put('┌', atlas.findRegion("lit brick wall right up"            ));
+        charMapping.put('┬', atlas.findRegion("lit brick wall left right up"           ));
+        charMapping.put('┴', atlas.findRegion("lit brick wall left right down"           ));
+        charMapping.put('─', atlas.findRegion("lit brick wall left right"            ));
+        charMapping.put('│', atlas.findRegion("lit brick wall up down"            ));
+        charMapping.put('├', atlas.findRegion("lit brick wall right up down"           ));
+        charMapping.put('┼', atlas.findRegion("lit brick wall left right up down"          ));
+        charMapping.put('┤', atlas.findRegion("lit brick wall left up down"           ));
+        charMapping.put('┐', atlas.findRegion("lit brick wall left up"            ));
+        charMapping.put('┘', atlas.findRegion("lit brick wall left down"            ));
         
         //This uses the seeded RNG we made earlier to build a procedural dungeon using a method that takes rectangular
         //sections of pre-drawn dungeon and drops them into place in a tiling pattern. It makes good winding dungeons
@@ -294,7 +294,7 @@ public class CaveCops extends ApplicationAdapter {
         // We call pruneLines with an optional parameter here, LineKit.lightAlt, which will allow prunedDungeon to use
         // the half-line chars "╴╵╶╷". These chars aren't supported by all fonts, but they are by the one we use here.
         // The default is to use LineKit.light , which will replace '╴' and '╶' with '─' and '╷' and '╵' with '│'.
-        LineKit.pruneLines(lineDungeon, seen, LineKit.lightAlt, prunedDungeon);
+        LineKit.pruneLines(lineDungeon, seen, LineKit.light, prunedDungeon);
 
         //This is used to allow clicks or taps to take the player to the desired area.
         toCursor = new ArrayList<>(200);
@@ -471,7 +471,7 @@ public class CaveCops extends ApplicationAdapter {
             blockage.fringe8way();
             // By calling LineKit.pruneLines(), we adjust prunedDungeon to hold a variant on lineDungeon that removes any
             // line segments that haven't ever been visible. This is called again whenever seen changes.
-            LineKit.pruneLines(lineDungeon, seen, LineKit.lightAlt, prunedDungeon);
+            LineKit.pruneLines(lineDungeon, seen, LineKit.light, prunedDungeon);
         }
     }
 
@@ -489,7 +489,7 @@ public class CaveCops extends ApplicationAdapter {
                             : SColor.lerpFloatColors(bgColors[i][j], FLOAT_LIGHTING, (float)visible[i][j] * 0.75f + 0.25f));
                     //batch.draw(solid, pos.x, pos.y);                     
                     batch.setPackedColor(SColor.lerpFloatColors(colors[i][j], FLOAT_LIGHTING, (float)visible[i][j] * 0.75f + 0.25f));
-                    batch.draw(charMapping.get(lineDungeon[i][j], solid), pos.x, pos.y);
+                    batch.draw(charMapping.get(prunedDungeon[i][j], solid), pos.x, pos.y);
                 } else if(seen.contains(i, j)) {
                     pos.set(i * cellWidth, j * cellHeight, 0f);
                     batch.setPackedColor(SColor.lerpFloatColors(bgColors[i][j], FLOAT_GRAY, 0.7f));
@@ -497,7 +497,7 @@ public class CaveCops extends ApplicationAdapter {
 //                    if ((monster = monsters.get(Coord.get(i, j))) != null)
 //                        monster.setAlpha(0f);
                     batch.setPackedColor(SColor.lerpFloatColors(colors[i][j], FLOAT_GRAY, 0.7f));
-                    batch.draw(charMapping.get(lineDungeon[i][j], solid), pos.x, pos.y);
+                    batch.draw(charMapping.get(prunedDungeon[i][j], solid), pos.x, pos.y);
                 }
             }
         }
