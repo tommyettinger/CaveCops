@@ -433,7 +433,8 @@ public class CaveCops extends ApplicationAdapter {
                     // already been fully analyzed by the DijkstraMap.partialScan() method at the start of the
                     // program, and re-calculated whenever the player moves, we only need to do a fraction of the
                     // work to find the best path with that info.
-                    toCursor = playerToCursor.findPathPreScanned(cursor);
+                    toCursor.clear();
+                    playerToCursor.findPathPreScanned(toCursor, cursor);
                     // findPathPreScanned includes the current cell (goal) by default, which is helpful when
                     // you're finding a path to a monster or loot, and want to bump into it, but here can be
                     // confusing because you would "move into yourself" as your first move without this.
@@ -488,7 +489,7 @@ public class CaveCops extends ApplicationAdapter {
                             ? SColor.lerpFloatColors(bgColors[i][j], FLOAT_WHITE, 0.9f)
                             : SColor.lerpFloatColors(bgColors[i][j], FLOAT_LIGHTING, (float)visible[i][j] * 0.75f + 0.25f));
                     //batch.draw(solid, pos.x, pos.y);                     
-                    batch.setPackedColor(SColor.lerpFloatColors(colors[i][j], FLOAT_LIGHTING, (float)visible[i][j] * 0.75f + 0.25f));
+//                    batch.setPackedColor(SColor.lerpFloatColors(colors[i][j], FLOAT_LIGHTING, (float)visible[i][j] * 0.75f + 0.25f));
                     batch.draw(charMapping.get(prunedDungeon[i][j], solid), pos.x, pos.y);
                 } else if(seen.contains(i, j)) {
                     pos.set(i * cellWidth, j * cellHeight, 0f);
