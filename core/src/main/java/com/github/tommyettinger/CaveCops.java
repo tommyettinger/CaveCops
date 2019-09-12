@@ -3,28 +3,38 @@ package com.github.tommyettinger;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputAdapter;
-import com.badlogic.gdx.InputMultiplexer;
+import com.badlogic.gdx.InputProcessor;
+import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.badlogic.gdx.graphics.g2d.TextureAtlas;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.badlogic.gdx.utils.viewport.StretchViewport;
+import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.utils.IntMap;
+import com.badlogic.gdx.utils.Scaling;
 import squidpony.ArrayTools;
 import squidpony.squidai.DijkstraMap;
-import squidpony.squidgrid.Direction;
 import squidpony.squidgrid.FOV;
 import squidpony.squidgrid.Measurement;
 import squidpony.squidgrid.Radius;
-import squidpony.squidgrid.gui.gdx.*;
+import squidpony.squidgrid.gui.gdx.FilterBatch;
+import squidpony.squidgrid.gui.gdx.FloatFilters;
+import squidpony.squidgrid.gui.gdx.MapUtility;
+import squidpony.squidgrid.gui.gdx.SColor;
 import squidpony.squidgrid.mapping.DungeonGenerator;
 import squidpony.squidgrid.mapping.DungeonUtility;
 import squidpony.squidgrid.mapping.LineKit;
 import squidpony.squidmath.Coord;
 import squidpony.squidmath.GWTRNG;
 import squidpony.squidmath.GreasedRegion;
-import squidpony.squidmath.NumberTools;
 
 import java.util.ArrayList;
+
+import static com.badlogic.gdx.Input.Keys.*;
+import static squidpony.squidgrid.gui.gdx.SColor.FLOAT_WHITE;
 
 /**
  * This is a small, not-overly-simple demo that presents some important features of SquidLib and shows a faster,
@@ -42,11 +52,19 @@ import java.util.ArrayList;
 public class CaveCops extends ApplicationAdapter {
     // FilterBatch is almost the same as SpriteBatch, but is a bit faster with SquidLib and allows color filtering
     private FilterBatch batch;
+    private PixelPerfectViewport mainViewport;
+    private Camera camera;
+
     // a type of random number generator, see below
     private GWTRNG rng;
-    // rendering classes that show only the chars and backgrounds that they've been told to render, unlike some earlier
-    // classes in SquidLib.
-    private SparseLayers display;
+
+    // Stores all images we use here efficiently, as well as the font image 
+    private TextureAtlas atlas;
+    // This maps chars, such as '#', to specific images, such as a pillar.
+    private IntMap<TextureAtlas.AtlasRegion> charMapping;
+    
+    private BitmapFont font;
+    
     // generates a dungeon as a 2D char array; can also fill some simple features into the dungeon.
     private DungeonGenerator dungeonGen;
     // decoDungeon stores the dungeon map with features like grass and water, if present, as chars like '"' and '~'.
@@ -84,15 +102,27 @@ public class CaveCops extends ApplicationAdapter {
     private static final int cellWidth = 16;
     /** The pixel height of a cell */
     private static final int cellHeight = 16;
-    private SquidInput input;
+    private TextureAtlas.AtlasRegion solid;
+    private Sprite playerSprite;
+    private static final float
+            FLOAT_BLOOD = -0x1.564f86p125F,  // same result as SColor.PURE_CRIMSON.toFloatBits()
+            FLOAT_LIGHTING = SColor.floatGetHSV(0.17f, 0.12f, 0.8f, 1f),//-0x1.cff1fep126F, // same result as SColor.COSMIC_LATTE.toFloatBits()
+            FLOAT_GRAY = -0x1.7e7e7ep125F; // same result as SColor.CW_GRAY_BLACK.toFloatBits()
+
+    private boolean onGrid(int screenX, int screenY)
+    {
+        return screenX >= 0 && screenX < bigWidth && screenY >= 0 && screenY < bigHeight;
+    }
+    private InputProcessor input;
+
     private Color bgColor;
-    private Stage stage;
     private DijkstraMap playerToCursor;
     private Coord cursor, player;
     private ArrayList<Coord> toCursor;
     private ArrayList<Coord> awaitedMoves;
 
     private Vector2 screenPosition;
+    private Vector3 pos = new Vector3();
 
 
     private double[][] resistance;
@@ -101,25 +131,6 @@ public class CaveCops extends ApplicationAdapter {
     // the player's vision that blocks pathfinding to areas we can't see a path to, and we also store all cells that we
     // have seen in the past in a GreasedRegion (in most roguelikes, there would be one of these per dungeon floor).
     private GreasedRegion floors, blockage, seen, currentlySeen;
-    // a Glyph is a kind of scene2d Actor that only holds one char in a specific color, but is drawn using the behavior
-    // of TextCellFactory (which most text in SquidLib is drawn with) instead of the different and not-very-compatible
-    // rules of Label, which older SquidLib code used when it needed text in an Actor. Glyphs are also lighter-weight in
-    // memory usage and time taken to draw than Labels.
-    private TextCellFactory.Glyph pg;
-    // libGDX can use a kind of packed float (yes, the number type) to efficiently store colors, but it also uses a
-    // heavier-weight Color object sometimes; SquidLib has a large list of SColor objects that are often used as easy
-    // predefined colors since SColor extends Color. SparseLayers makes heavy use of packed float colors internally,
-    // but also allows Colors instead for most methods that take a packed float. Some cases, like very briefly-used
-    // colors that are some mix of two other colors, are much better to create as packed floats from other packed
-    // floats, usually using SColor.lerpFloatColors(), which avoids creating any objects. It's ideal to avoid creating
-    // new objects (such as Colors) frequently for only brief usage, because this can cause temporary garbage objects to
-    // build up and slow down the program while they get cleaned up (garbage collection, which is slower on Android).
-    // Recent versions of SquidLib include the packed float literal in the JavaDocs for any SColor, along with previews
-    // of that SColor as a background and foreground when used with other colors, plus more info like the hue,
-    // saturation, and value of the color. Here we just use the packed floats directly from the SColor docs, but we also
-    // mention what color it is in a line comment, which is a good habit so you can see a preview if needed.
-    private static final float FLOAT_LIGHTING = -0x1.cff1fep126F, // same result as SColor.COSMIC_LATTE.toFloatBits()
-            GRAY_FLOAT = -0x1.7e7e7ep125F; // same result as SColor.CW_GRAY_BLACK.toFloatBits()
     // This filters colors in a way we adjust over time, producing a sort of hue shift effect.
     // It can also be used to over- or under-saturate colors, change their brightness, or any combination of these. 
     private FloatFilters.YCwCmFilter warmMildFilter;
@@ -144,19 +155,36 @@ public class CaveCops extends ApplicationAdapter {
         // changed at runtime, and the putMap() method does this. This can be very powerful; you might increase the
         // warmth of all colors (additively) if the player is on fire, for instance.
         batch = new FilterBatch(warmMildFilter);
-        StretchViewport mainViewport = new StretchViewport(gridWidth * cellWidth, gridHeight * cellHeight);
+        mainViewport = new PixelPerfectViewport(Scaling.fill, gridWidth * cellWidth, gridHeight * cellHeight);
         mainViewport.setScreenBounds(0, 0, gridWidth * cellWidth, gridHeight * cellHeight);
-        //Here we make sure our Stage, which holds any text-based grids we make, uses our Batch.
-        stage = new Stage(mainViewport, batch);
-        // the font will try to load Iosevka Slab as an embedded bitmap font with a MSDF effect (multi scale distance
-        // field, a way to allow a bitmap font to stretch while still keeping sharp corners and round curves).
-        // the MSDF effect is handled internally by a shader in SquidLib, and will switch to a different shader if a SDF
-        // effect is used (SDF is called "Stretchable" in DefaultResources, where MSDF is called "Crisp").
-        // this font is covered under the SIL Open Font License (fully free), so there's no reason it can't be used.
-        // it also includes 4 text faces (regular, bold, oblique, and bold oblique) so methods in GDXMarkup can make
-        // italic or bold text without switching fonts (they can color sections of text too).
-        display = new SparseLayers(bigWidth, bigHeight, cellWidth, cellHeight,
-                DefaultResources.getCrispSlabFamily());
+        camera = mainViewport.getCamera();
+        camera.update();
+
+        atlas = new TextureAtlas("Dawnlike.atlas");
+        font = new BitmapFont(Gdx.files.internal("font.fnt"), atlas.findRegion("font"));
+        font.getData().scale(2f);
+
+        charMapping = new IntMap<>(64);
+        solid = atlas.findRegion("totally lit tile");
+        playerSprite = atlas.createSprite("keystone kop");
+        charMapping.put('.', solid);
+        charMapping.put(',', atlas.findRegion("shallow water tile"      ));
+        charMapping.put('~', atlas.findRegion("deep water tile"      ));
+        charMapping.put('"', atlas.findRegion("dusk grass floor c"      ));
+        charMapping.put('#', atlas.findRegion("lit rock wall center"     ));
+        charMapping.put('+', atlas.findRegion("closed wooden door front"));
+        charMapping.put('/', atlas.findRegion("closed wooden door side"  ));
+        charMapping.put('└', atlas.findRegion("lit rock wall right up"            ));
+        charMapping.put('┌', atlas.findRegion("lit rock wall right down"            ));
+        charMapping.put('┬', atlas.findRegion("lit rock wall left right down"           ));
+        charMapping.put('┴', atlas.findRegion("lit rock wall left right up"           ));
+        charMapping.put('─', atlas.findRegion("lit rock wall left right"            ));
+        charMapping.put('│', atlas.findRegion("lit rock wall up down"            ));
+        charMapping.put('├', atlas.findRegion("lit rock wall right up down"           ));
+        charMapping.put('┼', atlas.findRegion("lit rock wall left right up down"          ));
+        charMapping.put('┤', atlas.findRegion("lit rock wall left up down"           ));
+        charMapping.put('┐', atlas.findRegion("lit rock wall left down"            ));
+        charMapping.put('┘', atlas.findRegion("lit rock wall left up"            ));
         
         //This uses the seeded RNG we made earlier to build a procedural dungeon using a method that takes rectangular
         //sections of pre-drawn dungeon and drops them into place in a tiling pattern. It makes good winding dungeons
@@ -245,12 +273,7 @@ public class CaveCops extends ApplicationAdapter {
         // if you gave a seed to the RNG constructor, then the cell this chooses will be reliable for testing. If you
         // don't seed the RNG, any valid cell should be possible.
         player = floors.singleRandom(rng);
-
-        //These need to have their positions set before adding any entities if there is an offset involved.
-        //There is no offset used here, but it's still a good practice here to set positions early on.
-//        display.setPosition(gridWidth * cellWidth * 0.5f - display.worldX(player.x),
-//                gridHeight * cellHeight * 0.5f - display.worldY(player.y));
-        display.setPosition(0f, 0f);
+        playerSprite.setPosition(player.x * 16, player.y * 16);
         // Uses shadowcasting FOV and reuses the visible array without creating new arrays constantly.
         FOV.reuseFOV(resistance, visible, player.x, player.y, 9.0, Radius.CIRCLE);//, (System.currentTimeMillis() & 0xFFFF) * 0x1p-4, 60.0);
         
@@ -306,120 +329,82 @@ public class CaveCops extends ApplicationAdapter {
 //                bgColors[x][y] = f(bgColors[x][y]);
 //            }
 //        }
-        //places the player as an '@' at his position in orange.
-        pg = display.glyph('@', SColor.SAFETY_ORANGE, player.x, player.y);
-
-        // this is a big one.
-        // SquidInput can be constructed with a KeyHandler (which just processes specific keypresses), a SquidMouse
-        // (which is given an InputProcessor implementation and can handle multiple kinds of mouse move), or both.
-        // keyHandler is meant to be able to handle complex, modified key input, typically for games that distinguish
-        // between, say, 'q' and 'Q' for 'quaff' and 'Quip' or whatever obtuse combination you choose. The
-        // implementation here handles hjkl keys (also called vi-keys), numpad, arrow keys, and wasd for 4-way movement.
-        // Shifted letter keys produce capitalized chars when passed to KeyHandler.handle(), but we don't care about
-        // that so we just use two case statements with the same body, i.e. one for 'A' and one for 'a'.
-        // You can also set up a series of future moves by clicking within FOV range, using mouseMoved to determine the
-        // path to the mouse position with a DijkstraMap (called playerToCursor), and using touchUp to actually trigger
-        // the event when someone clicks.
-        input = new SquidInput(new SquidInput.KeyHandler() {
+        
+        input = new InputAdapter() {
             @Override
-            public void handle(char key, boolean alt, boolean ctrl, boolean shift) {
-                switch (key)
+            public boolean keyUp(int keycode) {
+                switch (keycode)
                 {
-                    case SquidInput.UP_ARROW:
-//                    case 'k':
-//                    case 'K':
+                    case UP:
                     case 'w':
                     case 'W':
-                    {
+                    case NUMPAD_8:
                         toCursor.clear();
-                        //-1 is up on the screen
-                        awaitedMoves.add(player.translate(0, -1));
-                        break;
-                    }
-                    case SquidInput.DOWN_ARROW:
-//                    case 'j':
-//                    case 'J':
-                    case 's':
-                    case 'S':
-                    {
-                        toCursor.clear();
-                        //+1 is down on the screen
+                        //+1 is up on the screen
                         awaitedMoves.add(player.translate(0, 1));
                         break;
-                    }
-                    case SquidInput.LEFT_ARROW:
-//                    case 'h':
-//                    case 'H':
+                    case DOWN:
+                    case 's':
+                    case 'S':
+                    case NUMPAD_2:
+                        toCursor.clear();
+                        //-1 is down on the screen
+                        awaitedMoves.add(player.translate(0, -1));
+                        break;
+                    case LEFT:
                     case 'a':
                     case 'A':
-                    {
+                    case NUMPAD_4:
                         toCursor.clear();
                         awaitedMoves.add(player.translate(-1, 0));
                         break;
-                    }
-                    case SquidInput.RIGHT_ARROW:
-//                    case 'l':
-//                    case 'L':
+                    case RIGHT:
                     case 'd':
                     case 'D':
-                    {
+                    case NUMPAD_6:
                         toCursor.clear();
                         awaitedMoves.add(player.translate(1, 0));
                         break;
-                    }
-                    case 'Q':
-                    case 'q':
-                    case SquidInput.ESCAPE:
-                    {
+                    case NUMPAD_1:
+                        toCursor.clear();
+                        awaitedMoves.add(player.translate(-1, -1));
+                        break;
+                    case NUMPAD_3:
+                        toCursor.clear();
+                        awaitedMoves.add(player.translate(1, -1));
+                        break;
+                    case NUMPAD_7:
+                        toCursor.clear();
+                        awaitedMoves.add(player.translate(-1, 1));
+                        break;
+                    case NUMPAD_9:
+                        toCursor.clear();
+                        awaitedMoves.add(player.translate(1, 1));
+                        break;
+                    case '.':
+                    case NUMPAD_5:
+                        toCursor.clear();
+                        awaitedMoves.add(player);
+                        break;
+                    case ESCAPE:
                         Gdx.app.exit();
                         break;
-                    }
-                    case 'c':
-                    case 'C':
-                    {
-                        seen.fill(true);
-                        break;
-                    }
-                }
-            }
-        },
-                //The second parameter passed to a SquidInput can be a SquidMouse, which takes mouse or touchscreen
-                //input and converts it to grid coordinates (here, a cell is 10 wide and 20 tall, so clicking at the
-                // pixel position 16,51 will pass screenX as 1 (since if you divide 16 by 10 and round down you get 1),
-                // and screenY as 2 (since 51 divided by 20 rounded down is 2)).
-                new SquidMouse(cellWidth, cellHeight, gridWidth, gridHeight, 0, 0, new InputAdapter() {
-
-            // if the user clicks and there are no awaitedMoves queued up, generate toCursor if it
-            // hasn't been generated already by mouseMoved, then copy it over to awaitedMoves.
-            @Override
-            public boolean touchUp(int screenX, int screenY, int pointer, int button) {
-                // This is needed because we center the camera on the player as he moves through a dungeon that is three
-                // screens wide and three screens tall, but the mouse still only can receive input on one screen's worth
-                // of cells. (gridWidth >> 1) halves gridWidth, pretty much, and that we use to get the centered
-                // position after adding to the player's position (along with the gridHeight).
-                screenX += player.x - (gridWidth >> 1);
-                screenY += player.y - (gridHeight >> 1);
-                // we also need to check if screenX or screenY is out of bounds.
-                if (screenX < 0 || screenY < 0 || screenX >= bigWidth || screenY >= bigHeight)
-                    return false;
-                if (awaitedMoves.isEmpty()) {
-                    if (toCursor.isEmpty()) {
-                        cursor = Coord.get(screenX, screenY);
-                        //This uses DijkstraMap.findPathPreScannned() to get a path as a List of Coord from the current
-                        // player position to the position the user clicked on. The "PreScanned" part is an optimization
-                        // that's special to DijkstraMap; because the whole map has already been fully analyzed by the
-                        // DijkstraMap.scan() method at the start of the program, and re-calculated whenever the player
-                        // moves, we only need to do a fraction of the work to find the best path with that info.
-                        playerToCursor.findPathPreScanned(toCursor, cursor);
-                        //findPathPreScanned includes the current cell (goal) by default, which is helpful when
-                        // you're finding a path to a monster or loot, and want to bump into it, but here can be
-                        // confusing because you would "move into yourself" as your first move without this.
-                        if(!toCursor.isEmpty())
-                            toCursor.remove(0);
-                    }
-                    awaitedMoves.addAll(toCursor);
                 }
                 return true;
+            }
+
+            // if the user clicks and mouseMoved hasn't already assigned a path to toCursor, then we call mouseMoved
+            // ourselves and copy toCursor over to awaitedMoves.
+            @Override
+            public boolean touchUp(int screenX, int screenY, int pointer, int button) {
+                pos.set(screenX, screenY, 0f);
+                mainViewport.unproject(pos);
+                if (onGrid(MathUtils.floor(pos.x) >> 4, MathUtils.floor(pos.y) >> 4)) {
+                    mouseMoved(screenX, screenY);
+                    awaitedMoves.addAll(toCursor);
+                    return true;
+                }
+                return false;
             }
 
             @Override
@@ -433,41 +418,33 @@ public class CaveCops extends ApplicationAdapter {
             public boolean mouseMoved(int screenX, int screenY) {
                 if(!awaitedMoves.isEmpty())
                     return false;
-                // This is needed because we center the camera on the player as he moves through a dungeon that is three
-                // screens wide and three screens tall, but the mouse still only can receive input on one screen's worth
-                // of cells. (gridWidth >> 1) halves gridWidth, pretty much, and that we use to get the centered
-                // position after adding to the player's position (along with the gridHeight).
-                screenX += player.x - (gridWidth >> 1);
-                screenY += player.y - (gridHeight >> 1);
-                // we also need to check if screenX or screenY is out of bounds.
-                if(screenX < 0 || screenY < 0 || screenX >= bigWidth || screenY >= bigHeight ||
-                        (cursor.x == screenX && cursor.y == screenY))
-                {
-                    return false;
+                pos.set(screenX, screenY, 0f);
+                mainViewport.unproject(pos);
+                if (onGrid(screenX = MathUtils.floor(pos.x) >> 4, screenY = MathUtils.floor(pos.y) >> 4)) {
+                    // we also need to check if screenX or screenY is out of bounds.
+                    if (screenX < 0 || screenY < 0 || screenX >= bigWidth || screenY >= bigHeight ||
+                            (cursor.x == screenX && cursor.y == screenY)) {
+                        return false;
+                    }
+                    cursor = Coord.get(screenX, screenY);
+                    // This uses DijkstraMap.findPathPreScannned() to get a path as a List of Coord from the current
+                    // player position to the position the user clicked on. The "PreScanned" part is an optimization
+                    // that's special to DijkstraMap; because the part of the map that is viable to move into has
+                    // already been fully analyzed by the DijkstraMap.partialScan() method at the start of the
+                    // program, and re-calculated whenever the player moves, we only need to do a fraction of the
+                    // work to find the best path with that info.
+                    toCursor = playerToCursor.findPathPreScanned(cursor);
+                    // findPathPreScanned includes the current cell (goal) by default, which is helpful when
+                    // you're finding a path to a monster or loot, and want to bump into it, but here can be
+                    // confusing because you would "move into yourself" as your first move without this.
+                    if (!toCursor.isEmpty()) {
+                        toCursor.remove(0);
+                    }
                 }
-                cursor = Coord.get(screenX, screenY);
-                //This uses DijkstraMap.findPathPreScannned() to get a path as a List of Coord from the current
-                // player position to the position the user clicked on. The "PreScanned" part is an optimization
-                // that's special to DijkstraMap; because the whole map has already been fully analyzed by the
-                // DijkstraMap.scan() method at the start of the program, and re-calculated whenever the player
-                // moves, we only need to do a fraction of the work to find the best path with that info.
-
-                toCursor.clear();
-                playerToCursor.findPathPreScanned(toCursor, cursor);
-                //findPathPreScanned includes the current cell (goal) by default, which is helpful when
-                // you're finding a path to a monster or loot, and want to bump into it, but here can be
-                // confusing because you would "move into yourself" as your first move without this.
-                if(!toCursor.isEmpty()) 
-                    toCursor.remove(0);
                 return false;
             }
-        }));
-        //Setting the InputProcessor is ABSOLUTELY NEEDED TO HANDLE INPUT
-        Gdx.input.setInputProcessor(new InputMultiplexer(stage, input));
-        //You might be able to get by with the next line instead of the above line, but the former is preferred.
-        //Gdx.input.setInputProcessor(input);
-        // and then add display, our one visual component, to the list of things that act in Stage.
-        stage.addActor(display);
+        };
+        Gdx.input.setInputProcessor(input);
 
         screenPosition = new Vector2(cellWidth, cellHeight);
     }
@@ -482,9 +459,7 @@ public class CaveCops extends ApplicationAdapter {
         if (newX >= 0 && newY >= 0 && newX < bigWidth && newY < bigHeight
                 && bareDungeon[newX][newY] != '#')
         {
-            // we can call some methods on a SparseLayers to show effects on Glyphs it knows about.
-            // sliding pg, the player glyph, makes that '@' move smoothly between grid cells.
-            display.slide(pg, player.x, player.y, newX, newY, 0.12f, null);
+            playerSprite.translate(xmod * 16, ymod * 16);
             // this just moves the grid position of the player as it is internally tracked.
             player = player.translate(xmod, ymod);
             // calculates field of vision around the player again, in a circle of radius 9.0 .
@@ -498,33 +473,6 @@ public class CaveCops extends ApplicationAdapter {
             // line segments that haven't ever been visible. This is called again whenever seen changes.
             LineKit.pruneLines(lineDungeon, seen, LineKit.lightAlt, prunedDungeon);
         }
-        else
-        {
-            // A SparseLayers knows how to move a Glyph (like the one for the player, pg) out of its normal alignment
-            // on the grid, and also how to move it back again. Using bump() will move pg quickly about a third of the
-            // way into a wall, then back to its former position at normal speed. Direction.getRoughDirection is a
-            // simple way to get which of the 8-way directions small xmod and ymod values point in.
-            display.bump(pg, Direction.getRoughDirection(xmod, ymod), 0.25f);
-            // PanelEffect (from SquidLib) is a type of Action (from libGDX) that can run on a SparseLayers.
-            // This particular kind of PanelEffect creates a purple glow around the player when he bumps into a wall.
-            // Other kinds can make explosions or projectiles appear.
-            display.addAction(new PanelEffect.PulseEffect(display, 1f, currentlySeen, player, 3
-                    , new float[]{SColor.CW_FADED_PURPLE.toFloatBits()}
-                    ));
-            // recolor() will change the color of a cell over time from what it is currently to a target color, which is
-            // DB_BLOOD here from a DawnBringer palette. We give it a Runnable to run after the effect finishes, which
-            // permanently sets the color of the cell you bumped into to the color of your bloody nose. Without such a 
-            // Runnable, the cell would get drawn over with its normal wall color.
-            display.recolor(0f, player.x + xmod, player.y + ymod, 0, SColor.DB_BLOOD.toFloatBits(), 0.4f, new Runnable() {
-                int x = player.x + xmod;
-                int y = player.y + ymod;
-                @Override
-                public void run() {
-                    colors[x][y] = SColor.DB_BLOOD.toFloatBits();
-                }
-            });
-            //display.addAction(new PanelEffect.ExplosionEffect(display, 1f, floors, player, 6));
-        }
     }
 
     /**
@@ -532,42 +480,32 @@ public class CaveCops extends ApplicationAdapter {
      */
     public void putMap()
     {
-        //In many other situations, you would clear the drawn characters to prevent things that had been drawn in the
-        //past from affecting the current frame. This isn't a problem here, but would probably be an issue if we had
-        //monsters running in and out of our vision. If artifacts from previous frames show up, uncomment the next line.
-        //display.clear();
-        
-        // causes colors to cycle semi-randomly from warm reds and browns to cold cyan-blues
-        warmMildFilter.cwMul = NumberTools.swayRandomized(123456789L, (System.currentTimeMillis() & 0x1FFFFFL) * 0x1.2p-10f) * 1.75f;
-        
-        // The loop here only will draw tiles if they are potentially in the visible part of the map.
-        // It starts at an x,y position equal to the player's position minus half of the shown gridWidth and gridHeight,
-        // minus one extra cell to allow the camera some freedom to move. This position won't go lower than 0. The
-        // rendering in each direction ends when the edge of the map (bigWidth or bigHeight) is reached, or if
-        // gridWidth/gridHeight + 2 cells have been rendered (the + 2 is also for the camera movement).
-        for (int x = Math.max(0, player.x - (gridWidth >> 1) - 1), i = 0; x < bigWidth && i < gridWidth + 2; x++, i++) {
-            for (int y = Math.max(0, player.y - (gridHeight >> 1) - 1), j = 0; y < bigHeight && j < gridHeight + 2; y++, j++) {
-                if (visible[x][y] > 0.0) {
-                    // Here we use a convenience method in SparseLayers that puts a char at a specified position (the
-                    // first three parameters), with a foreground color for that char (fourth parameter), as well as
-                    // placing a background tile made of a one base color (fifth parameter) that is adjusted to bring it
-                    // closer to FLOAT_LIGHTING (sixth parameter) based on how visible the cell is (seventh parameter,
-                    // comes from the FOV calculations) in a way that fairly-quickly changes over time.
-                    // This effect appears to shrink and grow in a circular area around the player, with the lightest
-                    // cells around the player and dimmer ones near the edge of vision. This lighting is "consistent"
-                    // because all cells at the same distance will have the same amount of lighting applied.
-                    // We use prunedDungeon here so segments of walls that the player isn't aware of won't be shown.
-                    display.putWithConsistentLight(x, y, prunedDungeon[x][y], colors[x][y], bgColors[x][y], FLOAT_LIGHTING, visible[x][y]);
-                } else if (seen.contains(x, y))
-                    display.put(x, y, prunedDungeon[x][y], colors[x][y], SColor.lerpFloatColors(bgColors[x][y], GRAY_FLOAT, 0.45f));
+        for (int i = 0; i < bigWidth; i++) {
+            for (int j = 0; j < bigHeight; j++) {
+                if(visible[i][j] > 0.0) {
+                    pos.set(i * cellWidth, j * cellHeight, 0f);
+                    batch.setPackedColor(toCursor.contains(Coord.get(i, j))
+                            ? SColor.lerpFloatColors(bgColors[i][j], FLOAT_WHITE, 0.9f)
+                            : SColor.lerpFloatColors(bgColors[i][j], FLOAT_LIGHTING, (float)visible[i][j] * 0.75f + 0.25f));
+                    //batch.draw(solid, pos.x, pos.y);                     
+                    batch.setPackedColor(SColor.lerpFloatColors(colors[i][j], FLOAT_LIGHTING, (float)visible[i][j] * 0.75f + 0.25f));
+                    batch.draw(charMapping.get(lineDungeon[i][j], solid), pos.x, pos.y);
+                } else if(seen.contains(i, j)) {
+                    pos.set(i * cellWidth, j * cellHeight, 0f);
+                    batch.setPackedColor(SColor.lerpFloatColors(bgColors[i][j], FLOAT_GRAY, 0.7f));
+                    //batch.draw(solid, pos.x, pos.y);
+//                    if ((monster = monsters.get(Coord.get(i, j))) != null)
+//                        monster.setAlpha(0f);
+                    batch.setPackedColor(SColor.lerpFloatColors(colors[i][j], FLOAT_GRAY, 0.7f));
+                    batch.draw(charMapping.get(lineDungeon[i][j], solid), pos.x, pos.y);
+                }
             }
         }
-        Coord pt;
-        for (int i = 0; i < toCursor.size(); i++) {
-            pt = toCursor.get(i);
-            // use a brighter light to trace the path to the cursor, mixing the background color with mostly white.
-            display.put(pt.x, pt.y, SColor.lightenFloat(bgColors[pt.x][pt.y], 0.85f));
-        }
+//        for (int i = 0; i < monsters.size(); i++) {
+//            monsters.getAt(i).draw(batch);
+//        }
+        playerSprite.draw(batch);
+        Gdx.graphics.setTitle(Gdx.graphics.getFramesPerSecond() + " FPS");
     }
     @Override
     public void render () {
@@ -575,79 +513,49 @@ public class CaveCops extends ApplicationAdapter {
         Gdx.gl.glClearColor(bgColor.r, bgColor.g, bgColor.b, 1.0f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        stage.getCamera().position.x = pg.getX();
-        stage.getCamera().position.y =  pg.getY();
+        camera.position.x = playerSprite.getX();
+        camera.position.y =  playerSprite.getY();
+        camera.update();
 
+        mainViewport.apply(false);
+        batch.setProjectionMatrix(camera.combined);
+        batch.begin();
         putMap();
         // if the user clicked, we have a list of moves to perform.
-        if(!awaitedMoves.isEmpty())
-        {
+        if(!awaitedMoves.isEmpty()) {
             // this doesn't check for input, but instead processes and removes Coords from awaitedMoves.
-            if (!display.hasActiveAnimations()) {
-                Coord m = awaitedMoves.remove(0);
-                if(!toCursor.isEmpty())
-                    toCursor.remove(0);
-                move(m.x - player.x, m.y - player.y);
-                // this only happens if we just removed the last Coord from awaitedMoves, and it's only then that we need to
-                // re-calculate the distances from all cells to the player. We don't need to calculate this information on
-                // each part of a many-cell move (just the end), nor do we need to calculate it whenever the mouse moves.
-                if (awaitedMoves.isEmpty()) {
-                    // the next two lines remove any lingering data needed for earlier paths
-                    playerToCursor.clearGoals();
-                    playerToCursor.resetMap();
-                    // the next line marks the player as a "goal" cell, which seems counter-intuitive, but it works because all
-                    // cells will try to find the distance between themselves and the nearest goal, and once this is found, the
-                    // distances don't change as long as the goals don't change. Since the mouse will move and new paths will be
-                    // found, but the player doesn't move until a cell is clicked, the "goal" is the non-changing cell (the
-                    // player's position), and the "target" of a pathfinding method like DijkstraMap.findPathPreScanned() is the
-                    // currently-moused-over cell, which we only need to set where the mouse is being handled.
-                    playerToCursor.setGoal(player);
-                    // DijkstraMap.partialScan only finds the distance to get to a cell if that distance is less than some limit,
-                    // which is 13 here. It also won't try to find distances through an impassable cell, which here is the blockage
-                    // GreasedRegion that contains the cells just past the edge of the player's FOV area.
-                    playerToCursor.partialScan(13, blockage);
-                }
+            Coord m = awaitedMoves.remove(0);
+            if (!toCursor.isEmpty())
+                toCursor.remove(0);
+            move(m.x - player.x, m.y - player.y);
+            // this only happens if we just removed the last Coord from awaitedMoves, and it's only then that we need to
+            // re-calculate the distances from all cells to the player. We don't need to calculate this information on
+            // each part of a many-cell move (just the end), nor do we need to calculate it whenever the mouse moves.
+            if (awaitedMoves.isEmpty()) {
+                // the next two lines remove any lingering data needed for earlier paths
+                playerToCursor.clearGoals();
+                playerToCursor.resetMap();
+                // the next line marks the player as a "goal" cell, which seems counter-intuitive, but it works because all
+                // cells will try to find the distance between themselves and the nearest goal, and once this is found, the
+                // distances don't change as long as the goals don't change. Since the mouse will move and new paths will be
+                // found, but the player doesn't move until a cell is clicked, the "goal" is the non-changing cell (the
+                // player's position), and the "target" of a pathfinding method like DijkstraMap.findPathPreScanned() is the
+                // currently-moused-over cell, which we only need to set where the mouse is being handled.
+                playerToCursor.setGoal(player);
+                // DijkstraMap.partialScan only finds the distance to get to a cell if that distance is less than some limit,
+                // which is 13 here. It also won't try to find distances through an impassable cell, which here is the blockage
+                // GreasedRegion that contains the cells just past the edge of the player's FOV area.
+                playerToCursor.partialScan(13, blockage);
             }
         }
-        // if we are waiting for the player's input and get input, process it.
-        else if(input.hasNext()) {
-            input.next();
-        }
-        //else
-        //    move(0,0);
-        // certain classes that use scene2d.ui widgets need to be told to act() to process input.
-        stage.act();
-        // we have the main stage set itself up after the language stage has already drawn.
-        stage.getViewport().apply(false);
-        // stage has its own batch and must be explicitly told to draw().
-        batch.setProjectionMatrix(stage.getCamera().combined);
-        screenPosition.set(cellWidth * 12, cellHeight);
-        stage.screenToStageCoordinates(screenPosition);
-        batch.begin();
-        stage.getRoot().draw(batch, 1);
-        display.font.draw(batch, Gdx.graphics.getFramesPerSecond() + " FPS", screenPosition.x, screenPosition.y);
         batch.end();
-        Gdx.graphics.setTitle("SparseLayers Demo running at FPS: " + Gdx.graphics.getFramesPerSecond());
     }
 
     @Override
     public void resize(int width, int height) {
         super.resize(width, height);
 
-        // message box won't respond to clicks on the far right if the stage hasn't been updated with a larger size
-        float currentZoomX = (float)width / gridWidth;
-        // total new screen height in pixels divided by total number of rows on the screen
-        float currentZoomY = (float)height / gridHeight;
-        
-        // SquidMouse turns screen positions to cell positions, and needs to be told that cell sizes have changed
-        // a quirk of how the camera works requires the mouse to be offset by half a cell if the width or height is odd
-        // (gridWidth & 1) is 1 if gridWidth is odd or 0 if it is even; it's good to know and faster than using % , plus
-        // in some other cases it has useful traits (x % 2 can be 0, 1, or -1 depending on whether x is negative, while
-        // x & 1 will always be 0 or 1).
-        input.getMouse().reinitialize(currentZoomX, currentZoomY, gridWidth, gridHeight,
-                (gridWidth & 1) * (int)(currentZoomX * -0.5f), (gridHeight & 1) * (int) (currentZoomY * -0.5f));
-        // we also set the bounds of that drawn area here for each viewport.
-        stage.getViewport().update(width, height, false);
-        stage.getViewport().setScreenBounds(0, 0, width, height);
+        mainViewport.update(width, height, false);
+        mainViewport.setScreenBounds(0, 0, width, height);
     }
 }
