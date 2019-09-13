@@ -24,7 +24,6 @@ import squidpony.squidgrid.FOV;
 import squidpony.squidgrid.Measurement;
 import squidpony.squidgrid.Radius;
 import squidpony.squidgrid.gui.gdx.FilterBatch;
-import squidpony.squidgrid.gui.gdx.SColor;
 import squidpony.squidgrid.mapping.DungeonGenerator;
 import squidpony.squidgrid.mapping.DungeonUtility;
 import squidpony.squidgrid.mapping.LineKit;
@@ -35,7 +34,6 @@ import squidpony.squidmath.GreasedRegion;
 import java.util.ArrayList;
 
 import static com.badlogic.gdx.Input.Keys.*;
-import static squidpony.squidgrid.gui.gdx.SColor.FLOAT_WHITE;
 
 /**
  * This is a small, not-overly-simple demo that presents some important features of SquidLib and shows a faster,
@@ -77,7 +75,7 @@ public class CaveCops extends ApplicationAdapter {
     private char[][] decoDungeon, bareDungeon, lineDungeon, prunedDungeon;
     
     public ShaderProgram shader;
-    public Vector3 add, mul;
+//    public Vector3 add, mul;
     private Texture palette;
 
 
@@ -98,9 +96,10 @@ public class CaveCops extends ApplicationAdapter {
     private TextureAtlas.AtlasRegion solid;
     private Sprite playerSprite;
     private static final float
-            FLOAT_BLOOD = -0x1.564f86p125F,  // same result as SColor.PURE_CRIMSON.toFloatBits()
-            FLOAT_LIGHTING = SColor.floatGetHSV(0.17f, 0.12f, 0.8f, 1f),//-0x1.cff1fep126F, // same result as SColor.COSMIC_LATTE.toFloatBits()
-            FLOAT_GRAY = -0x1.7e7e7ep125F; // same result as SColor.CW_GRAY_BLACK.toFloatBits()
+//            FLOAT_BLOOD = -0x1.564f86p125F,  // same result as SColor.PURE_CRIMSON.toFloatBits()
+//            FLOAT_LIGHTING = SColor.floatGetHSV(0.17f, 0.12f, 0.8f, 1f),//-0x1.cff1fep126F, // same result as SColor.COSMIC_LATTE.toFloatBits()
+            FLOAT_GRAY = Color.toFloatBits(0.15f, 0.45f, 0.5f, 0.2f),
+            FLOAT_NEUTRAL = Color.toFloatBits(0.5f, 0.5f, 0.5f, 0.5f);
 
     private InputProcessor input;
 
@@ -132,11 +131,12 @@ public class CaveCops extends ApplicationAdapter {
         // SquidLib has many methods that expect an IRNG instance, and there's several classes to choose from.
         // In this program we'll use GWTRNG, which will behave better on the HTML target than other generators.
         rng = new GWTRNG(1337);
-        shader = new ShaderProgram(ShaderUtils.vertexShader, ShaderUtils.fragmentShaderWarmMildLimited);
+        shader = new ShaderProgram(ShaderUtils.vertexShader, ShaderUtils.fragmentShader);
+//        shader = new ShaderProgram(ShaderUtils.vertexShader, ShaderUtils.fragmentShaderWarmMildLimited);
         if (!shader.isCompiled()) throw new GdxRuntimeException("Couldn't compile shader: " + shader.getLog());
         batch = new FilterBatch(8000, shader);
-        add = new Vector3(0, 0, 0);
-        mul = new Vector3(1, 1, 1);
+//        add = new Vector3(0, 0, 0);
+//        mul = new Vector3(1, 1, 1);
 
         mainViewport = new PixelPerfectViewport(Scaling.fill, gridWidth * cellWidth, gridHeight * cellHeight);
         mainViewport.setScreenBounds(0, 0, gridWidth * cellWidth, gridHeight * cellHeight);
@@ -153,6 +153,7 @@ public class CaveCops extends ApplicationAdapter {
         charMapping = new IntMap<>(64);
         solid = atlas.findRegion("day tile floor c");
         playerSprite = atlas.createSprite("keystone kop");
+        playerSprite.setPackedColor(FLOAT_NEUTRAL);
         charMapping.put('.', solid);
         charMapping.put(',', atlas.findRegion("brick clear pool center"      ));
         charMapping.put('~', atlas.findRegion("brick murky pool center"      ));
@@ -465,15 +466,18 @@ public class CaveCops extends ApplicationAdapter {
             for (int j = 0; j < bigHeight; j++) {
                 if(visible[i][j] > 0.0) {
                     pos.set(i * cellWidth, j * cellHeight, 0f);
-                    batch.setPackedColor(toCursor.contains(Coord.get(i, j))
-                            ? FLOAT_WHITE
-                            : SColor.lerpFloatColors(FLOAT_GRAY, FLOAT_LIGHTING, (float)visible[i][j] * 0.85f + 0.15f));
+//                    batch.setPackedColor(toCursor.contains(Coord.get(i, j))
+//                            ? FLOAT_WHITE
+//                            : SColor.lerpFloatColors(FLOAT_GRAY, FLOAT_LIGHTING, (float)visible[i][j] * 0.75f + 0.25f));
+                    batch.setColor(toCursor.contains(Coord.get(i, j))
+                                    ? 0.8f
+                                    : (float)visible[i][j] * 0.5f + 0.2f,
+                            0.6f, 0.57f, (float)visible[i][j] * 0.35f + 0.1f);
                     //batch.draw(solid, pos.x, pos.y);                     
 //                    batch.setPackedColor(SColor.lerpFloatColors(colors[i][j], FLOAT_LIGHTING, (float)visible[i][j] * 0.75f + 0.25f));
                     batch.draw(charMapping.get(prunedDungeon[i][j], solid), pos.x, pos.y);
                 } else if(seen.contains(i, j)) {
                     pos.set(i * cellWidth, j * cellHeight, 0f);
-                    batch.setPackedColor(FLOAT_GRAY);
                     //batch.draw(solid, pos.x, pos.y);
 //                    if ((monster = monsters.get(Coord.get(i, j))) != null)
 //                        monster.setAlpha(0f);
@@ -504,8 +508,8 @@ public class CaveCops extends ApplicationAdapter {
         palette.bind();
         batch.begin();
         shader.setUniformi("u_palette", 1);
-        shader.setUniformf("u_mul", mul);
-        shader.setUniformf("u_add", add);
+//        shader.setUniformf("u_mul", mul);
+//        shader.setUniformf("u_add", add);
         Gdx.gl.glActiveTexture(GL20.GL_TEXTURE0);
         putMap();
         // if the user clicked, we have a list of moves to perform.

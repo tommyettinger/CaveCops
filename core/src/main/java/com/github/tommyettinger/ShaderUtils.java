@@ -34,15 +34,17 @@ public class ShaderUtils {
                     "void main()\n" +
                     "{\n" +
                     "   vec4 tgt = texture2D( u_texture, v_texCoords );\n" +
+                    "   vec3 ycc = 2.0 * vec3(v_color.r * dot(tgt.rgb, bright), (v_color.g - 0.5) + v_color.a * (tgt.r - tgt.b), (v_color.b - 0.5) + v_color.a * (tgt.g - tgt.b));\n" +
+                    "   tgt.rgb = clamp(vec3(dot(ycc, vec3(1.0, 0.625, -0.5)), dot(ycc, vec3(1.0, -0.375, 0.5)), dot(ycc, vec3(1.0, -0.375, -0.5))), 0.0, 1.0);\n" +
                     "   vec4 used = texture2D(u_palette, vec2((tgt.b * b_adj + floor(tgt.r * 31.999)) * rb_adj, 1.0 - tgt.g));\n" +
+                    "   float len = ycc.r + 1.5;\n" +
+                    "   float adj = (fract(52.9829189 * fract(dot(vec2(0.06711056, 0.00583715), gl_FragCoord.xy + len))) - 0.5) * len;\n" +
 //                    "   float len = dot(tgt.rgb, bright * 0.0625) + 1.0;\n" +
 //                    "   float adj = fract(52.9829189 * fract(dot(vec4(0.06711056, 0.00583715, 0.7548776662466927, 0.5698402909980532), gl_FragCoord.xyyx))) - 0.5;\n" +
 //                    "   float len = fract(dot(tgt.rgb, bright) * dot(sin(gl_FragCoord.xy * 5.6789), vec2(14.743036261279236, 13.580412143837574)));\n" +
 //                    "   float adj = len * 0.4 - 0.2;\n" +
-                    "   float len = dot(tgt.rgb, bright * 0.0625) + 0.5;\n" +
-                    "   float adj = (fract(52.9829189 * fract(dot(vec2(0.06711056, 0.00583715), sin(gl_FragCoord.xy + len) + cos(gl_FragCoord.yx)))) - 0.5) * len;\n" +
-                    "   tgt.rgb = 2.0 * vec3(v_color.r * dot(tgt.rgb, bright), (v_color.g - 0.5) + v_color.a * (tgt.r - tgt.b), (v_color.b - 0.5) + v_color.a * (tgt.g - tgt.b));\n" +
-                    "   tgt.rgb = clamp(vec3(dot(tgt.rgb, vec3(1.0, 0.625, -0.5)), dot(tgt.rgb, vec3(1.0, -0.375, 0.5)), dot(tgt.rgb, vec3(1.0, -0.375, -0.5))), 0.0, 1.0);\n" +
+//                    "   float len = dot(tgt.rgb, bright * 0.0625) + 0.5;\n" +
+//                    "   float adj = (fract(52.9829189 * fract(dot(vec2(0.06711056, 0.00583715), sin(gl_FragCoord.xy + len) + cos(gl_FragCoord.yx)))) - 0.5) * len;\n" +
                     "   tgt.rgb = clamp(tgt.rgb + (tgt.rgb - used.rgb) * adj, 0.0, 1.0);\n" +
                     "   gl_FragColor.rgb = texture2D(u_palette, vec2((tgt.b * b_adj + floor(tgt.r * 31.999)) * rb_adj, 1.0 - tgt.g)).rgb;\n" +
                     "   gl_FragColor.a = tgt.a;\n" +
