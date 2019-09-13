@@ -7,12 +7,15 @@ import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
+import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.utils.GdxRuntimeException;
 import com.badlogic.gdx.utils.IntMap;
 import com.badlogic.gdx.utils.Scaling;
 import squidpony.ArrayTools;
@@ -21,8 +24,6 @@ import squidpony.squidgrid.FOV;
 import squidpony.squidgrid.Measurement;
 import squidpony.squidgrid.Radius;
 import squidpony.squidgrid.gui.gdx.FilterBatch;
-import squidpony.squidgrid.gui.gdx.FloatFilters;
-import squidpony.squidgrid.gui.gdx.MapUtility;
 import squidpony.squidgrid.gui.gdx.SColor;
 import squidpony.squidgrid.mapping.DungeonGenerator;
 import squidpony.squidgrid.mapping.DungeonUtility;
@@ -74,19 +75,11 @@ public class CaveCops extends ApplicationAdapter {
     // prunedDungeon takes lineDungeon and adjusts it so unseen segments of wall (represented by box-drawing characters)
     //   are removed from rendering; unlike the others, it is frequently changed.
     private char[][] decoDungeon, bareDungeon, lineDungeon, prunedDungeon;
-    private float[][] colors, bgColors;
+    
+    public ShaderProgram shader;
+    public Vector3 add, mul;
+    private Texture palette;
 
-    //Here, gridHeight refers to the total number of rows to be displayed on the screen.
-    //We're displaying 25 rows of dungeon, then 7 more rows of text generation to show some tricks with language.
-    //gridHeight is 25 because that variable will be used for generating the dungeon (the actual size of the dungeon
-    //will be triple gridWidth and triple gridHeight), and determines how much off the dungeon is visible at any time.
-    //The bonusHeight is the number of additional rows that aren't handled like the dungeon rows and are shown in a
-    //separate area; here we use them for translations. The gridWidth is 90, which means we show 90 grid spaces
-    //across the whole screen, but the actual dungeon is larger. The cellWidth and cellHeight are 10 and 20, which will
-    //match the starting dimensions of a cell in pixels, but won't be stuck at that value because we use a "Stretchable"
-    //font, and so the cells can change size (they don't need to be scaled by equal amounts, either). While gridWidth
-    //and gridHeight are measured in spaces on the grid, cellWidth and cellHeight are the initial pixel dimensions of
-    //one cell; resizing the window can make the units cellWidth and cellHeight use smaller or larger than a pixel.
 
     /** In number of cells */
     private static final int gridWidth = 64;
@@ -109,10 +102,6 @@ public class CaveCops extends ApplicationAdapter {
             FLOAT_LIGHTING = SColor.floatGetHSV(0.17f, 0.12f, 0.8f, 1f),//-0x1.cff1fep126F, // same result as SColor.COSMIC_LATTE.toFloatBits()
             FLOAT_GRAY = -0x1.7e7e7ep125F; // same result as SColor.CW_GRAY_BLACK.toFloatBits()
 
-    private boolean onGrid(int screenX, int screenY)
-    {
-        return screenX >= 0 && screenX < bigWidth && screenY >= 0 && screenY < bigHeight;
-    }
     private InputProcessor input;
 
     private Color bgColor;
@@ -131,9 +120,7 @@ public class CaveCops extends ApplicationAdapter {
     // the player's vision that blocks pathfinding to areas we can't see a path to, and we also store all cells that we
     // have seen in the past in a GreasedRegion (in most roguelikes, there would be one of these per dungeon floor).
     private GreasedRegion floors, blockage, seen, currentlySeen;
-    // This filters colors in a way we adjust over time, producing a sort of hue shift effect.
-    // It can also be used to over- or under-saturate colors, change their brightness, or any combination of these. 
-    private FloatFilters.YCwCmFilter warmMildFilter;
+
     @Override
     public void create () {
         // gotta have a random number generator. We can seed an RNG with any long we want, or even a String.
@@ -145,16 +132,12 @@ public class CaveCops extends ApplicationAdapter {
         // SquidLib has many methods that expect an IRNG instance, and there's several classes to choose from.
         // In this program we'll use GWTRNG, which will behave better on the HTML target than other generators.
         rng = new GWTRNG(1337);
-        // YCwCmFilter multiplies the brightness (Y), warmth (Cw), and mildness (Cm) of a color 
-        warmMildFilter = new FloatFilters.YCwCmFilter(0.875f, 0.6f, 0.6f);
+        shader = new ShaderProgram(ShaderUtils.vertexShader, ShaderUtils.fragmentShaderWarmMildLimited);
+        if (!shader.isCompiled()) throw new GdxRuntimeException("Couldn't compile shader: " + shader.getLog());
+        batch = new FilterBatch(8000, shader);
+        add = new Vector3(0, 0, 0);
+        mul = new Vector3(1, 1, 1);
 
-        // FilterBatch is exactly like libGDX' SpriteBatch, except it is a fair bit faster when the Batch color is set
-        // often (which is always true for SquidLib's text-based display), and it allows a FloatFilter to be optionally
-        // set that can adjust colors in various ways. The FloatFilter here, a YCwCmFilter, can have its adjustments to
-        // brightness (Y, also called luma), warmth (blue/green vs. red/yellow) and mildness (blue/red vs. green/yellow)
-        // changed at runtime, and the putMap() method does this. This can be very powerful; you might increase the
-        // warmth of all colors (additively) if the player is on fire, for instance.
-        batch = new FilterBatch(warmMildFilter);
         mainViewport = new PixelPerfectViewport(Scaling.fill, gridWidth * cellWidth, gridHeight * cellHeight);
         mainViewport.setScreenBounds(0, 0, gridWidth * cellWidth, gridHeight * cellHeight);
         camera = mainViewport.getCamera();
@@ -163,7 +146,10 @@ public class CaveCops extends ApplicationAdapter {
         atlas = new TextureAtlas("Dawnlike.atlas");
         font = new BitmapFont(Gdx.files.internal("font.fnt"), atlas.findRegion("font"));
         font.getData().scale(2f);
-
+        
+//        palette = new Texture("DawnSmash256_GLSL.png");
+        palette = new Texture("GBGreen16_GLSL.png");
+        
         charMapping = new IntMap<>(64);
         solid = atlas.findRegion("day tile floor c");
         playerSprite = atlas.createSprite("keystone kop");
@@ -319,10 +305,8 @@ public class CaveCops extends ApplicationAdapter {
         //same size as decoDungeon that store the colors for the foregrounds and backgrounds of each cell as packed
         //floats (a format SparseLayers can use throughout its API), using the colors for the cell with the same x and
         //y. By changing an item in SColor.LIMITED_PALETTE, we also change the color assigned by MapUtility to floors.
-        bgColor = SColor.DB_INK;
-        SColor.LIMITED_PALETTE[3] = SColor.DB_GRAPHITE;
-        colors = MapUtility.generateDefaultColorsFloat(decoDungeon);
-        bgColors = MapUtility.generateDefaultBGColorsFloat(decoDungeon);
+        bgColor = new Color(0x132C2DFF);
+//        bgColor = SColor.DB_INK;
 //        for (int x = 0; x < bigWidth; x++) {
 //            for (int y = 0; y < bigHeight; y++) {
 //                colors[x][y] = f(colors[x][y]);
@@ -486,18 +470,18 @@ public class CaveCops extends ApplicationAdapter {
                 if(visible[i][j] > 0.0) {
                     pos.set(i * cellWidth, j * cellHeight, 0f);
                     batch.setPackedColor(toCursor.contains(Coord.get(i, j))
-                            ? SColor.lerpFloatColors(bgColors[i][j], FLOAT_WHITE, 0.9f)
-                            : SColor.lerpFloatColors(bgColors[i][j], FLOAT_LIGHTING, (float)visible[i][j] * 0.75f + 0.25f));
+                            ? FLOAT_WHITE
+                            : SColor.lerpFloatColors(FLOAT_GRAY, FLOAT_LIGHTING, (float)visible[i][j] * 0.75f + 0.25f));
                     //batch.draw(solid, pos.x, pos.y);                     
 //                    batch.setPackedColor(SColor.lerpFloatColors(colors[i][j], FLOAT_LIGHTING, (float)visible[i][j] * 0.75f + 0.25f));
                     batch.draw(charMapping.get(prunedDungeon[i][j], solid), pos.x, pos.y);
                 } else if(seen.contains(i, j)) {
                     pos.set(i * cellWidth, j * cellHeight, 0f);
-                    batch.setPackedColor(SColor.lerpFloatColors(bgColors[i][j], FLOAT_GRAY, 0.7f));
+                    batch.setPackedColor(FLOAT_GRAY);
                     //batch.draw(solid, pos.x, pos.y);
 //                    if ((monster = monsters.get(Coord.get(i, j))) != null)
 //                        monster.setAlpha(0f);
-                    batch.setPackedColor(SColor.lerpFloatColors(colors[i][j], FLOAT_GRAY, 0.7f));
+                    batch.setPackedColor(FLOAT_GRAY);
                     batch.draw(charMapping.get(prunedDungeon[i][j], solid), pos.x, pos.y);
                 }
             }
@@ -520,7 +504,13 @@ public class CaveCops extends ApplicationAdapter {
 
         mainViewport.apply(false);
         batch.setProjectionMatrix(camera.combined);
+        Gdx.gl.glActiveTexture(GL20.GL_TEXTURE1);
+        palette.bind();
         batch.begin();
+        shader.setUniformi("u_palette", 1);
+        shader.setUniformf("u_mul", mul);
+        shader.setUniformf("u_add", add);
+        Gdx.gl.glActiveTexture(GL20.GL_TEXTURE0);
         putMap();
         // if the user clicked, we have a list of moves to perform.
         if(!awaitedMoves.isEmpty()) {
@@ -559,4 +549,10 @@ public class CaveCops extends ApplicationAdapter {
         mainViewport.update(width, height, false);
         mainViewport.setScreenBounds(0, 0, width, height);
     }
+
+    private boolean onGrid(int screenX, int screenY)
+    {
+        return screenX >= 0 && screenX < bigWidth && screenY >= 0 && screenY < bigHeight;
+    }
+
 }
