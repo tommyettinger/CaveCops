@@ -27,6 +27,7 @@ import squidpony.squidgrid.gui.gdx.FilterBatch;
 import squidpony.squidgrid.mapping.DungeonGenerator;
 import squidpony.squidgrid.mapping.DungeonUtility;
 import squidpony.squidgrid.mapping.LineKit;
+import squidpony.squidgrid.mapping.styled.TilesetType;
 import squidpony.squidmath.Coord;
 import squidpony.squidmath.GWTRNG;
 import squidpony.squidmath.GreasedRegion;
@@ -147,7 +148,8 @@ public class CaveCops extends ApplicationAdapter {
         font = new BitmapFont(Gdx.files.internal("font.fnt"), atlas.findRegion("font"));
         font.getData().scale(2f);
         
-        palette = new Texture("DawnSmash256_GLSL.png");
+        palette = new Texture("Sheltzy32_GLSL.png");
+//        palette = new Texture("DawnSmash256_GLSL.png");
 //        palette = new Texture("GBGreen16_GLSL.png");
         
         charMapping = new IntMap<>(64);
@@ -184,47 +186,48 @@ public class CaveCops extends ApplicationAdapter {
         //dungeonGen.addWater(15);
         //decoDungeon is given the dungeon with any decorations we specified. (Here, we didn't, unless you chose to add
         //water to the dungeon. In that case, decoDungeon will have different contents than bareDungeon, next.)
-        decoDungeon = dungeonGen.generate();
+        decoDungeon = dungeonGen.generate(TilesetType.DEFAULT_DUNGEON);
         //getBareDungeon provides the simplest representation of the generated dungeon -- '#' for walls, '.' for floors.
         bareDungeon = dungeonGen.getBareDungeon();
         //When we draw, we may want to use a nicer representation of walls. DungeonUtility has lots of useful methods
         //for modifying char[][] dungeon grids, and this one takes each '#' and replaces it with a box-drawing char.
         //The end result looks something like this, for a smaller 60x30 map:
-        //
-        // ┌───┐┌──────┬──────┐┌──┬─────┐   ┌──┐    ┌──────────┬─────┐
-        // │...││......│......└┘..│.....│   │..├───┐│..........│.....└┐
-        // │...││......│..........├──┐..├───┤..│...└┴────......├┐.....│
-        // │...││.................│┌─┘..│...│..│...............││.....│
-        // │...││...........┌─────┘│....│...│..│...........┌───┴┴───..│
-        // │...│└─┐....┌───┬┘      │........│..│......─────┤..........│
-        // │...└─┐│....│...│       │.......................│..........│
-        // │.....││........└─┐     │....│..................│.....┌────┘
-        // │.....││..........│     │....├─┬───────┬─┐......│.....│
-        // └┬──..└┼───┐......│   ┌─┴─..┌┘ │.......│ │.....┌┴──┐..│
-        //  │.....│  ┌┴─..───┴───┘.....└┐ │.......│┌┘.....└─┐ │..│
-        //  │.....└──┘..................└─┤.......││........│ │..│
-        //  │.............................│.......├┘........│ │..│
-        //  │.............┌──────┐........│.......│...─┐....│ │..│
-        //  │...........┌─┘      └──┐.....│..─────┘....│....│ │..│
-        // ┌┴─────......└─┐      ┌──┘..................│..──┴─┘..└─┐
-        // │..............└──────┘.....................│...........│
-        // │............................┌─┐.......│....│...........│
-        // │..│..│..┌┐..................│ │.......├────┤..──┬───┐..│
-        // │..│..│..│└┬──..─┬───┐......┌┘ └┐.....┌┘┌───┤....│   │..│
-        // │..├──┤..│ │.....│   │......├───┘.....│ │...│....│┌──┘..└──┐
-        // │..│┌─┘..└┐└┬─..─┤   │......│.........└─┘...│....││........│
-        // │..││.....│ │....│   │......│...............│....││........│
-        // │..││.....│ │....│   │......│..┌──┐.........├────┘│..│.....│
-        // ├──┴┤...│.└─┴─..┌┘   └┐....┌┤..│  │.....│...└─────┘..│.....│
-        // │...│...│.......└─────┴─..─┴┘..├──┘.....│............└─────┤
-        // │...│...│......................│........│..................│
-        // │.......├───┐..................│.......┌┤.......┌─┐........│
-        // │.......│   └──┐..┌────┐..┌────┤..┌────┘│.......│ │..┌──┐..│
-        // └───────┘      └──┘    └──┘    └──┘     └───────┘ └──┘  └──┘
+        /*
+          ┌───┐┌──────┬──────┐┌──┬─────┐   ┌──┐    ┌──────────┬─────┐
+          │...││......│......└┘..│.....│   │..├───┐│..........│.....└┐
+          │...││......│..........├──┐..├───┤..│...└┴────......├┐.....│
+          │...││.................│┌─┘..│...│..│...............││.....│
+          │...││...........┌─────┘│....│...│..│...........┌───┴┴───..│
+          │...│└─┐....┌───┬┘      │........│..│......─────┤..........│
+          │...└─┐│....│...│       │.......................│..........│
+          │.....││........└─┐     │....│..................│.....┌────┘
+          │.....││..........│     │....├─┬───────┬─┐......│.....│
+          └┬──..└┼───┐......│   ┌─┴─..┌┘ │.......│ │.....┌┴──┐..│
+           │.....│  ┌┴─..───┴───┘.....└┐ │.......│┌┘.....└─┐ │..│
+           │.....└──┘..................└─┤.......││........│ │..│
+           │.............................│.......├┘........│ │..│
+           │.............┌──────┐........│.......│...─┐....│ │..│
+           │...........┌─┘      └──┐.....│..─────┘....│....│ │..│
+          ┌┴─────......└─┐      ┌──┘..................│..──┴─┘..└─┐
+          │..............└──────┘.....................│...........│
+          │............................┌─┐.......│....│...........│
+          │..│..│..┌┐..................│ │.......├────┤..──┬───┐..│
+          │..│..│..│└┬──..─┬───┐......┌┘ └┐.....┌┘┌───┤....│   │..│
+          │..├──┤..│ │.....│   │......├───┘.....│ │...│....│┌──┘..└──┐
+          │..│┌─┘..└┐└┬─..─┤   │......│.........└─┘...│....││........│
+          │..││.....│ │....│   │......│...............│....││........│
+          │..││.....│ │....│   │......│..┌──┐.........├────┘│..│.....│
+          ├──┴┤...│.└─┴─..┌┘   └┐....┌┤..│  │.....│...└─────┘..│.....│
+          │...│...│.......└─────┴─..─┴┘..├──┘.....│............└─────┤
+          │...│...│......................│........│..................│
+          │.......├───┐..................│.......┌┤.......┌─┐........│
+          │.......│   └──┐..┌────┐..┌────┤..┌────┘│.......│ │..┌──┐..│
+          └───────┘      └──┘    └──┘    └──┘     └───────┘ └──┘  └──┘
+         */
         //this is also good to compare against if the map looks incorrect, and you need an example of a correct map when
         //no parameters are given to generate().
         lineDungeon = DungeonUtility.hashesToLines(decoDungeon);
-
+        DungeonUtility.debugPrint(lineDungeon);
         resistance = DungeonUtility.generateResistances(decoDungeon);
         visible = new double[bigWidth][bigHeight];
 
@@ -303,7 +306,8 @@ public class CaveCops extends ApplicationAdapter {
         playerToCursor.partialScan(13, blockage);
 
 //        bgColor = new Color(0x132C2DFF); // for GBGreen16
-        bgColor = new Color(0x140C1CFF);   // for DawnSmash256
+        bgColor = new Color(0x000000FF);   // for Sheltzy32
+//        bgColor = new Color(0x140C1CFF);   // for DawnSmash256
 //        for (int x = 0; x < bigWidth; x++) {
 //            for (int y = 0; y < bigHeight; y++) {
 //                colors[x][y] = f(colors[x][y]);
