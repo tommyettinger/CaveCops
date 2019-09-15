@@ -148,7 +148,8 @@ public class CaveCops extends ApplicationAdapter {
         font = new BitmapFont(Gdx.files.internal("font.fnt"), atlas.findRegion("font"));
         font.getData().scale(2f);
         
-        palette = new Texture("Sheltzy32_GLSL.png");
+        palette = new Texture("DB_Aurora_GLSL.png");
+//        palette = new Texture("Sheltzy32_GLSL.png");
 //        palette = new Texture("DawnSmash256_GLSL.png");
 //        palette = new Texture("GBGreen16_GLSL.png");
         
@@ -306,7 +307,8 @@ public class CaveCops extends ApplicationAdapter {
         playerToCursor.partialScan(13, blockage);
 
 //        bgColor = new Color(0x132C2DFF); // for GBGreen16
-        bgColor = new Color(0x000000FF);   // for Sheltzy32
+        bgColor = new Color(0x010101FF);   // for DB_Aurora
+//        bgColor = new Color(0x000000FF);   // for Sheltzy32
 //        bgColor = new Color(0x140C1CFF);   // for DawnSmash256
 //        for (int x = 0; x < bigWidth; x++) {
 //            for (int y = 0; y < bigHeight; y++) {
