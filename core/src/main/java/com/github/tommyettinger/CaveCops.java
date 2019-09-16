@@ -118,7 +118,7 @@ public class CaveCops extends ApplicationAdapter {
     // have seen in the past in a GreasedRegion (in most roguelikes, there would be one of these per dungeon floor).
     private GreasedRegion floors, blockage, seen, currentlySeen;
     
-    private String[] zodiac, phrases;
+    private GapShuffler<String> zodiacShuffler, phraseShuffler, meaningShuffler;
     private String horoscope;
     @Override
     public void create () {
@@ -132,18 +132,31 @@ public class CaveCops extends ApplicationAdapter {
         // In this program we'll use GWTRNG, which will behave better on the HTML target than other generators.
         rng = new GWTRNG(1337);
         
-        zodiac = new String[12];
+        String[] zodiac = new String[12];
         RNG shuffleRNG = new RNG(new XoshiroStarPhi32RNG(DiverRNG.determine(TimeUtils.millis())));
         for (int i = 0; i < zodiac.length; i++) {
             zodiac[i] = FakeLanguageGen.ANCIENT_EGYPTIAN.word(shuffleRNG, true, shuffleRNG.maxIntOf(4, 3) + 1);
         }
-        phrases = new String[]{" is in retrograde", " ascends", " reaches toward the North", " leans Southward",
+        String[] phrases = new String[]{" is in retrograde", " ascends", " reaches toward the North", " leans Southward",
                 " stands against the West wind", " charges into the East", " resides in the Castle",
-                " feels pensive", " seizes the day", " looms mightily", " retreats into darkness"};
-        GapShuffler<String> zodiacShuffler = new GapShuffler<>(zodiac, shuffleRNG);
-        GapShuffler<String> phraseShuffler = new GapShuffler<>(phrases, shuffleRNG);
-        horoscope = zodiacShuffler.next() + phraseShuffler.next() + ". It is a dire omen.";
-        
+                " feels pensive", " seizes the day", " looms mightily", " retreats into darkness"},
+                meanings = new String[]
+                        {". It is a dire omen for those under the sign of @.", ". This bodes ill for the house of @.",
+                                ". Mayhaps this is a significant portent for they with the sign of @...",
+                                "! Buy a lottery ticket if you're a @!",
+                                ". If you're a @, you're probably not gonna die!",
+                                ". You should avoid spicy foods if you are under the sign of @.",
+                                ". That's some bad juju for those poor fools under the sign of @.",
+                                ". This is going to be a bad one.",
+                                ". Oh yeah, this is gonna be good...",
+                                "! This is the dawning of the Age of Aquarius!"};
+        zodiacShuffler = new GapShuffler<>(zodiac, shuffleRNG);
+        phraseShuffler = new GapShuffler<>(phrases, shuffleRNG);
+        meaningShuffler = new GapShuffler<>(meanings, shuffleRNG);
+
+        for (int i = 0; i < 20; i++) {
+            System.out.println(horoscope = zodiacShuffler.next() + phraseShuffler.next() + meaningShuffler.next().replace("@", zodiacShuffler.next()));
+        }
         shader = new ShaderProgram(ShaderUtils.vertexShader, ShaderUtils.fragmentShader);
 //        shader = new ShaderProgram(ShaderUtils.vertexShader, ShaderUtils.fragmentShaderWarmMildLimited);
         if (!shader.isCompiled()) throw new GdxRuntimeException("Couldn't compile shader: " + shader.getLog());
@@ -240,7 +253,7 @@ public class CaveCops extends ApplicationAdapter {
         //this is also good to compare against if the map looks incorrect, and you need an example of a correct map when
         //no parameters are given to generate().
         lineDungeon = DungeonUtility.hashesToLines(decoDungeon);
-        DungeonUtility.debugPrint(lineDungeon);
+//        DungeonUtility.debugPrint(lineDungeon);
         resistance = DungeonUtility.generateResistances(decoDungeon);
         visible = new double[bigWidth][bigHeight];
 
