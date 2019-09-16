@@ -15,10 +15,9 @@ import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.utils.GdxRuntimeException;
-import com.badlogic.gdx.utils.IntMap;
-import com.badlogic.gdx.utils.Scaling;
+import com.badlogic.gdx.utils.*;
 import squidpony.ArrayTools;
+import squidpony.FakeLanguageGen;
 import squidpony.squidai.DijkstraMap;
 import squidpony.squidgrid.FOV;
 import squidpony.squidgrid.Measurement;
@@ -28,9 +27,7 @@ import squidpony.squidgrid.mapping.DungeonGenerator;
 import squidpony.squidgrid.mapping.DungeonUtility;
 import squidpony.squidgrid.mapping.LineKit;
 import squidpony.squidgrid.mapping.styled.TilesetType;
-import squidpony.squidmath.Coord;
-import squidpony.squidmath.GWTRNG;
-import squidpony.squidmath.GreasedRegion;
+import squidpony.squidmath.*;
 
 import java.util.ArrayList;
 
@@ -120,7 +117,9 @@ public class CaveCops extends ApplicationAdapter {
     // the player's vision that blocks pathfinding to areas we can't see a path to, and we also store all cells that we
     // have seen in the past in a GreasedRegion (in most roguelikes, there would be one of these per dungeon floor).
     private GreasedRegion floors, blockage, seen, currentlySeen;
-
+    
+    private String[] zodiac, phrases;
+    private String horoscope;
     @Override
     public void create () {
         // gotta have a random number generator. We can seed an RNG with any long we want, or even a String.
@@ -132,6 +131,19 @@ public class CaveCops extends ApplicationAdapter {
         // SquidLib has many methods that expect an IRNG instance, and there's several classes to choose from.
         // In this program we'll use GWTRNG, which will behave better on the HTML target than other generators.
         rng = new GWTRNG(1337);
+        
+        zodiac = new String[12];
+        RNG shuffleRNG = new RNG(new XoshiroStarPhi32RNG(DiverRNG.determine(TimeUtils.millis())));
+        for (int i = 0; i < zodiac.length; i++) {
+            zodiac[i] = FakeLanguageGen.ANCIENT_EGYPTIAN.word(shuffleRNG, true, shuffleRNG.maxIntOf(4, 3) + 1);
+        }
+        phrases = new String[]{" is in retrograde", " ascends", " reaches toward the North", " leans Southward",
+                " stands against the West wind", " charges into the East", " resides in the Castle",
+                " feels pensive", " seizes the day", " looms mightily", " retreats into darkness"};
+        GapShuffler<String> zodiacShuffler = new GapShuffler<>(zodiac, shuffleRNG);
+        GapShuffler<String> phraseShuffler = new GapShuffler<>(phrases, shuffleRNG);
+        horoscope = zodiacShuffler.next() + phraseShuffler.next() + ". It is a dire omen.";
+        
         shader = new ShaderProgram(ShaderUtils.vertexShader, ShaderUtils.fragmentShader);
 //        shader = new ShaderProgram(ShaderUtils.vertexShader, ShaderUtils.fragmentShaderWarmMildLimited);
         if (!shader.isCompiled()) throw new GdxRuntimeException("Couldn't compile shader: " + shader.getLog());
@@ -146,7 +158,7 @@ public class CaveCops extends ApplicationAdapter {
 
         atlas = new TextureAtlas("Dawnlike.atlas");
         font = new BitmapFont(Gdx.files.internal("font.fnt"), atlas.findRegion("font"));
-        font.getData().scale(2f);
+        //font.getData().scale(2f);
         
         palette = new Texture("DB_Aurora_GLSL.png");
 //        palette = new Texture("Sheltzy32_GLSL.png");
@@ -496,6 +508,10 @@ public class CaveCops extends ApplicationAdapter {
 //            monsters.getAt(i).draw(batch);
 //        }
         playerSprite.draw(batch);
+        font.setColor(Color.WHITE);
+        font.draw(batch, horoscope, playerSprite.getX() - Gdx.graphics.getWidth() * 0.25f,
+                playerSprite.getY() + Gdx.graphics.getHeight() * 0.375f, Gdx.graphics.getWidth() * 0.5f,
+                Align.center, true);
         Gdx.graphics.setTitle(Gdx.graphics.getFramesPerSecond() + " FPS");
     }
     @Override
