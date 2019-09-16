@@ -16,6 +16,8 @@ import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.*;
+import regexodus.Pattern;
+import regexodus.Replacer;
 import squidpony.ArrayTools;
 import squidpony.FakeLanguageGen;
 import squidpony.squidai.DijkstraMap;
@@ -118,6 +120,7 @@ public class CaveCops extends ApplicationAdapter {
     private GreasedRegion floors, blockage, seen, currentlySeen;
     
     private GapShuffler<String> zodiacShuffler, phraseShuffler, meaningShuffler;
+    private Replacer anReplacer;
     private String horoscope;
     @Override
     public void create () {
@@ -140,21 +143,27 @@ public class CaveCops extends ApplicationAdapter {
                 " stands against the West wind", " charges into the East", " resides in the Castle",
                 " feels pensive", " seizes the day", " looms mightily", " retreats into darkness"},
                 meanings = new String[]
-                        {". It is a dire omen for those under the sign of @.", ". This bodes ill for the house of @.",
+                        {". It is a dire omen for those under the sign of @.",
+                                ". This bodes ill for the house of @.",
                                 ". Mayhaps this is a significant portent for they with the sign of @...",
                                 "! Buy a lottery ticket if you're a @!",
+                                ". You should avoid spicy foods if you bear the sign of @.",
+                                ". That's some bad juju for those poor fools from @.",
+                                ". A golden opportunity for any @!",
                                 ". If you're a @, you're probably not gonna die!",
-                                ". You should avoid spicy foods if you are under the sign of @.",
-                                ". That's some bad juju for those poor fools under the sign of @.",
+                                ". If you're a @, gird thy loins...",
                                 ". This is going to be a bad one.",
                                 ". Oh yeah, this is gonna be good...",
+                                ". Does anyone else smell smoke?",
+                                "! Party time!",
+                                ". 1, 2, 3 cheers for the Goblin King!",
                                 "! This is the dawning of the Age of Aquarius!"};
         zodiacShuffler = new GapShuffler<>(zodiac, shuffleRNG);
         phraseShuffler = new GapShuffler<>(phrases, shuffleRNG);
         meaningShuffler = new GapShuffler<>(meanings, shuffleRNG);
-
+        anReplacer = new Replacer(Pattern.compile("\\b([Aa]) (?=[AEIOUaeiou])"), "$1n ");
         for (int i = 0; i < 20; i++) {
-            System.out.println(horoscope = zodiacShuffler.next() + phraseShuffler.next() + meaningShuffler.next().replace("@", zodiacShuffler.next()));
+            System.out.println(horoscope = anReplacer.replace(zodiacShuffler.next() + phraseShuffler.next() + meaningShuffler.next().replace("@", zodiacShuffler.next())) );
         }
         shader = new ShaderProgram(ShaderUtils.vertexShader, ShaderUtils.fragmentShader);
 //        shader = new ShaderProgram(ShaderUtils.vertexShader, ShaderUtils.fragmentShaderWarmMildLimited);
