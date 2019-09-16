@@ -22,7 +22,6 @@ import squidpony.squidai.DijkstraMap;
 import squidpony.squidgrid.FOV;
 import squidpony.squidgrid.Measurement;
 import squidpony.squidgrid.Radius;
-import squidpony.squidgrid.gui.gdx.FilterBatch;
 import squidpony.squidgrid.mapping.DungeonGenerator;
 import squidpony.squidgrid.mapping.DungeonUtility;
 import squidpony.squidgrid.mapping.LineKit;
@@ -47,8 +46,8 @@ import static com.badlogic.gdx.Input.Keys.*;
  * use out of the assets directory when you produce a release JAR, APK, or GWT build.
  */
 public class CaveCops extends ApplicationAdapter {
-    // FilterBatch is almost the same as SpriteBatch, but is a bit faster with SquidLib and allows color filtering
-    private FilterBatch batch;
+    // MutantBatch is almost the same as SpriteBatch, but is a bit faster with SquidLib since it sets colors quickly
+    private MutantBatch batch;
     private PixelPerfectViewport mainViewport;
     private Camera camera;
 
@@ -160,7 +159,7 @@ public class CaveCops extends ApplicationAdapter {
         shader = new ShaderProgram(ShaderUtils.vertexShader, ShaderUtils.fragmentShader);
 //        shader = new ShaderProgram(ShaderUtils.vertexShader, ShaderUtils.fragmentShaderWarmMildLimited);
         if (!shader.isCompiled()) throw new GdxRuntimeException("Couldn't compile shader: " + shader.getLog());
-        batch = new FilterBatch(8000, shader);
+        batch = new MutantBatch(8000, shader);
 //        add = new Vector3(0, 0, 0);
 //        mul = new Vector3(1, 1, 1);
 
@@ -500,10 +499,10 @@ public class CaveCops extends ApplicationAdapter {
 //                    batch.setPackedColor(toCursor.contains(Coord.get(i, j))
 //                            ? FLOAT_WHITE
 //                            : SColor.lerpFloatColors(FLOAT_GRAY, FLOAT_LIGHTING, (float)visible[i][j] * 0.75f + 0.25f));
-                    batch.setColor(toCursor.contains(Coord.get(i, j))
-                                    ? 0.8f
-                                    : (float)visible[i][j] * 0.5f + 0.2f,
-                            0.6f, 0.57f, (float)visible[i][j] * 0.35f + 0.1f);
+                    batch.setRGBAColor(toCursor.contains(Coord.get(i, j))
+                                    ? 210
+                                    : (int)(visible[i][j] * 150) + 40,
+                            150, 140, (int)(visible[i][j] * 40) + 30);
                     //batch.draw(solid, pos.x, pos.y);                     
 //                    batch.setPackedColor(SColor.lerpFloatColors(colors[i][j], FLOAT_LIGHTING, (float)visible[i][j] * 0.75f + 0.25f));
                     batch.draw(charMapping.get(prunedDungeon[i][j], solid), pos.x, pos.y);
