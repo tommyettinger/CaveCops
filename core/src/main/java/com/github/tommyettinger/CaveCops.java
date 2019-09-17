@@ -13,7 +13,6 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.MathUtils;
-import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.*;
 import regexodus.Pattern;
@@ -49,6 +48,11 @@ import static com.badlogic.gdx.Input.Keys.*;
  * use out of the assets directory when you produce a release JAR, APK, or GWT build.
  */
 public class CaveCops extends ApplicationAdapter {
+    
+    public static final int SELECT = 0, ANIMATE = 1;
+    
+    public int mode = SELECT;
+    
     // MutantBatch is almost the same as SpriteBatch, but is a bit faster with SquidLib since it sets colors quickly
     private MutantBatch batch;
     private PixelPerfectViewport mainViewport;
@@ -93,9 +97,9 @@ public class CaveCops extends ApplicationAdapter {
     private static final int cellWidth = 16;
     /** The pixel height of a cell */
     private static final int cellHeight = 16;
-    public long startTime = 0L;
-    private Animation<TextureAtlas.AtlasRegion> solid, playerSprite;
-    private static final float
+    public long startTime = 0L, animationStart = 0L, animationEnd = 250L;
+    private Animation<TextureAtlas.AtlasRegion> solid, playerAnimation;
+    public static final float
 //            FLOAT_BLOOD = -0x1.564f86p125F,  // same result as SColor.PURE_CRIMSON.toFloatBits()
 //            FLOAT_LIGHTING = SColor.floatGetHSV(0.17f, 0.12f, 0.8f, 1f),//-0x1.cff1fep126F, // same result as SColor.COSMIC_LATTE.toFloatBits()
             FLOAT_GRAY = Color.toFloatBits(0.15f, 0.45f, 0.5f, 0.2f),
@@ -105,11 +109,11 @@ public class CaveCops extends ApplicationAdapter {
 
     private Color bgColor;
     private DijkstraMap playerToCursor;
-    private Coord cursor, player;
+    private Coord cursor, playerGrid;
     private ArrayList<Coord> toCursor;
     private ArrayList<Coord> awaitedMoves;
 
-    private Vector2 playerPosition;
+    private Moth playerPosition;
     private Vector3 pos = new Vector3();
 
 
@@ -206,7 +210,7 @@ public class CaveCops extends ApplicationAdapter {
         
         charMapping = new IntMap<>(64);
         solid = mapping.get("day tile floor c");
-        playerSprite = mapping.get("keystone kop");
+        playerAnimation = mapping.get("keystone kop");
         charMapping.put('.', solid);
         charMapping.put(',', mapping.get("brick clear pool center"      ));
         charMapping.put('~', mapping.get("brick murky pool center"      ));
@@ -313,10 +317,10 @@ public class CaveCops extends ApplicationAdapter {
         // in that region that is "on," or -1,-1 if there are no such cells. It takes an RNG object as a parameter, and
         // if you gave a seed to the RNG constructor, then the cell this chooses will be reliable for testing. If you
         // don't seed the RNG, any valid cell should be possible.
-        player = floors.singleRandom(rng);
-        playerPosition = new Vector2(player.x * 16, player.y * 16);
+        playerGrid = floors.singleRandom(rng);
+        playerPosition = new Moth(playerAnimation, playerGrid.x * cellWidth, playerGrid.y * cellHeight, playerGrid.x * cellWidth, playerGrid.y * cellHeight);
         // Uses shadowcasting FOV and reuses the visible array without creating new arrays constantly.
-        FOV.reuseFOV(resistance, visible, player.x, player.y, 9.0, Radius.CIRCLE);//, (System.currentTimeMillis() & 0xFFFF) * 0x1p-4, 60.0);
+        FOV.reuseFOV(resistance, visible, playerGrid.x, playerGrid.y, 9.0, Radius.CIRCLE);//, (System.currentTimeMillis() & 0xFFFF) * 0x1p-4, 60.0);
         
         // 0.01 is the upper bound (inclusive), so any Coord in visible that is more well-lit than 0.01 will _not_ be in
         // the blockage Collection, but anything 0.01 or less will be in it. This lets us use blockage to prevent access
@@ -349,8 +353,8 @@ public class CaveCops extends ApplicationAdapter {
         playerToCursor = new DijkstraMap(decoDungeon, Measurement.MANHATTAN);
         //These next two lines mark the player as something we want paths to go to or from, and get the distances to the
         // player from all walkable cells in the dungeon.
-        playerToCursor.setGoal(player);
-        playerToCursor.setGoal(player);
+        playerToCursor.setGoal(playerGrid);
+        playerToCursor.setGoal(playerGrid);
         // DijkstraMap.partialScan only finds the distance to get to a cell if that distance is less than some limit,
         // which is 13 here. It also won't try to find distances through an impassable cell, which here is the blockage
         // GreasedRegion that contains the cells just past the edge of the player's FOV area.
@@ -360,16 +364,11 @@ public class CaveCops extends ApplicationAdapter {
         bgColor = new Color(0x010101FF);   // for DB_Aurora
 //        bgColor = new Color(0x000000FF);   // for Sheltzy32
 //        bgColor = new Color(0x140C1CFF);   // for DawnSmash256
-//        for (int x = 0; x < bigWidth; x++) {
-//            for (int y = 0; y < bigHeight; y++) {
-//                colors[x][y] = f(colors[x][y]);
-//                bgColors[x][y] = f(bgColors[x][y]);
-//            }
-//        }
         
         input = new InputAdapter() {
             @Override
             public boolean keyUp(int keycode) {
+                if(mode != SELECT) return false;
                 switch (keycode)
                 {
                     case UP:
@@ -378,7 +377,7 @@ public class CaveCops extends ApplicationAdapter {
                     case NUMPAD_8:
                         toCursor.clear();
                         //+1 is up on the screen
-                        awaitedMoves.add(player.translate(0, 1));
+                        awaitedMoves.add(playerGrid.translate(0, 1));
                         break;
                     case DOWN:
                     case 's':
@@ -386,42 +385,42 @@ public class CaveCops extends ApplicationAdapter {
                     case NUMPAD_2:
                         toCursor.clear();
                         //-1 is down on the screen
-                        awaitedMoves.add(player.translate(0, -1));
+                        awaitedMoves.add(playerGrid.translate(0, -1));
                         break;
                     case LEFT:
                     case 'a':
                     case 'A':
                     case NUMPAD_4:
                         toCursor.clear();
-                        awaitedMoves.add(player.translate(-1, 0));
+                        awaitedMoves.add(playerGrid.translate(-1, 0));
                         break;
                     case RIGHT:
                     case 'd':
                     case 'D':
                     case NUMPAD_6:
                         toCursor.clear();
-                        awaitedMoves.add(player.translate(1, 0));
+                        awaitedMoves.add(playerGrid.translate(1, 0));
                         break;
                     case NUMPAD_1:
                         toCursor.clear();
-                        awaitedMoves.add(player.translate(-1, -1));
+                        awaitedMoves.add(playerGrid.translate(-1, -1));
                         break;
                     case NUMPAD_3:
                         toCursor.clear();
-                        awaitedMoves.add(player.translate(1, -1));
+                        awaitedMoves.add(playerGrid.translate(1, -1));
                         break;
                     case NUMPAD_7:
                         toCursor.clear();
-                        awaitedMoves.add(player.translate(-1, 1));
+                        awaitedMoves.add(playerGrid.translate(-1, 1));
                         break;
                     case NUMPAD_9:
                         toCursor.clear();
-                        awaitedMoves.add(player.translate(1, 1));
+                        awaitedMoves.add(playerGrid.translate(1, 1));
                         break;
                     case '.':
                     case NUMPAD_5:
                         toCursor.clear();
-                        awaitedMoves.add(player);
+                        awaitedMoves.add(playerGrid);
                         break;
                     case ESCAPE:
                         Gdx.app.exit();
@@ -434,6 +433,7 @@ public class CaveCops extends ApplicationAdapter {
             // ourselves and copy toCursor over to awaitedMoves.
             @Override
             public boolean touchUp(int screenX, int screenY, int pointer, int button) {
+                if(mode != SELECT) return false;
                 pos.set(screenX, screenY, 0f);
                 mainViewport.unproject(pos);
                 if (onGrid(MathUtils.floor(pos.x) >> 4, MathUtils.floor(pos.y) >> 4)) {
@@ -453,6 +453,7 @@ public class CaveCops extends ApplicationAdapter {
             // receive highlighting). Uses DijkstraMap.findPathPreScanned() to find the path, which is rather fast.
             @Override
             public boolean mouseMoved(int screenX, int screenY) {
+                if(mode != SELECT) return false;
                 if(!awaitedMoves.isEmpty())
                     return false;
                 pos.set(screenX, screenY, 0f);
@@ -487,19 +488,26 @@ public class CaveCops extends ApplicationAdapter {
     /**
      * Move the player if he isn't bumping into a wall or trying to go off the map somehow.
      * In a fully-fledged game, this would not be organized like this, but this is a one-file demo.
-     * @param xmod
-     * @param ymod
+     * @param start
+     * @param end
      */
-    private void move(final int xmod, final int ymod) {
-        int newX = player.x + xmod, newY = player.y + ymod;
+    private void move(final Coord start, final Coord end) {
+        int newX = end.x, newY = end.y, xmod = newX - start.x, ymod = newY - start.y;
         if (newX >= 0 && newY >= 0 && newX < bigWidth && newY < bigHeight
                 && bareDungeon[newX][newY] != '#')
         {
-            playerPosition.add(xmod * 16, ymod * 16);
+            playerPosition.startX = start.x * cellWidth;
+            playerPosition.startY = start.y * cellHeight;
+            playerPosition.endX = end.x * cellWidth;
+            playerPosition.endY = end.y * cellHeight;
+            playerPosition.alpha = 0f;
+            mode = ANIMATE;
+            animationStart = TimeUtils.millis();
+            animationEnd = animationStart + 250L;
             // this just moves the grid position of the player as it is internally tracked.
-            player = player.translate(xmod, ymod);
+            playerGrid = playerGrid.translate(xmod, ymod);
             // calculates field of vision around the player again, in a circle of radius 9.0 .
-            FOV.reuseFOV(resistance, visible, player.x, player.y, 9.0, Radius.CIRCLE);
+            FOV.reuseFOV(resistance, visible, playerGrid.x, playerGrid.y, 9.0, Radius.CIRCLE);
             // This is just like the constructor used earlier, but affects an existing GreasedRegion without making
             // a new one just for this movement.
             blockage.refill(visible, 0.0);
@@ -520,7 +528,7 @@ public class CaveCops extends ApplicationAdapter {
         for (int i = 0; i < bigWidth; i++) {
             for (int j = 0; j < bigHeight; j++) {
                 if(visible[i][j] > 0.0) {
-                    pos.set(i * cellWidth, j * cellHeight, 0f);
+//                    pos.set(i * cellWidth, j * cellHeight, 0f);
 //                    batch.setPackedColor(toCursor.contains(Coord.get(i, j))
 //                            ? FLOAT_WHITE
 //                            : SColor.lerpFloatColors(FLOAT_GRAY, FLOAT_LIGHTING, (float)visible[i][j] * 0.75f + 0.25f));
@@ -530,26 +538,25 @@ public class CaveCops extends ApplicationAdapter {
                             150, 140, (int)(visible[i][j] * 40) + 30);
                     //batch.draw(solid, pos.x, pos.y);                     
 //                    batch.setPackedColor(SColor.lerpFloatColors(colors[i][j], FLOAT_LIGHTING, (float)visible[i][j] * 0.75f + 0.25f));
-                    batch.draw(charMapping.get(prunedDungeon[i][j], solid).getKeyFrame(time), pos.x, pos.y);
+                    batch.draw(charMapping.get(prunedDungeon[i][j], solid).getKeyFrame(time), i * cellWidth, j * cellHeight);
                 } else if(seen.contains(i, j)) {
-                    pos.set(i * cellWidth, j * cellHeight, 0f);
+//                    pos.set(i * cellWidth, j * cellHeight, 0f);
                     //batch.draw(solid, pos.x, pos.y);
 //                    if ((monster = monsters.get(Coord.get(i, j))) != null)
 //                        monster.setAlpha(0f);
                     batch.setPackedColor(FLOAT_GRAY);
-                    batch.draw(charMapping.get(prunedDungeon[i][j], solid).getKeyFrame(time), pos.x, pos.y);
+                    batch.draw(charMapping.get(prunedDungeon[i][j], solid).getKeyFrame(time), i * cellWidth, j * cellHeight);
                 }
             }
         }
 //        for (int i = 0; i < monsters.size(); i++) {
 //            monsters.getAt(i).draw(batch);
 //        }
-        batch.setPackedColor(FLOAT_NEUTRAL);
-        
-        batch.draw(playerSprite.getKeyFrame(time), player.x * cellWidth, player.y * cellHeight);
+        batch.setPackedColor(playerPosition.color);
+        batch.draw(playerPosition.animate(time), playerPosition.getX(), playerPosition.getY());
         font.setColor(Color.WHITE);
-        font.draw(batch, horoscope, player.x * cellWidth - Gdx.graphics.getWidth() * 0.25f,
-                player.y * cellHeight + Gdx.graphics.getHeight() * 0.375f, Gdx.graphics.getWidth() * 0.5f,
+        font.draw(batch, horoscope, playerPosition.getX() - Gdx.graphics.getWidth() * 0.25f,
+                playerPosition.getY() + Gdx.graphics.getHeight() * 0.375f, Gdx.graphics.getWidth() * 0.5f,
                 Align.center, true);
         Gdx.graphics.setTitle(Gdx.graphics.getFramesPerSecond() + " FPS");
     }
@@ -559,8 +566,8 @@ public class CaveCops extends ApplicationAdapter {
         Gdx.gl.glClearColor(bgColor.r, bgColor.g, bgColor.b, 1.0f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        camera.position.x = playerPosition.x;
-        camera.position.y =  playerPosition.y;
+        camera.position.x = playerPosition.getX();
+        camera.position.y =  playerPosition.getY();
         camera.update();
 
         mainViewport.apply(false);
@@ -575,30 +582,39 @@ public class CaveCops extends ApplicationAdapter {
         putMap();
         // if the user clicked, we have a list of moves to perform.
         if(!awaitedMoves.isEmpty()) {
-            // this doesn't check for input, but instead processes and removes Coords from awaitedMoves.
-            Coord m = awaitedMoves.remove(0);
-            if (!toCursor.isEmpty())
-                toCursor.remove(0);
-            move(m.x - player.x, m.y - player.y);
-            // this only happens if we just removed the last Coord from awaitedMoves, and it's only then that we need to
-            // re-calculate the distances from all cells to the player. We don't need to calculate this information on
-            // each part of a many-cell move (just the end), nor do we need to calculate it whenever the mouse moves.
-            if (awaitedMoves.isEmpty()) {
-                // the next two lines remove any lingering data needed for earlier paths
-                playerToCursor.clearGoals();
-                playerToCursor.resetMap();
-                // the next line marks the player as a "goal" cell, which seems counter-intuitive, but it works because all
-                // cells will try to find the distance between themselves and the nearest goal, and once this is found, the
-                // distances don't change as long as the goals don't change. Since the mouse will move and new paths will be
-                // found, but the player doesn't move until a cell is clicked, the "goal" is the non-changing cell (the
-                // player's position), and the "target" of a pathfinding method like DijkstraMap.findPathPreScanned() is the
-                // currently-moused-over cell, which we only need to set where the mouse is being handled.
-                playerToCursor.setGoal(player);
-                // DijkstraMap.partialScan only finds the distance to get to a cell if that distance is less than some limit,
-                // which is 13 here. It also won't try to find distances through an impassable cell, which here is the blockage
-                // GreasedRegion that contains the cells just past the edge of the player's FOV area.
-                playerToCursor.partialScan(13, blockage);
+            if(mode == SELECT || playerPosition.alpha >= 1f) {
+                // this doesn't check for input, but instead processes and removes Coords from awaitedMoves.
+                Coord m = awaitedMoves.remove(0);
+                if (!toCursor.isEmpty())
+                    toCursor.remove(0);
+                move(playerGrid, m);
+                // this only happens if we just removed the last Coord from awaitedMoves, and it's only then that we need to
+                // re-calculate the distances from all cells to the player. We don't need to calculate this information on
+                // each part of a many-cell move (just the end), nor do we need to calculate it whenever the mouse moves.
+                if (awaitedMoves.isEmpty()) {
+                    // the next two lines remove any lingering data needed for earlier paths
+                    playerToCursor.clearGoals();
+                    playerToCursor.resetMap();
+                    // the next line marks the player as a "goal" cell, which seems counter-intuitive, but it works because all
+                    // cells will try to find the distance between themselves and the nearest goal, and once this is found, the
+                    // distances don't change as long as the goals don't change. Since the mouse will move and new paths will be
+                    // found, but the player doesn't move until a cell is clicked, the "goal" is the non-changing cell (the
+                    // player's position), and the "target" of a pathfinding method like DijkstraMap.findPathPreScanned() is the
+                    // currently-moused-over cell, which we only need to set where the mouse is being handled.
+                    playerToCursor.setGoal(playerGrid);
+                    // DijkstraMap.partialScan only finds the distance to get to a cell if that distance is less than some limit,
+                    // which is 13 here. It also won't try to find distances through an impassable cell, which here is the blockage
+                    // GreasedRegion that contains the cells just past the edge of the player's FOV area.
+                    playerToCursor.partialScan(13, blockage);
+                    mode = SELECT;
+                }
             }
+            else {
+                playerPosition.alpha = TimeUtils.timeSinceMillis(animationStart) * 0.004f;
+            }
+        }
+        else {
+            playerPosition.alpha = TimeUtils.timeSinceMillis(animationStart) * 0.004f;
         }
         batch.end();
     }
