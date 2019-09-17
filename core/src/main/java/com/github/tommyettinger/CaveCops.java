@@ -25,6 +25,7 @@ import squidpony.squidgrid.Measurement;
 import squidpony.squidgrid.Radius;
 import squidpony.squidgrid.mapping.DungeonGenerator;
 import squidpony.squidgrid.mapping.DungeonUtility;
+import squidpony.squidgrid.mapping.FlowingCaveGenerator;
 import squidpony.squidgrid.mapping.LineKit;
 import squidpony.squidgrid.mapping.styled.TilesetType;
 import squidpony.squidmath.*;
@@ -238,10 +239,12 @@ public class CaveCops extends ApplicationAdapter {
         //SerpentMapGenerator, OrganicMapGenerator, or DenseRoomMapGenerator.
         dungeonGen = new DungeonGenerator(bigWidth, bigHeight, rng);
         //uncomment this next line to randomly add water to the dungeon in pools.
-        //dungeonGen.addWater(15);
+        dungeonGen.addWater(15);
+        dungeonGen.addGrass(10);
+        FlowingCaveGenerator flowing = new FlowingCaveGenerator(bigWidth, bigHeight, TilesetType.DEFAULT_DUNGEON, rng);
         //decoDungeon is given the dungeon with any decorations we specified. (Here, we didn't, unless you chose to add
         //water to the dungeon. In that case, decoDungeon will have different contents than bareDungeon, next.)
-        decoDungeon = dungeonGen.generate(TilesetType.DEFAULT_DUNGEON);
+        decoDungeon = dungeonGen.generate(flowing.generate());
         //getBareDungeon provides the simplest representation of the generated dungeon -- '#' for walls, '.' for floors.
         bareDungeon = dungeonGen.getBareDungeon();
         //When we draw, we may want to use a nicer representation of walls. DungeonUtility has lots of useful methods
@@ -532,11 +535,31 @@ public class CaveCops extends ApplicationAdapter {
 //                    batch.setPackedColor(toCursor.contains(Coord.get(i, j))
 //                            ? FLOAT_WHITE
 //                            : SColor.lerpFloatColors(FLOAT_GRAY, FLOAT_LIGHTING, (float)visible[i][j] * 0.75f + 0.25f));
-                    batch.setRGBAColor(toCursor.contains(Coord.get(i, j))
-                                    ? 210
-                                    : (int)(visible[i][j] * 150) + 40,
-                            150, 140, (int)(visible[i][j] * 40) + 30);
-                    //batch.draw(solid, pos.x, pos.y);                     
+                    switch (prunedDungeon[i][j])
+                    {
+                        case '"':
+                        case '~':
+                            batch.setRGBAColor(toCursor.contains(Coord.get(i, j))
+                                            ? 210
+                                            : (int)(visible[i][j] * 110
+                                            + FastNoise.instance.getConfiguredNoise(i * 2f, j * 2f, time * 3.5f) * 60) + 70,
+                                    140, 135, (int)(visible[i][j] * 60) + 70);
+                            break;
+                        case ',':
+                            batch.setRGBAColor(toCursor.contains(Coord.get(i, j))
+                                            ? 210
+                                            : (int)(visible[i][j] * 120
+                                            + FastNoise.instance.getConfiguredNoise(i * 2.25f, j * 2.25f, time * 5.5f) * 65) + 75,
+                                    140, 135, (int)(visible[i][j] * 65) + 80);
+                                    break;
+                        default:
+                            batch.setRGBAColor(toCursor.contains(Coord.get(i, j))
+                                            ? 210
+                                            : (int)(visible[i][j] * 150) + 40,
+                                    140, 135, (int)(visible[i][j] * 75) + 40);
+
+                    }
+                    //batch.draw(solid, pos.x, pos.y);
 //                    batch.setPackedColor(SColor.lerpFloatColors(colors[i][j], FLOAT_LIGHTING, (float)visible[i][j] * 0.75f + 0.25f));
                     batch.draw(charMapping.get(prunedDungeon[i][j], solid).getKeyFrame(time), i * cellWidth, j * cellHeight);
                 } else if(seen.contains(i, j)) {
@@ -558,6 +581,7 @@ public class CaveCops extends ApplicationAdapter {
         font.draw(batch, horoscope, playerPosition.getX() - Gdx.graphics.getWidth() * 0.25f,
                 playerPosition.getY() + Gdx.graphics.getHeight() * 0.375f, Gdx.graphics.getWidth() * 0.5f,
                 Align.center, true);
+//        Gdx.graphics.setTitle(horoscope);
         Gdx.graphics.setTitle(Gdx.graphics.getFramesPerSecond() + " FPS");
     }
     @Override
