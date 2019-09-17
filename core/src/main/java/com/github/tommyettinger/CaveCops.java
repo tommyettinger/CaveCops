@@ -8,8 +8,8 @@ import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.MathUtils;
@@ -31,6 +31,7 @@ import squidpony.squidgrid.mapping.styled.TilesetType;
 import squidpony.squidmath.*;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 
 import static com.badlogic.gdx.Input.Keys.*;
 
@@ -59,7 +60,7 @@ public class CaveCops extends ApplicationAdapter {
     // Stores all images we use here efficiently, as well as the font image 
     private TextureAtlas atlas;
     // This maps chars, such as '#', to specific images, such as a pillar.
-    private IntMap<TextureAtlas.AtlasRegion> charMapping;
+    private IntMap<Animation<TextureAtlas.AtlasRegion>> charMapping;
     
     private BitmapFont font;
     
@@ -92,8 +93,8 @@ public class CaveCops extends ApplicationAdapter {
     private static final int cellWidth = 16;
     /** The pixel height of a cell */
     private static final int cellHeight = 16;
-    private TextureAtlas.AtlasRegion solid;
-    private Sprite playerSprite;
+    public long startTime = 0L;
+    private Animation<TextureAtlas.AtlasRegion> solid, playerSprite;
     private static final float
 //            FLOAT_BLOOD = -0x1.564f86p125F,  // same result as SColor.PURE_CRIMSON.toFloatBits()
 //            FLOAT_LIGHTING = SColor.floatGetHSV(0.17f, 0.12f, 0.8f, 1f),//-0x1.cff1fep126F, // same result as SColor.COSMIC_LATTE.toFloatBits()
@@ -108,7 +109,7 @@ public class CaveCops extends ApplicationAdapter {
     private ArrayList<Coord> toCursor;
     private ArrayList<Coord> awaitedMoves;
 
-    private Vector2 screenPosition;
+    private Vector2 playerPosition;
     private Vector3 pos = new Vector3();
 
 
@@ -122,8 +123,24 @@ public class CaveCops extends ApplicationAdapter {
     private GapShuffler<String> zodiacShuffler, phraseShuffler, meaningShuffler;
     private Replacer anReplacer;
     private String horoscope;
+    
+    public LinkedHashMap<String, Animation<TextureAtlas.AtlasRegion>> mapping;
+    
+    public static LinkedHashMap<String, Animation<TextureAtlas.AtlasRegion>> makeMapping(final TextureAtlas atlas){
+        final Array<TextureAtlas.AtlasRegion> regions = atlas.getRegions();
+        TextureAtlas.AtlasRegion item;
+        final LinkedHashMap<String, Animation<TextureAtlas.AtlasRegion>> lhm = new LinkedHashMap<>(regions.size, 0.5f);
+        for (int i = 0; i < regions.size; i++) {
+            if(!lhm.containsKey((item = regions.get(i)).name))
+                lhm.put(item.name, new Animation<>(0.375f, atlas.findRegions(item.name), Animation.PlayMode.LOOP));
+        }
+        return lhm;
+    }
+
+
     @Override
     public void create () {
+        startTime = TimeUtils.millis();
         // gotta have a random number generator. We can seed an RNG with any long we want, or even a String.
         // if the seed is identical between two runs, any random factors will also be identical (until user input may
         // cause the usage of an RNG to change). You can randomize the dungeon and several other initial settings by
@@ -135,7 +152,7 @@ public class CaveCops extends ApplicationAdapter {
         rng = new GWTRNG(1337);
         
         String[] zodiac = new String[12];
-        RNG shuffleRNG = new RNG(new XoshiroStarPhi32RNG(DiverRNG.determine(TimeUtils.millis())));
+        RNG shuffleRNG = new RNG(new XoshiroStarPhi32RNG(DiverRNG.determine(startTime)));
         for (int i = 0; i < zodiac.length; i++) {
             zodiac[i] = FakeLanguageGen.ANCIENT_EGYPTIAN.word(shuffleRNG, true, shuffleRNG.maxIntOf(4, 3) + 1);
         }
@@ -178,6 +195,7 @@ public class CaveCops extends ApplicationAdapter {
         camera.update();
 
         atlas = new TextureAtlas("Dawnlike.atlas");
+        mapping = makeMapping(atlas);
         font = new BitmapFont(Gdx.files.internal("font.fnt"), atlas.findRegion("font"));
         //font.getData().scale(2f);
         
@@ -187,27 +205,26 @@ public class CaveCops extends ApplicationAdapter {
 //        palette = new Texture("GBGreen16_GLSL.png");
         
         charMapping = new IntMap<>(64);
-        solid = atlas.findRegion("day tile floor c");
-        playerSprite = atlas.createSprite("keystone kop");
-        playerSprite.setPackedColor(FLOAT_NEUTRAL);
+        solid = mapping.get("day tile floor c");
+        playerSprite = mapping.get("keystone kop");
         charMapping.put('.', solid);
-        charMapping.put(',', atlas.findRegion("brick clear pool center"      ));
-        charMapping.put('~', atlas.findRegion("brick murky pool center"      ));
-        charMapping.put('"', atlas.findRegion("dusk grass floor c"      ));
-        charMapping.put('#', atlas.findRegion("lit brick wall center"     ));
-        charMapping.put('+', atlas.findRegion("closed wooden door front"));
-        charMapping.put('/', atlas.findRegion("closed wooden door side"  ));
-        charMapping.put('└', atlas.findRegion("lit brick wall right down"            ));
-        charMapping.put('┌', atlas.findRegion("lit brick wall right up"            ));
-        charMapping.put('┬', atlas.findRegion("lit brick wall left right up"           ));
-        charMapping.put('┴', atlas.findRegion("lit brick wall left right down"           ));
-        charMapping.put('─', atlas.findRegion("lit brick wall left right"            ));
-        charMapping.put('│', atlas.findRegion("lit brick wall up down"            ));
-        charMapping.put('├', atlas.findRegion("lit brick wall right up down"           ));
-        charMapping.put('┼', atlas.findRegion("lit brick wall left right up down"          ));
-        charMapping.put('┤', atlas.findRegion("lit brick wall left up down"           ));
-        charMapping.put('┐', atlas.findRegion("lit brick wall left up"            ));
-        charMapping.put('┘', atlas.findRegion("lit brick wall left down"            ));
+        charMapping.put(',', mapping.get("brick clear pool center"      ));
+        charMapping.put('~', mapping.get("brick murky pool center"      ));
+        charMapping.put('"', mapping.get("dusk grass floor c"      ));
+        charMapping.put('#', mapping.get("lit brick wall center"     ));
+        charMapping.put('+', mapping.get("closed wooden door front"));
+        charMapping.put('/', mapping.get("closed wooden door side"  ));
+        charMapping.put('└', mapping.get("lit brick wall right down"            ));
+        charMapping.put('┌', mapping.get("lit brick wall right up"            ));
+        charMapping.put('┬', mapping.get("lit brick wall left right up"           ));
+        charMapping.put('┴', mapping.get("lit brick wall left right down"           ));
+        charMapping.put('─', mapping.get("lit brick wall left right"            ));
+        charMapping.put('│', mapping.get("lit brick wall up down"            ));
+        charMapping.put('├', mapping.get("lit brick wall right up down"           ));
+        charMapping.put('┼', mapping.get("lit brick wall left right up down"          ));
+        charMapping.put('┤', mapping.get("lit brick wall left up down"           ));
+        charMapping.put('┐', mapping.get("lit brick wall left up"            ));
+        charMapping.put('┘', mapping.get("lit brick wall left down"            ));
         
         //This uses the seeded RNG we made earlier to build a procedural dungeon using a method that takes rectangular
         //sections of pre-drawn dungeon and drops them into place in a tiling pattern. It makes good winding dungeons
@@ -297,7 +314,7 @@ public class CaveCops extends ApplicationAdapter {
         // if you gave a seed to the RNG constructor, then the cell this chooses will be reliable for testing. If you
         // don't seed the RNG, any valid cell should be possible.
         player = floors.singleRandom(rng);
-        playerSprite.setPosition(player.x * 16, player.y * 16);
+        playerPosition = new Vector2(player.x * 16, player.y * 16);
         // Uses shadowcasting FOV and reuses the visible array without creating new arrays constantly.
         FOV.reuseFOV(resistance, visible, player.x, player.y, 9.0, Radius.CIRCLE);//, (System.currentTimeMillis() & 0xFFFF) * 0x1p-4, 60.0);
         
@@ -466,8 +483,6 @@ public class CaveCops extends ApplicationAdapter {
             }
         };
         Gdx.input.setInputProcessor(input);
-
-        screenPosition = new Vector2(cellWidth, cellHeight);
     }
     /**
      * Move the player if he isn't bumping into a wall or trying to go off the map somehow.
@@ -480,7 +495,7 @@ public class CaveCops extends ApplicationAdapter {
         if (newX >= 0 && newY >= 0 && newX < bigWidth && newY < bigHeight
                 && bareDungeon[newX][newY] != '#')
         {
-            playerSprite.translate(xmod * 16, ymod * 16);
+            playerPosition.add(xmod * 16, ymod * 16);
             // this just moves the grid position of the player as it is internally tracked.
             player = player.translate(xmod, ymod);
             // calculates field of vision around the player again, in a circle of radius 9.0 .
@@ -501,6 +516,7 @@ public class CaveCops extends ApplicationAdapter {
      */
     public void putMap()
     {
+        final float time = TimeUtils.timeSinceMillis(startTime) * 0.001f;
         for (int i = 0; i < bigWidth; i++) {
             for (int j = 0; j < bigHeight; j++) {
                 if(visible[i][j] > 0.0) {
@@ -514,24 +530,26 @@ public class CaveCops extends ApplicationAdapter {
                             150, 140, (int)(visible[i][j] * 40) + 30);
                     //batch.draw(solid, pos.x, pos.y);                     
 //                    batch.setPackedColor(SColor.lerpFloatColors(colors[i][j], FLOAT_LIGHTING, (float)visible[i][j] * 0.75f + 0.25f));
-                    batch.draw(charMapping.get(prunedDungeon[i][j], solid), pos.x, pos.y);
+                    batch.draw(charMapping.get(prunedDungeon[i][j], solid).getKeyFrame(time), pos.x, pos.y);
                 } else if(seen.contains(i, j)) {
                     pos.set(i * cellWidth, j * cellHeight, 0f);
                     //batch.draw(solid, pos.x, pos.y);
 //                    if ((monster = monsters.get(Coord.get(i, j))) != null)
 //                        monster.setAlpha(0f);
                     batch.setPackedColor(FLOAT_GRAY);
-                    batch.draw(charMapping.get(prunedDungeon[i][j], solid), pos.x, pos.y);
+                    batch.draw(charMapping.get(prunedDungeon[i][j], solid).getKeyFrame(time), pos.x, pos.y);
                 }
             }
         }
 //        for (int i = 0; i < monsters.size(); i++) {
 //            monsters.getAt(i).draw(batch);
 //        }
-        playerSprite.draw(batch);
+        batch.setPackedColor(FLOAT_NEUTRAL);
+        
+        batch.draw(playerSprite.getKeyFrame(time), player.x * cellWidth, player.y * cellHeight);
         font.setColor(Color.WHITE);
-        font.draw(batch, horoscope, playerSprite.getX() - Gdx.graphics.getWidth() * 0.25f,
-                playerSprite.getY() + Gdx.graphics.getHeight() * 0.375f, Gdx.graphics.getWidth() * 0.5f,
+        font.draw(batch, horoscope, player.x * cellWidth - Gdx.graphics.getWidth() * 0.25f,
+                player.y * cellHeight + Gdx.graphics.getHeight() * 0.375f, Gdx.graphics.getWidth() * 0.5f,
                 Align.center, true);
         Gdx.graphics.setTitle(Gdx.graphics.getFramesPerSecond() + " FPS");
     }
@@ -541,8 +559,8 @@ public class CaveCops extends ApplicationAdapter {
         Gdx.gl.glClearColor(bgColor.r, bgColor.g, bgColor.b, 1.0f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        camera.position.x = playerSprite.getX();
-        camera.position.y =  playerSprite.getY();
+        camera.position.x = playerPosition.x;
+        camera.position.y =  playerPosition.y;
         camera.update();
 
         mainViewport.apply(false);
