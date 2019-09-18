@@ -13,12 +13,13 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.MathUtils;
-import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.*;
 import regexodus.Pattern;
 import regexodus.Replacer;
 import squidpony.ArrayTools;
 import squidpony.FakeLanguageGen;
+import squidpony.Maker;
 import squidpony.squidai.DijkstraMap;
 import squidpony.squidgrid.FOV;
 import squidpony.squidgrid.Measurement;
@@ -66,7 +67,7 @@ public class CaveCops extends ApplicationAdapter {
     private TextureAtlas atlas;
     // This maps chars, such as '#', to specific images, such as a pillar.
     private IntMap<Animation<TextureAtlas.AtlasRegion>> charMapping;
-    
+    private IntMap<ArrayList<Animation<TextureAtlas.AtlasRegion>>> decorationMapping;
     private BitmapFont font;
     
     // generates a dungeon as a 2D char array; can also fill some simple features into the dungeon.
@@ -115,7 +116,7 @@ public class CaveCops extends ApplicationAdapter {
     private ArrayList<Coord> awaitedMoves;
 
     private Moth playerPosition;
-    private Vector3 pos = new Vector3();
+    private Vector2 pos = new Vector2();
 
 
     private double[][] resistance;
@@ -130,7 +131,8 @@ public class CaveCops extends ApplicationAdapter {
     private String horoscope;
     
     public LinkedHashMap<String, Animation<TextureAtlas.AtlasRegion>> mapping;
-    
+    private LinkedHashMap<Coord, Animation<TextureAtlas.AtlasRegion>> decorations;
+
     public static LinkedHashMap<String, Animation<TextureAtlas.AtlasRegion>> makeMapping(final TextureAtlas atlas){
         final Array<TextureAtlas.AtlasRegion> regions = atlas.getRegions();
         TextureAtlas.AtlasRegion item;
@@ -159,7 +161,7 @@ public class CaveCops extends ApplicationAdapter {
         String[] zodiac = new String[12];
         RNG shuffleRNG = new RNG(new XoshiroStarPhi32RNG(DiverRNG.determine(startTime)));
         for (int i = 0; i < zodiac.length; i++) {
-            zodiac[i] = FakeLanguageGen.ANCIENT_EGYPTIAN.word(shuffleRNG, true, shuffleRNG.maxIntOf(4, 3) + 1);
+            zodiac[i] = FakeLanguageGen.ANCIENT_EGYPTIAN.word(shuffleRNG, true, shuffleRNG.maxIntOf(4, 2) + 1);
         }
         String[] phrases = new String[]{" is in retrograde", " ascends", " reaches toward the North", " leans Southward",
                 " stands against the West wind", " charges into the East", " resides in the Castle",
@@ -178,7 +180,6 @@ public class CaveCops extends ApplicationAdapter {
                                 ". Oh yeah, this is gonna be good...",
                                 ". Does anyone else smell smoke?",
                                 "! Party time!",
-                                ". 1, 2, 3 cheers for the Goblin King!",
                                 "! This is the dawning of the Age of Aquarius!"};
         zodiacShuffler = new GapShuffler<>(zodiac, shuffleRNG);
         phraseShuffler = new GapShuffler<>(phrases, shuffleRNG);
@@ -210,6 +211,7 @@ public class CaveCops extends ApplicationAdapter {
 //        palette = new Texture("GBGreen16_GLSL.png");
         
         charMapping = new IntMap<>(64);
+        decorationMapping = new IntMap<>(64);
         solid = mapping.get("day tile floor c");
         playerAnimation = mapping.get("keystone kop");
         charMapping.put('.', solid);
@@ -230,6 +232,20 @@ public class CaveCops extends ApplicationAdapter {
         charMapping.put('┤', mapping.get("lit brick wall left up down"           ));
         charMapping.put('┐', mapping.get("lit brick wall left up"            ));
         charMapping.put('┘', mapping.get("lit brick wall left down"            ));
+
+        decorationMapping.put('"', Maker.makeList(
+                mapping.get("sparse green grass"),
+                mapping.get("green grass"),
+                mapping.get("sparse green scrub"),
+                mapping.get("green scrub"),
+                mapping.get("sparse white flowers"),
+                mapping.get("white flowers"),
+                mapping.get("sparse blue flowers"),
+                mapping.get("blue flowers"),
+                mapping.get("sparse gold flowers"),
+                mapping.get("gold flowers"),
+                mapping.get("sparse red flowers"),
+                mapping.get("red flowers")));
         
         //This uses the seeded RNG we made earlier to build a procedural dungeon using a method that takes rectangular
         //sections of pre-drawn dungeon and drops them into place in a tiling pattern. It makes good winding dungeons
@@ -288,7 +304,20 @@ public class CaveCops extends ApplicationAdapter {
 //        DungeonUtility.debugPrint(lineDungeon);
         resistance = DungeonUtility.generateResistances(decoDungeon);
         visible = new double[bigWidth][bigHeight];
-
+        decorations = new LinkedHashMap<Coord, Animation<TextureAtlas.AtlasRegion>>();
+        floors = new GreasedRegion(bigWidth, bigHeight);
+        for(IntMap.Entry<ArrayList<Animation<TextureAtlas.AtlasRegion>>> e : decorationMapping.entries())
+        {
+            floors.refill(decoDungeon, (char)e.key).mixedRandomSeparated(0.15, -1, rng.nextLong());
+            for(Coord c : floors)
+            {
+                if(rng.next(6) < 17)
+                {
+                    decorations.put(c, e.value.get(~rng.next(1) & (int)(rng.nextFloat() * (rng.nextSignedInt(e.value.size()) + 0.5f))));
+                }
+            }
+        }
+        
         //Coord is the type we use as a general 2D point, usually in a dungeon.
         //Because we know dungeons won't be incredibly huge, Coord performs best for x and y values less than 256, but
         // by default it can also handle some negative x and y values (-3 is the lowest it can efficiently store). You
@@ -314,7 +343,7 @@ public class CaveCops extends ApplicationAdapter {
         // being especially fast. Both of them can be seen as storing regions of points in 2D space as "on" and "off."
 
         // Here we fill a GreasedRegion so it stores the cells that contain a floor, the '.' char, as "on."
-        floors = new GreasedRegion(bareDungeon, '.');
+        floors.refill(bareDungeon, '.');
         //player is, here, just a Coord that stores his position. In a real game, you would probably have a class for
         //creatures, and possibly a subclass for the player. The singleRandom() method on GreasedRegion finds one Coord
         // in that region that is "on," or -1,-1 if there are no such cells. It takes an RNG object as a parameter, and
@@ -437,7 +466,7 @@ public class CaveCops extends ApplicationAdapter {
             @Override
             public boolean touchUp(int screenX, int screenY, int pointer, int button) {
                 if(mode != SELECT) return false;
-                pos.set(screenX, screenY, 0f);
+                pos.set(screenX, screenY);
                 mainViewport.unproject(pos);
                 if (onGrid(MathUtils.floor(pos.x) >> 4, MathUtils.floor(pos.y) >> 4)) {
                     mouseMoved(screenX, screenY);
@@ -459,7 +488,7 @@ public class CaveCops extends ApplicationAdapter {
                 if(mode != SELECT) return false;
                 if(!awaitedMoves.isEmpty())
                     return false;
-                pos.set(screenX, screenY, 0f);
+                pos.set(screenX, screenY);
                 mainViewport.unproject(pos);
                 if (onGrid(screenX = MathUtils.floor(pos.x) >> 4, screenY = MathUtils.floor(pos.y) >> 4)) {
                     // we also need to check if screenX or screenY is out of bounds.
@@ -528,6 +557,7 @@ public class CaveCops extends ApplicationAdapter {
     public void putMap()
     {
         final float time = TimeUtils.timeSinceMillis(startTime) * 0.001f;
+        Animation<TextureAtlas.AtlasRegion> decoration;
         for (int i = 0; i < bigWidth; i++) {
             for (int j = 0; j < bigHeight; j++) {
                 if(visible[i][j] > 0.0) {
@@ -562,6 +592,10 @@ public class CaveCops extends ApplicationAdapter {
                     //batch.draw(solid, pos.x, pos.y);
 //                    batch.setPackedColor(SColor.lerpFloatColors(colors[i][j], FLOAT_LIGHTING, (float)visible[i][j] * 0.75f + 0.25f));
                     batch.draw(charMapping.get(prunedDungeon[i][j], solid).getKeyFrame(time), i * cellWidth, j * cellHeight);
+                    if((decoration = decorations.get(Coord.get(i, j))) != null)
+                    {
+                        batch.draw(decoration.getKeyFrame(time), i * cellWidth, j * cellHeight);
+                    }
                 } else if(seen.contains(i, j)) {
 //                    pos.set(i * cellWidth, j * cellHeight, 0f);
                     //batch.draw(solid, pos.x, pos.y);
@@ -569,6 +603,10 @@ public class CaveCops extends ApplicationAdapter {
 //                        monster.setAlpha(0f);
                     batch.setPackedColor(FLOAT_GRAY);
                     batch.draw(charMapping.get(prunedDungeon[i][j], solid).getKeyFrame(time), i * cellWidth, j * cellHeight);
+                    if((decoration = decorations.get(Coord.get(i, j))) != null)
+                    {
+                        batch.draw(decoration.getKeyFrame(time), i * cellWidth, j * cellHeight);
+                    }
                 }
             }
         }
@@ -582,7 +620,7 @@ public class CaveCops extends ApplicationAdapter {
                 playerPosition.getY() + Gdx.graphics.getHeight() * 0.375f, Gdx.graphics.getWidth() * 0.5f,
                 Align.center, true);
 //        Gdx.graphics.setTitle(horoscope);
-        Gdx.graphics.setTitle(Gdx.graphics.getFramesPerSecond() + " FPS");
+//        Gdx.graphics.setTitle(Gdx.graphics.getFramesPerSecond() + " FPS");
     }
     @Override
     public void render () {
