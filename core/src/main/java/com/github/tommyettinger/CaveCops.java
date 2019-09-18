@@ -86,9 +86,9 @@ public class CaveCops extends ApplicationAdapter {
 
 
     /** In number of cells */
-    private static final int gridWidth = 64;
+    private static final int gridWidth = 40;
     /** In number of cells */
-    private static final int gridHeight = 32;
+    private static final int gridHeight = 24;
 
     /** In number of cells */
     private static final int bigWidth = gridWidth * 2;
@@ -96,9 +96,9 @@ public class CaveCops extends ApplicationAdapter {
     private static final int bigHeight = gridHeight * 2;
 
     /** The pixel width of a cell */
-    private static final int cellWidth = 16;
+    private static final int cellWidth = 32;
     /** The pixel height of a cell */
-    private static final int cellHeight = 16;
+    private static final int cellHeight = 32;
     public long startTime = 0L, animationStart = 0L, animationEnd = 250L;
     private Animation<TextureAtlas.AtlasRegion> solid, playerAnimation;
     public static final float
@@ -200,9 +200,9 @@ public class CaveCops extends ApplicationAdapter {
         camera = mainViewport.getCamera();
         camera.update();
 
-        atlas = new TextureAtlas("Dawnlike.atlas");
+        atlas = new TextureAtlas("Dawnlike2.atlas");
         mapping = makeMapping(atlas);
-        font = new BitmapFont(Gdx.files.internal("font.fnt"), atlas.findRegion("font"));
+        font = new BitmapFont(Gdx.files.internal("font2.fnt"), atlas.findRegion("font"));
         //font.getData().scale(2f);
         
         palette = new Texture("DB_Aurora_GLSL.png");
@@ -476,7 +476,7 @@ public class CaveCops extends ApplicationAdapter {
                 if(mode != SELECT) return false;
                 pos.set(screenX, screenY);
                 mainViewport.unproject(pos);
-                if (onGrid(MathUtils.floor(pos.x) >> 4, MathUtils.floor(pos.y) >> 4)) {
+                if (onGrid(MathUtils.floor(pos.x * 0x1p-5f), MathUtils.floor(pos.y * 0x1p-5f))) {
                     mouseMoved(screenX, screenY);
                     awaitedMoves.addAll(toCursor);
                     return true;
@@ -498,7 +498,7 @@ public class CaveCops extends ApplicationAdapter {
                     return false;
                 pos.set(screenX, screenY);
                 mainViewport.unproject(pos);
-                if (onGrid(screenX = MathUtils.floor(pos.x) >> 4, screenY = MathUtils.floor(pos.y) >> 4)) {
+                if (onGrid(screenX = MathUtils.floor(pos.x * 0x1p-5f), screenY = MathUtils.floor(pos.y * 0x1p-5f))) {
                     // we also need to check if screenX or screenY is out of bounds.
                     if (screenX < 0 || screenY < 0 || screenX >= bigWidth || screenY >= bigHeight ||
                             (cursor.x == screenX && cursor.y == screenY)) {
