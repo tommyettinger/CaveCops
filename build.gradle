@@ -7,19 +7,13 @@ buildscript {
 		jcenter()
 	}
 	dependencies {
-		classpath "com.badlogicgames.gdx:gdx-tools:$gdxVersion"
 		classpath "org.wisepersist:gwt-gradle-plugin:$gwtPluginVersion"
 	}
 }
 
-allprojects {
-	apply plugin: 'eclipse'
-	apply plugin: 'idea'
-}
-
 configure(subprojects) {
 	apply plugin: 'java-library'
-	sourceCompatibility = 1.8
+	sourceCompatibility = 1.7
 	compileJava {
 		options.incremental = true
 	}
@@ -35,11 +29,4 @@ subprojects {
 		maven { url 'https://jitpack.io' }
 		jcenter()
 	}
-}
-
-// Clearing Eclipse project data in root folder:
-tasks.eclipse.doLast {
-	delete '.project'
-	delete '.classpath'
-	delete '.settings/'
 }

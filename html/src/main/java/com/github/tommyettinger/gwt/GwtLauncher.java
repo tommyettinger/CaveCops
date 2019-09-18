@@ -9,7 +9,7 @@ import com.github.tommyettinger.CaveCops;
 public class GwtLauncher extends GwtApplication {
     @Override
     public GwtApplicationConfiguration getConfig() {
-        GwtApplicationConfiguration configuration = new GwtApplicationConfiguration(90 * 10, (25 + 7) * 20);
+        GwtApplicationConfiguration configuration = new GwtApplicationConfiguration(40 * 32, 24 * 32);
         return configuration;
     }
 

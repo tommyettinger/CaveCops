@@ -15,7 +15,6 @@ gwt {
 	compiler.strict = true
 	compiler.disableCastChecking = true
 }
-
 import org.wisepersist.gradle.plugins.gwt.GwtSuperDev
 
 def HttpFileServer server = null
@@ -56,18 +55,18 @@ task superDev(type: GwtSuperDev) {
 
 task dist(dependsOn: [clean, compileGwt]) {
     doLast {
-		file("build/dist").mkdirs()
+		file("../docs").mkdirs()
 		copy {
 			from "build/gwt/out"
-			into "build/dist"
+			into "../docs"
 		}
 		copy {
 			from "webapp"
-			into "build/dist"
+			into "../docs"
 			}
 		copy {
 			from "war"
-			into "build/dist"
+			into "../docs"
 		}
 	}
 }
@@ -83,5 +82,3 @@ tasks.draftCompileGwt.dependsOn(addSource)
 
 sourceCompatibility = 1.7
 sourceSets.main.java.srcDirs = [ "src/main/java/" ]
-
-eclipse.project.name = appName + "-html"

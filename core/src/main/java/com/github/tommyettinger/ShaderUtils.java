@@ -24,8 +24,14 @@ public class ShaderUtils {
             + "   gl_Position =  u_projTrans * " + ShaderProgram.POSITION_ATTRIBUTE + ";\n"
             + "}\n";
     public static final String fragmentShader =
-            "varying vec2 v_texCoords;\n" +
-                    "varying vec4 v_color;\n" +
+            "#ifdef GL_ES\n" +
+                    "#define LOWP lowp\n" +
+                    "precision mediump float;\n" +
+                    "#else\n" +
+                    "#define LOWP \n" +
+                    "#endif\n" +
+                    "varying vec2 v_texCoords;\n" +
+                    "varying LOWP vec4 v_color;\n" +
                     "uniform sampler2D u_texture;\n" +
                     "uniform sampler2D u_palette;\n" +
                     "const float b_adj = 31.0 / 32.0;\n" +
@@ -50,8 +56,14 @@ public class ShaderUtils {
                     "   gl_FragColor.a = tgt.a;\n" +
                     "}";
     public static final String fragmentShaderWarmMildLimited =
-            "varying vec2 v_texCoords;\n" +
-                    "varying vec4 v_color;\n" +
+            "#ifdef GL_ES\n" +
+                    "#define LOWP lowp\n" +
+                    "precision mediump float;\n" +
+                    "#else\n" +
+                    "#define LOWP \n" +
+                    "#endif\n" +
+                    "varying vec2 v_texCoords;\n" +
+                    "varying LOWP vec4 v_color;\n" +
                     "uniform sampler2D u_texture;\n" +
                     "uniform sampler2D u_palette;\n" +
                     "uniform vec3 u_add;\n" +
