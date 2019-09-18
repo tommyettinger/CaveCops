@@ -246,6 +246,13 @@ public class CaveCops extends ApplicationAdapter {
                 mapping.get("gold flowers"),
                 mapping.get("sparse red flowers"),
                 mapping.get("red flowers")));
+        decorationMapping.put('.', Maker.makeList(mapping.get("sparse gray pebbles"),
+                mapping.get("gray pebbles"),
+                mapping.get("sparse brown pebbles"),
+                mapping.get("brown pebbles"),
+                mapping.get("sparse gray rocks"),
+                mapping.get("gray rocks")
+        ));
         
         //This uses the seeded RNG we made earlier to build a procedural dungeon using a method that takes rectangular
         //sections of pre-drawn dungeon and drops them into place in a tiling pattern. It makes good winding dungeons
@@ -309,9 +316,10 @@ public class CaveCops extends ApplicationAdapter {
         for(IntMap.Entry<ArrayList<Animation<TextureAtlas.AtlasRegion>>> e : decorationMapping.entries())
         {
             floors.refill(decoDungeon, (char)e.key).mixedRandomSeparated(0.15, -1, rng.nextLong());
+            final int count = floors.size(), count2 = (32 - Integer.numberOfLeadingZeros(count)) << 4;
             for(Coord c : floors)
             {
-                if(rng.next(6) < 17)
+                if(rng.nextSignedInt(count) < count2)
                 {
                     decorations.put(c, e.value.get(~rng.next(1) & (int)(rng.nextFloat() * (rng.nextSignedInt(e.value.size()) + 0.5f))));
                 }
