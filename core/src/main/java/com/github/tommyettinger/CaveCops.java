@@ -30,6 +30,7 @@ import squidpony.squidgrid.mapping.FlowingCaveGenerator;
 import squidpony.squidgrid.mapping.LineKit;
 import squidpony.squidgrid.mapping.styled.TilesetType;
 import squidpony.squidmath.*;
+import squidpony.squidmath.OrderedMap;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -68,6 +69,7 @@ public class CaveCops extends ApplicationAdapter {
     // This maps chars, such as '#', to specific images, such as a pillar.
     private IntMap<Animation<TextureAtlas.AtlasRegion>> charMapping;
     private IntMap<ArrayList<Animation<TextureAtlas.AtlasRegion>>> decorationMapping;
+    private IntMap<ArrayList<Animation<TextureAtlas.AtlasRegion>>> spawnMapping;
     private BitmapFont font;
     
     // generates a dungeon as a 2D char array; can also fill some simple features into the dungeon.
@@ -115,7 +117,6 @@ public class CaveCops extends ApplicationAdapter {
     private ArrayList<Coord> toCursor;
     private ArrayList<Coord> awaitedMoves;
 
-    private Moth playerPosition;
     private Vector2 pos = new Vector2();
 
 
@@ -129,9 +130,11 @@ public class CaveCops extends ApplicationAdapter {
     private GapShuffler<String> zodiacShuffler, phraseShuffler, meaningShuffler;
     private Replacer anReplacer;
     private String horoscope;
-    
+
+    private Moth playerMoth;
+    private OrderedMap<Coord, Moth> moths;
     public LinkedHashMap<String, Animation<TextureAtlas.AtlasRegion>> mapping;
-    private LinkedHashMap<Coord, Animation<TextureAtlas.AtlasRegion>> decorations;
+    private OrderedMap<Coord, Animation<TextureAtlas.AtlasRegion>> decorations;
 
     public static LinkedHashMap<String, Animation<TextureAtlas.AtlasRegion>> makeMapping(final TextureAtlas atlas){
         final Array<TextureAtlas.AtlasRegion> regions = atlas.getRegions();
@@ -212,6 +215,7 @@ public class CaveCops extends ApplicationAdapter {
         
         charMapping = new IntMap<>(64);
         decorationMapping = new IntMap<>(64);
+        spawnMapping = new IntMap<>(64);
         solid = mapping.get("day tile floor c");
         playerAnimation = mapping.get("keystone kop");
         charMapping.put('.', solid);
@@ -254,17 +258,80 @@ public class CaveCops extends ApplicationAdapter {
                 mapping.get("gray rocks")
         ));
         
+        spawnMapping.put('~', Maker.makeList(
+                mapping.get("fighting fish"),
+                mapping.get("red snapper"),
+                mapping.get("stonefish"),
+                mapping.get("catfish"),
+                mapping.get("piranha"),
+                mapping.get("lobster"),
+                mapping.get("jellyfish"),
+                mapping.get("man o war"),
+                mapping.get("barracuda"),
+                mapping.get("great white shark"),
+                mapping.get("tiger shark"),
+                mapping.get("beluga whale"),
+                mapping.get("blue whale"),
+                mapping.get("river dolphin"),
+                mapping.get("snakefish"),
+                mapping.get("bobbit worm"),
+                mapping.get("eel"),
+                mapping.get("electric eel"),
+                mapping.get("kraken"),
+                mapping.get("sea tiger"),
+                mapping.get("platypus"),
+                mapping.get("cave penguin"),
+                mapping.get("penguin"),
+                mapping.get("pelican"),
+                mapping.get("duck"),
+                mapping.get("puffin"),
+                mapping.get("swan"),
+                mapping.get("albatross")
+        ));
+        spawnMapping.put(',', Maker.makeList(
+                mapping.get("fighting fish"),
+                mapping.get("stonefish"),
+                mapping.get("piranha"),
+                mapping.get("lobster"),
+                mapping.get("snakefish"),
+                mapping.get("sea nymph"),
+                mapping.get("river nymph"),
+                mapping.get("bog nymph"),
+                mapping.get("platypus"),
+                mapping.get("leech"),
+                mapping.get("frog"),
+                mapping.get("cave penguin"),
+                mapping.get("penguin"),
+                mapping.get("baby pelican"),
+                mapping.get("pelican"),
+                mapping.get("baby duck"),
+                mapping.get("duck"),
+                mapping.get("baby puffin"),
+                mapping.get("puffin"),
+                mapping.get("baby swan"),
+                mapping.get("swan"),
+                mapping.get("baby albatross"),
+                mapping.get("albatross")
+        ));
+//        
+//        for(ArrayList<Animation<TextureAtlas.AtlasRegion>> list : spawnMapping.values())
+//        {
+//            for(Animation<TextureAtlas.AtlasRegion> animation : list)
+//            {
+//                System.out.println(animation == null ? "!!!!!!" : animation.getKeyFrame(0).name);
+//            }
+//        }
+        
         //This uses the seeded RNG we made earlier to build a procedural dungeon using a method that takes rectangular
         //sections of pre-drawn dungeon and drops them into place in a tiling pattern. It makes good winding dungeons
         //with rooms by default, but in the later call to dungeonGen.generate(), you can use a TilesetType such as
         //TilesetType.ROUND_ROOMS_DIAGONAL_CORRIDORS or TilesetType.CAVES_LIMIT_CONNECTIVITY to change the sections that
         //this will use, or just pass in a full 2D char array produced from some other generator, such as
         //SerpentMapGenerator, OrganicMapGenerator, or DenseRoomMapGenerator.
-        rng = new GWTRNG(-3005655405530708008L);
         dungeonGen = new DungeonGenerator(bigWidth, bigHeight, rng);
         //uncomment this next line to randomly add water to the dungeon in pools.
-        dungeonGen.addWater(15);
-        dungeonGen.addGrass(10);
+        dungeonGen.addWater(18);
+        dungeonGen.addGrass(12);
         FlowingCaveGenerator flowing = new FlowingCaveGenerator(bigWidth, bigHeight, TilesetType.DEFAULT_DUNGEON, rng);
         decoDungeon = dungeonGen.generate(flowing.generate());
 //        DungeonBoneGen gen = new DungeonBoneGen(this.rng);
@@ -281,7 +348,7 @@ public class CaveCops extends ApplicationAdapter {
 //        decoDungeon = dungeonGen.generate(TilesetType.DEFAULT_DUNGEON);
         bareDungeon = dungeonGen.getBareDungeon();
         lineDungeon = DungeonUtility.hashesToLines(decoDungeon);
-        DungeonUtility.debugPrint(lineDungeon);
+//        DungeonUtility.debugPrint(lineDungeon);
 
         //When we draw, we may want to use a nicer representation of walls. DungeonUtility has lots of useful methods
         //for modifying char[][] dungeon grids, and this one takes each '#' and replaces it with a box-drawing char.
@@ -322,11 +389,13 @@ public class CaveCops extends ApplicationAdapter {
         //no parameters are given to generate().
         resistance = DungeonUtility.generateResistances(decoDungeon);
         visible = new double[bigWidth][bigHeight];
-        decorations = new LinkedHashMap<Coord, Animation<TextureAtlas.AtlasRegion>>();
-        floors = new GreasedRegion(bigWidth, bigHeight);
+        floors = new GreasedRegion(bareDungeon, '.');
+        final int floorSpace = floors.size();
+        decorations = new OrderedMap<>(floorSpace >>> 1, 0.25f);
+        moths = new OrderedMap<>(64, 0.25f);
         for(IntMap.Entry<ArrayList<Animation<TextureAtlas.AtlasRegion>>> e : decorationMapping.entries())
         {
-            floors.refill(decoDungeon, (char)e.key).mixedRandomSeparated(0.15, -1, rng.nextLong());
+            floors.refill(decoDungeon, (char)e.key).mixedRandomRegion(0.375, -1, rng.nextLong());
             final int count = floors.size(), count2 = (32 - Integer.numberOfLeadingZeros(count)) << 4;
             for(Coord c : floors)
             {
@@ -336,7 +405,18 @@ public class CaveCops extends ApplicationAdapter {
                 }
             }
         }
-        
+        for(IntMap.Entry<ArrayList<Animation<TextureAtlas.AtlasRegion>>> e : spawnMapping.entries())
+        {
+            floors.refill(decoDungeon, (char)e.key);
+            floors.mixedRandomRegion(0.1, floors.size() * 48 / floorSpace, rng.nextLong());
+            for(Coord c : floors)
+            {
+                Moth moth = new Moth(rng.getRandomElement(e.value));
+                moth.startX = moth.endX = cellWidth * c.x;
+                moth.startY = moth.endY = cellHeight * c.y;
+                moths.put(c, moth);
+            }
+        }
         //Coord is the type we use as a general 2D point, usually in a dungeon.
         //Because we know dungeons won't be incredibly huge, Coord performs best for x and y values less than 256, but
         // by default it can also handle some negative x and y values (-3 is the lowest it can efficiently store). You
@@ -369,7 +449,7 @@ public class CaveCops extends ApplicationAdapter {
         // if you gave a seed to the RNG constructor, then the cell this chooses will be reliable for testing. If you
         // don't seed the RNG, any valid cell should be possible.
         playerGrid = floors.singleRandom(rng);
-        playerPosition = new Moth(playerAnimation, playerGrid.x * cellWidth, playerGrid.y * cellHeight, playerGrid.x * cellWidth, playerGrid.y * cellHeight);
+        playerMoth = new Moth(playerAnimation, playerGrid.x * cellWidth, playerGrid.y * cellHeight, playerGrid.x * cellWidth, playerGrid.y * cellHeight);
         // Uses shadowcasting FOV and reuses the visible array without creating new arrays constantly.
         FOV.reuseFOV(resistance, visible, playerGrid.x, playerGrid.y, 9.0, Radius.CIRCLE);//, (System.currentTimeMillis() & 0xFFFF) * 0x1p-4, 60.0);
         
@@ -547,11 +627,11 @@ public class CaveCops extends ApplicationAdapter {
         if (newX >= 0 && newY >= 0 && newX < bigWidth && newY < bigHeight
                 && bareDungeon[newX][newY] != '#')
         {
-            playerPosition.startX = start.x * cellWidth;
-            playerPosition.startY = start.y * cellHeight;
-            playerPosition.endX = end.x * cellWidth;
-            playerPosition.endY = end.y * cellHeight;
-            playerPosition.alpha = 0f;
+            playerMoth.startX = start.x * cellWidth;
+            playerMoth.startY = start.y * cellHeight;
+            playerMoth.endX = end.x * cellWidth;
+            playerMoth.endY = end.y * cellHeight;
+            playerMoth.alpha = 0f;
             mode = ANIMATE;
             animationStart = TimeUtils.millis();
             animationEnd = animationStart + 250L;
@@ -577,9 +657,12 @@ public class CaveCops extends ApplicationAdapter {
     {
         final float time = TimeUtils.timeSinceMillis(startTime) * 0.001f;
         Animation<TextureAtlas.AtlasRegion> decoration;
+        Moth moth;
+        Coord c;
         for (int i = 0; i < bigWidth; i++) {
             for (int j = 0; j < bigHeight; j++) {
                 if(visible[i][j] > 0.0) {
+                    c = Coord.get(i, j);
 //                    pos.set(i * cellWidth, j * cellHeight, 0f);
 //                    batch.setPackedColor(toCursor.contains(Coord.get(i, j))
 //                            ? FLOAT_WHITE
@@ -588,21 +671,21 @@ public class CaveCops extends ApplicationAdapter {
                     {
                         case '"':
                         case '~':
-                            batch.setRGBAColor(toCursor.contains(Coord.get(i, j))
+                            batch.setRGBAColor(toCursor.contains(c)
                                             ? 210
                                             : (int)(visible[i][j] * 110
                                             + FastNoise.instance.getConfiguredNoise(i * 2f, j * 2f, time * 3.5f) * 60) + 70,
                                     140, 135, (int)(visible[i][j] * 60) + 70);
                             break;
                         case ',':
-                            batch.setRGBAColor(toCursor.contains(Coord.get(i, j))
+                            batch.setRGBAColor(toCursor.contains(c)
                                             ? 210
                                             : (int)(visible[i][j] * 120
                                             + FastNoise.instance.getConfiguredNoise(i * 2.25f, j * 2.25f, time * 5.5f) * 65) + 75,
                                     140, 135, (int)(visible[i][j] * 65) + 80);
                                     break;
                         default:
-                            batch.setRGBAColor(toCursor.contains(Coord.get(i, j))
+                            batch.setRGBAColor(toCursor.contains(c)
                                             ? 210
                                             : (int)(visible[i][j] * 150) + 40,
                                     140, 135, (int)(visible[i][j] * 75) + 40);
@@ -611,9 +694,14 @@ public class CaveCops extends ApplicationAdapter {
                     //batch.draw(solid, pos.x, pos.y);
 //                    batch.setPackedColor(SColor.lerpFloatColors(colors[i][j], FLOAT_LIGHTING, (float)visible[i][j] * 0.75f + 0.25f));
                     batch.draw(charMapping.get(prunedDungeon[i][j], solid).getKeyFrame(time), i * cellWidth, j * cellHeight);
-                    if((decoration = decorations.get(Coord.get(i, j))) != null)
+                    if((decoration = decorations.get(c)) != null)
                     {
                         batch.draw(decoration.getKeyFrame(time), i * cellWidth, j * cellHeight);
+                    }
+                    if((moth = moths.get(c)) != null)
+                    {
+                        batch.setPackedColor(moth.color);
+                        batch.draw(moth.animate(time), moth.getX(), moth.getY());
                     }
                 } else if(seen.contains(i, j)) {
 //                    pos.set(i * cellWidth, j * cellHeight, 0f);
@@ -632,11 +720,11 @@ public class CaveCops extends ApplicationAdapter {
 //        for (int i = 0; i < monsters.size(); i++) {
 //            monsters.getAt(i).draw(batch);
 //        }
-        batch.setPackedColor(playerPosition.color);
-        batch.draw(playerPosition.animate(time), playerPosition.getX(), playerPosition.getY());
+        batch.setPackedColor(playerMoth.color);
+        batch.draw(playerMoth.animate(time), playerMoth.getX(), playerMoth.getY());
         font.setColor(Color.WHITE);
-        font.draw(batch, horoscope, playerPosition.getX() - Gdx.graphics.getWidth() * 0.25f,
-                playerPosition.getY() + Gdx.graphics.getHeight() * 0.375f, Gdx.graphics.getWidth() * 0.5f,
+        font.draw(batch, horoscope, playerMoth.getX() - Gdx.graphics.getWidth() * 0.25f,
+                playerMoth.getY() + Gdx.graphics.getHeight() * 0.375f, Gdx.graphics.getWidth() * 0.5f,
                 Align.center, true);
 //        Gdx.graphics.setTitle(horoscope);
 //        Gdx.graphics.setTitle(Gdx.graphics.getFramesPerSecond() + " FPS");
@@ -647,8 +735,8 @@ public class CaveCops extends ApplicationAdapter {
         Gdx.gl.glClearColor(bgColor.r, bgColor.g, bgColor.b, 1.0f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        camera.position.x = playerPosition.getX();
-        camera.position.y =  playerPosition.getY();
+        camera.position.x = playerMoth.getX();
+        camera.position.y =  playerMoth.getY();
         camera.update();
 
         mainViewport.apply(false);
@@ -663,7 +751,7 @@ public class CaveCops extends ApplicationAdapter {
         putMap();
         // if the user clicked, we have a list of moves to perform.
         if(!awaitedMoves.isEmpty()) {
-            if(mode == SELECT || playerPosition.alpha >= 1f) {
+            if(mode == SELECT || playerMoth.alpha >= 1f) {
                 // this doesn't check for input, but instead processes and removes Coords from awaitedMoves.
                 Coord m = awaitedMoves.remove(0);
                 if (!toCursor.isEmpty())
@@ -691,11 +779,11 @@ public class CaveCops extends ApplicationAdapter {
                 }
             }
             else {
-                playerPosition.alpha = TimeUtils.timeSinceMillis(animationStart) * 0.004f;
+                playerMoth.alpha = TimeUtils.timeSinceMillis(animationStart) * 0.004f;
             }
         }
         else {
-            playerPosition.alpha = TimeUtils.timeSinceMillis(animationStart) * 0.004f;
+            playerMoth.alpha = TimeUtils.timeSinceMillis(animationStart) * 0.004f;
         }
         batch.end();
     }
