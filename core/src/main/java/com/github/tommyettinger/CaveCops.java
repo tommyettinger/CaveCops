@@ -139,7 +139,7 @@ public class CaveCops extends ApplicationAdapter {
         final LinkedHashMap<String, Animation<TextureAtlas.AtlasRegion>> lhm = new LinkedHashMap<>(regions.size, 0.5f);
         for (int i = 0; i < regions.size; i++) {
             if(!lhm.containsKey((item = regions.get(i)).name))
-                lhm.put(item.name, new Animation<>(0.375f, atlas.findRegions(item.name), Animation.PlayMode.LOOP));
+                lhm.put(item.name, new Animation<>(0.25f, atlas.findRegions(item.name), Animation.PlayMode.LOOP));
         }
         return lhm;
     }
@@ -260,16 +260,29 @@ public class CaveCops extends ApplicationAdapter {
         //TilesetType.ROUND_ROOMS_DIAGONAL_CORRIDORS or TilesetType.CAVES_LIMIT_CONNECTIVITY to change the sections that
         //this will use, or just pass in a full 2D char array produced from some other generator, such as
         //SerpentMapGenerator, OrganicMapGenerator, or DenseRoomMapGenerator.
+        rng = new GWTRNG(-3005655405530708008L);
         dungeonGen = new DungeonGenerator(bigWidth, bigHeight, rng);
         //uncomment this next line to randomly add water to the dungeon in pools.
         dungeonGen.addWater(15);
         dungeonGen.addGrass(10);
         FlowingCaveGenerator flowing = new FlowingCaveGenerator(bigWidth, bigHeight, TilesetType.DEFAULT_DUNGEON, rng);
-        //decoDungeon is given the dungeon with any decorations we specified. (Here, we didn't, unless you chose to add
-        //water to the dungeon. In that case, decoDungeon will have different contents than bareDungeon, next.)
         decoDungeon = dungeonGen.generate(flowing.generate());
-        //getBareDungeon provides the simplest representation of the generated dungeon -- '#' for walls, '.' for floors.
+//        DungeonBoneGen gen = new DungeonBoneGen(this.rng);
+//        CellularAutomaton ca = new CellularAutomaton(bigWidth, bigHeight);
+//        gen.generate(TilesetType.DEFAULT_DUNGEON, bigWidth, bigHeight);
+//        ca.remake(gen.region);
+//        gen.region.and(ca.runBasicSmoothing()).deteriorate(rng, 0.9);
+//        gen.region.and(ca.runBasicSmoothing()).deteriorate(rng, 0.9);
+//        ca.current.remake(gen.region.deteriorate(rng, 0.9));
+//        gen.region.or(ca.runBasicSmoothing());
+//        gen.region = gen.region.removeEdges().largestPart();
+//        decoDungeon = dungeonGen.generate(gen.region.intoChars(gen.getDungeon(), '.', '#'));
+
+//        decoDungeon = dungeonGen.generate(TilesetType.DEFAULT_DUNGEON);
         bareDungeon = dungeonGen.getBareDungeon();
+        lineDungeon = DungeonUtility.hashesToLines(decoDungeon);
+        DungeonUtility.debugPrint(lineDungeon);
+
         //When we draw, we may want to use a nicer representation of walls. DungeonUtility has lots of useful methods
         //for modifying char[][] dungeon grids, and this one takes each '#' and replaces it with a box-drawing char.
         //The end result looks something like this, for a smaller 60x30 map:
@@ -307,8 +320,6 @@ public class CaveCops extends ApplicationAdapter {
          */
         //this is also good to compare against if the map looks incorrect, and you need an example of a correct map when
         //no parameters are given to generate().
-        lineDungeon = DungeonUtility.hashesToLines(decoDungeon);
-//        DungeonUtility.debugPrint(lineDungeon);
         resistance = DungeonUtility.generateResistances(decoDungeon);
         visible = new double[bigWidth][bigHeight];
         decorations = new LinkedHashMap<Coord, Animation<TextureAtlas.AtlasRegion>>();
