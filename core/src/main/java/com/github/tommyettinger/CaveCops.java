@@ -34,6 +34,7 @@ import squidpony.squidmath.OrderedMap;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 
 import static com.badlogic.gdx.Input.Keys.*;
 
@@ -126,6 +127,7 @@ public class CaveCops extends ApplicationAdapter {
     // the player's vision that blocks pathfinding to areas we can't see a path to, and we also store all cells that we
     // have seen in the past in a GreasedRegion (in most roguelikes, there would be one of these per dungeon floor).
     private GreasedRegion floors, blockage, seen, currentlySeen;
+    private LinkedHashSet<Coord> impassable;
     
     private GapShuffler<String> zodiacShuffler, phraseShuffler, meaningShuffler;
     private Replacer anReplacer;
@@ -411,10 +413,7 @@ public class CaveCops extends ApplicationAdapter {
             floors.mixedRandomRegion(0.1, floors.size() * 48 / floorSpace, rng.nextLong());
             for(Coord c : floors)
             {
-                Moth moth = new Moth(rng.getRandomElement(e.value));
-                moth.startX = moth.endX = cellWidth * c.x;
-                moth.startY = moth.endY = cellHeight * c.y;
-                moths.put(c, moth);
+                moths.put(c, new Moth(rng.getRandomElement(e.value), cellWidth * c.x, cellHeight * c.y));
             }
         }
         //Coord is the type we use as a general 2D point, usually in a dungeon.
@@ -460,6 +459,7 @@ public class CaveCops extends ApplicationAdapter {
         seen = blockage.not().copy();
         currentlySeen = seen.copy();
         blockage.fringe8way();
+        impassable = new LinkedHashSet<>(blockage.size() + 64, 0.25f);
         // prunedDungeon starts with the full lineDungeon, which includes features like water and grass but also stores
         // all walls as box-drawing characters. The issue with using lineDungeon as-is is that a character like '┬' may
         // be used because there are walls to the east, west, and south of it, even when the player is to the north of
@@ -482,14 +482,10 @@ public class CaveCops extends ApplicationAdapter {
         // which allows 8 directions of movement at the same cost for all directions, and EUCLIDEAN, which allows 8
         // directions, but will prefer orthogonal moves unless diagonal ones are clearly closer "as the crow flies."
         playerToCursor = new DijkstraMap(decoDungeon, Measurement.MANHATTAN);
-        //These next two lines mark the player as something we want paths to go to or from, and get the distances to the
-        // player from all walkable cells in the dungeon.
         playerToCursor.setGoal(playerGrid);
-        playerToCursor.setGoal(playerGrid);
-        // DijkstraMap.partialScan only finds the distance to get to a cell if that distance is less than some limit,
-        // which is 13 here. It also won't try to find distances through an impassable cell, which here is the blockage
-        // GreasedRegion that contains the cells just past the edge of the player's FOV area.
-        playerToCursor.partialScan(13, blockage);
+        impassable.addAll(blockage);
+        impassable.addAll(moths.keySet());
+        playerToCursor.partialScan(13, impassable);
 
 //        bgColor = new Color(0x132C2DFF); // for GBGreen16
         bgColor = new Color(0x010101FF);   // for DB_Aurora
@@ -774,7 +770,10 @@ public class CaveCops extends ApplicationAdapter {
                     // DijkstraMap.partialScan only finds the distance to get to a cell if that distance is less than some limit,
                     // which is 13 here. It also won't try to find distances through an impassable cell, which here is the blockage
                     // GreasedRegion that contains the cells just past the edge of the player's FOV area.
-                    playerToCursor.partialScan(13, blockage);
+                    impassable.clear();
+                    impassable.addAll(blockage);
+                    impassable.addAll(moths.keySet());
+                    playerToCursor.partialScan(13, impassable);
                     mode = SELECT;
                 }
             }

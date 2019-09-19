@@ -29,6 +29,10 @@ public class Moth extends TextureRegion {
         this.color = CaveCops.FLOAT_NEUTRAL;
     }
 
+    public Moth(Animation<TextureAtlas.AtlasRegion> animation, float x, float y) {
+        this(animation, x, y, x, y);
+    }
+
     public Moth(Animation<TextureAtlas.AtlasRegion> animation, float startX, float startY, float endX, float endY) {
         super();
         this.animation = animation;
