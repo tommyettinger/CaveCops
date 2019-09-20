@@ -102,7 +102,7 @@ public class CaveCops extends ApplicationAdapter {
     private static final int cellWidth = 32;
     /** The pixel height of a cell */
     private static final int cellHeight = 32;
-    public long startTime = 0L, animationStart = 0L, animationEnd = 250L;
+    public long startTime = 0L, animationStart = 0L;
     private Animation<TextureAtlas.AtlasRegion> solid, playerAnimation;
     public static final float
 //            FLOAT_BLOOD = -0x1.564f86p125F,  // same result as SColor.PURE_CRIMSON.toFloatBits()
@@ -144,7 +144,7 @@ public class CaveCops extends ApplicationAdapter {
         final LinkedHashMap<String, Animation<TextureAtlas.AtlasRegion>> lhm = new LinkedHashMap<>(regions.size, 0.5f);
         for (int i = 0; i < regions.size; i++) {
             if(!lhm.containsKey((item = regions.get(i)).name))
-                lhm.put(item.name, new Animation<>(0.25f, atlas.findRegions(item.name), Animation.PlayMode.LOOP));
+                lhm.put(item.name, new Animation<>(0.375f, atlas.findRegions(item.name), Animation.PlayMode.LOOP));
         }
         return lhm;
     }
@@ -494,7 +494,7 @@ public class CaveCops extends ApplicationAdapter {
         
         input = new InputAdapter() {
             @Override
-            public boolean keyUp(int keycode) {
+            public boolean keyDown(int keycode) {
                 if(mode != SELECT) return false;
                 switch (keycode)
                 {
@@ -528,22 +528,22 @@ public class CaveCops extends ApplicationAdapter {
                         toCursor.clear();
                         awaitedMoves.add(playerGrid.translate(1, 0));
                         break;
-                    case NUMPAD_1:
-                        toCursor.clear();
-                        awaitedMoves.add(playerGrid.translate(-1, -1));
-                        break;
-                    case NUMPAD_3:
-                        toCursor.clear();
-                        awaitedMoves.add(playerGrid.translate(1, -1));
-                        break;
-                    case NUMPAD_7:
-                        toCursor.clear();
-                        awaitedMoves.add(playerGrid.translate(-1, 1));
-                        break;
-                    case NUMPAD_9:
-                        toCursor.clear();
-                        awaitedMoves.add(playerGrid.translate(1, 1));
-                        break;
+//                    case NUMPAD_1:
+//                        toCursor.clear();
+//                        awaitedMoves.add(playerGrid.translate(-1, -1));
+//                        break;
+//                    case NUMPAD_3:
+//                        toCursor.clear();
+//                        awaitedMoves.add(playerGrid.translate(1, -1));
+//                        break;
+//                    case NUMPAD_7:
+//                        toCursor.clear();
+//                        awaitedMoves.add(playerGrid.translate(-1, 1));
+//                        break;
+//                    case NUMPAD_9:
+//                        toCursor.clear();
+//                        awaitedMoves.add(playerGrid.translate(1, 1));
+//                        break;
                     case '.':
                     case NUMPAD_5:
                         toCursor.clear();
@@ -619,6 +619,12 @@ public class CaveCops extends ApplicationAdapter {
      * @param end
      */
     private void move(final Coord start, final Coord end) {
+        if(moths.containsKey(end))
+        {
+            awaitedMoves.clear();
+            toCursor.clear();
+            return;
+        }
         int newX = end.x, newY = end.y, xmod = newX - start.x, ymod = newY - start.y;
         if (newX >= 0 && newY >= 0 && newX < bigWidth && newY < bigHeight
                 && bareDungeon[newX][newY] != '#')
@@ -630,7 +636,6 @@ public class CaveCops extends ApplicationAdapter {
             playerMoth.alpha = 0f;
             mode = ANIMATE;
             animationStart = TimeUtils.millis();
-            animationEnd = animationStart + 250L;
             // this just moves the grid position of the player as it is internally tracked.
             playerGrid = playerGrid.translate(xmod, ymod);
             // calculates field of vision around the player again, in a circle of radius 9.0 .
@@ -778,11 +783,11 @@ public class CaveCops extends ApplicationAdapter {
                 }
             }
             else {
-                playerMoth.alpha = TimeUtils.timeSinceMillis(animationStart) * 0.004f;
+                playerMoth.alpha = TimeUtils.timeSinceMillis(animationStart) * 0.006f;
             }
         }
         else {
-            playerMoth.alpha = TimeUtils.timeSinceMillis(animationStart) * 0.004f;
+            playerMoth.alpha = TimeUtils.timeSinceMillis(animationStart) * 0.006f;
         }
         batch.end();
     }
