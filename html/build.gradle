@@ -53,6 +53,10 @@ task superDev(type: GwtSuperDev) {
 		}
 }
 
+clean.doFirst {
+	delete fileTree(dir:'../docs/html/', include: '**.cache.js')
+}
+
 task dist(dependsOn: [clean, compileGwt]) {
     doLast {
 		file("../docs").mkdirs()
