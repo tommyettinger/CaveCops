@@ -4,10 +4,7 @@ import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.InputProcessor;
-import com.badlogic.gdx.graphics.Camera;
-import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.*;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
@@ -29,10 +26,12 @@ import squidpony.squidgrid.mapping.DungeonUtility;
 import squidpony.squidgrid.mapping.FlowingCaveGenerator;
 import squidpony.squidgrid.mapping.LineKit;
 import squidpony.squidgrid.mapping.styled.TilesetType;
-import squidpony.squidmath.*;
 import squidpony.squidmath.OrderedMap;
+import squidpony.squidmath.*;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 
@@ -86,7 +85,8 @@ public class CaveCops extends ApplicationAdapter {
     public ShaderProgram shader;
 //    public Vector3 add, mul;
     private Texture palette;
-
+    
+    public IndexedAPNG png;
 
     /** In number of cells */
     private static final int gridWidth = 40;
@@ -153,6 +153,7 @@ public class CaveCops extends ApplicationAdapter {
     @Override
     public void create () {
         startTime = TimeUtils.millis();
+        png = new IndexedAPNG(gridWidth * cellWidth * gridHeight * cellHeight * 3 >> 1);
         // gotta have a random number generator. We can seed an RNG with any long we want, or even a String.
         // if the seed is identical between two runs, any random factors will also be identical (until user input may
         // cause the usage of an RNG to change). You can randomize the dungeon and several other initial settings by
@@ -210,7 +211,8 @@ public class CaveCops extends ApplicationAdapter {
         font = new BitmapFont(Gdx.files.internal("font2.fnt"), atlas.findRegion("font"));
         //font.getData().scale(2f);
         
-        palette = new Texture("AuroraLloyd_GLSL.png");
+//        palette = new Texture("AuroraLloyd_GLSL.png");
+        palette = new Texture("AuroraRelaxed_GLSL.png");
 //        palette = new Texture("DB_Aurora_GLSL.png");
 //        palette = new Texture("Sheltzy32_GLSL.png");
 //        palette = new Texture("DawnSmash256_GLSL.png");
@@ -468,9 +470,10 @@ public class CaveCops extends ApplicationAdapter {
         // By calling LineKit.pruneLines(), we adjust prunedDungeon to hold a variant on lineDungeon that removes any
         // line segments that haven't ever been visible. This is called again whenever seen changes. 
         prunedDungeon = ArrayTools.copy(lineDungeon);
-        // We call pruneLines with an optional parameter here, LineKit.lightAlt, which will allow prunedDungeon to use
-        // the half-line chars "╴╵╶╷". These chars aren't supported by all fonts, but they are by the one we use here.
-        // The default is to use LineKit.light , which will replace '╴' and '╶' with '─' and '╷' and '╵' with '│'.
+        // We could call pruneLines with an optional parameter here, LineKit.lightAlt, which would allow prunedDungeon
+        // to use the half-line chars "╴╵╶╷". These chars aren't supported by all fonts, and the wall tiles these box
+        // drawing chars map to don't support half-lines, so we instead use the default, LineKit.light , which will
+        // replace '╴' and '╶' with '─', and '╷' and '╵' with '│'.
         LineKit.pruneLines(lineDungeon, seen, LineKit.light, prunedDungeon);
 
         //This is used to allow clicks or taps to take the player to the desired area.
@@ -489,7 +492,8 @@ public class CaveCops extends ApplicationAdapter {
         playerToCursor.partialScan(13, impassable);
 
 //        bgColor = new Color(0x132C2DFF); // for GBGreen16
-        bgColor = new Color(0x000008FF);   // for AuroraLloyd
+//        bgColor = new Color(0x000008FF);   // for AuroraLloyd
+        bgColor = new Color(0x000010FF);   // for AuroraLloydFlat
 //        bgColor = new Color(0x010101FF);   // for DB_Aurora
 //        bgColor = new Color(0x000000FF);   // for Sheltzy32
 //        bgColor = new Color(0x140C1CFF);   // for DawnSmash256
@@ -550,6 +554,20 @@ public class CaveCops extends ApplicationAdapter {
                     case NUMPAD_5:
                         toCursor.clear();
                         awaitedMoves.add(playerGrid);
+                        break;
+                    case BACKSLASH:
+                        byte[] pixels = ScreenUtils.getFrameBufferPixels(0, 0, Gdx.graphics.getBackBufferWidth(), Gdx.graphics.getBackBufferHeight(), true);
+                        // this loop makes sure the whole screenshot is opaque and looks exactly like what the user is seeing
+                        for(int i = 3; i < pixels.length; i += 4) {
+                            pixels[i] = (byte) 255;
+                        }
+                        Pixmap pixmap = new Pixmap(Gdx.graphics.getBackBufferWidth(), Gdx.graphics.getBackBufferHeight(), Pixmap.Format.RGBA8888);
+                        BufferUtils.copy(pixels, 0, pixmap.getPixels(), pixels.length);
+                        try {
+                            png.write(Gdx.files.local("Screenshot " + new Date().toString().replace(':', '-') +".png"), pixmap);
+                        } catch (IOException e) {
+                        }
+                        pixmap.dispose();
                         break;
                     case ESCAPE:
                         Gdx.app.exit();
