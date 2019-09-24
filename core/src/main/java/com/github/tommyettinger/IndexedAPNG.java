@@ -4,6 +4,7 @@ import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.*;
+import squidpony.annotation.GwtIncompatible;
 
 import java.io.*;
 import java.util.HashMap;
@@ -49,7 +50,7 @@ import java.util.zip.DeflaterOutputStream;
  * @author Nathan Sweet
  * @author Tommy Ettinger (PNG-8 parts only)
  */
-
+@GwtIncompatible
 public class IndexedAPNG implements Disposable {
     static private final byte[] SIGNATURE = {(byte) 137, 80, 78, 71, 13, 10, 26, 10};
     static private final int IHDR = 0x49484452, IDAT = 0x49444154, IEND = 0x49454E44,

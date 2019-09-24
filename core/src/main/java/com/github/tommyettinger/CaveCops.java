@@ -4,7 +4,10 @@ import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.InputProcessor;
-import com.badlogic.gdx.graphics.*;
+import com.badlogic.gdx.graphics.Camera;
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
@@ -29,9 +32,7 @@ import squidpony.squidgrid.mapping.styled.TilesetType;
 import squidpony.squidmath.OrderedMap;
 import squidpony.squidmath.*;
 
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 
@@ -86,7 +87,7 @@ public class CaveCops extends ApplicationAdapter {
 //    public Vector3 add, mul;
     private Texture palette;
     
-    public IndexedAPNG png;
+//    public IndexedAPNG png;
 
     /** In number of cells */
     private static final int gridWidth = 40;
@@ -153,7 +154,7 @@ public class CaveCops extends ApplicationAdapter {
     @Override
     public void create () {
         startTime = TimeUtils.millis();
-        png = new IndexedAPNG(gridWidth * cellWidth * gridHeight * cellHeight * 3 >> 1);
+//        png = new IndexedAPNG(gridWidth * cellWidth * gridHeight * cellHeight * 3 >> 1);
         // gotta have a random number generator. We can seed an RNG with any long we want, or even a String.
         // if the seed is identical between two runs, any random factors will also be identical (until user input may
         // cause the usage of an RNG to change). You can randomize the dungeon and several other initial settings by
@@ -162,7 +163,7 @@ public class CaveCops extends ApplicationAdapter {
 
         // SquidLib has many methods that expect an IRNG instance, and there's several classes to choose from.
         // In this program we'll use GWTRNG, which will behave better on the HTML target than other generators.
-        rng = new GWTRNG(1337);
+        rng = new GWTRNG(Long.parseLong("CAVECOPS", 36));
         
         String[] zodiac = new String[12];
         RNG shuffleRNG = new RNG(new XoshiroStarPhi32RNG(DiverRNG.determine(startTime)));
@@ -555,20 +556,20 @@ public class CaveCops extends ApplicationAdapter {
                         toCursor.clear();
                         awaitedMoves.add(playerGrid);
                         break;
-                    case BACKSLASH:
-                        byte[] pixels = ScreenUtils.getFrameBufferPixels(0, 0, Gdx.graphics.getBackBufferWidth(), Gdx.graphics.getBackBufferHeight(), true);
-                        // this loop makes sure the whole screenshot is opaque and looks exactly like what the user is seeing
-                        for(int i = 3; i < pixels.length; i += 4) {
-                            pixels[i] = (byte) 255;
-                        }
-                        Pixmap pixmap = new Pixmap(Gdx.graphics.getBackBufferWidth(), Gdx.graphics.getBackBufferHeight(), Pixmap.Format.RGBA8888);
-                        BufferUtils.copy(pixels, 0, pixmap.getPixels(), pixels.length);
-                        try {
-                            png.write(Gdx.files.local("Screenshot " + new Date().toString().replace(':', '-') +".png"), pixmap);
-                        } catch (IOException e) {
-                        }
-                        pixmap.dispose();
-                        break;
+//                    case BACKSLASH:
+//                        byte[] pixels = ScreenUtils.getFrameBufferPixels(0, 0, Gdx.graphics.getBackBufferWidth(), Gdx.graphics.getBackBufferHeight(), true);
+//                        // this loop makes sure the whole screenshot is opaque and looks exactly like what the user is seeing
+//                        for(int i = 3; i < pixels.length; i += 4) {
+//                            pixels[i] = (byte) 255;
+//                        }
+//                        Pixmap pixmap = new Pixmap(Gdx.graphics.getBackBufferWidth(), Gdx.graphics.getBackBufferHeight(), Pixmap.Format.RGBA8888);
+//                        BufferUtils.copy(pixels, 0, pixmap.getPixels(), pixels.length);
+//                        try {
+//                            png.write(Gdx.files.local("Screenshot " + new Date().toString().replace(':', '-') +".png"), pixmap);
+//                        } catch (IOException e) {
+//                        }
+//                        pixmap.dispose();
+//                        break;
                     case ESCAPE:
                         Gdx.app.exit();
                         break;

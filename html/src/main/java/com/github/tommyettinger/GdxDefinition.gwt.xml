@@ -6,6 +6,7 @@
 	<inherits name="com.github.tommyettinger.CaveCops" />
 	<inherits name="regexodus" />
 	<inherits name="squidlib-util" />
+	<inherits name="space.earlygrey.shapedrawer"/>
 	<entry-point class="com.github.tommyettinger.gwt.GwtLauncher" />
 	<set-configuration-property name="gdx.assetpath" value="../assets" />
 	<set-configuration-property name="xsiframe.failIfScriptTag" value="FALSE"/>
