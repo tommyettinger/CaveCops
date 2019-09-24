@@ -135,7 +135,7 @@ public class CaveCops extends ApplicationAdapter {
     private String horoscope;
 
     private Moth playerMoth;
-    private OrderedMap<Coord, Moth> moths;
+    private OrderedMap<Coord, Creature> creatures;
     public LinkedHashMap<String, Animation<TextureAtlas.AtlasRegion>> mapping;
     private OrderedMap<Coord, Animation<TextureAtlas.AtlasRegion>> decorations;
 
@@ -398,7 +398,7 @@ public class CaveCops extends ApplicationAdapter {
         floors = new GreasedRegion(bareDungeon, '.');
         final int floorSpace = floors.size();
         decorations = new OrderedMap<>(floorSpace >>> 1, 0.25f);
-        moths = new OrderedMap<>(64, 0.25f);
+        creatures = new OrderedMap<>(64, 0.25f);
         for(IntMap.Entry<ArrayList<Animation<TextureAtlas.AtlasRegion>>> e : decorationMapping.entries())
         {
             floors.refill(decoDungeon, (char)e.key).mixedRandomRegion(0.375, -1, rng.nextLong());
@@ -417,7 +417,7 @@ public class CaveCops extends ApplicationAdapter {
             floors.mixedRandomRegion(0.1, floors.size() * 48 / floorSpace, rng.nextLong());
             for(Coord c : floors)
             {
-                moths.put(c, new Moth(rng.getRandomElement(e.value), cellWidth * c.x, cellHeight * c.y));
+                creatures.put(c, new Creature(rng.getRandomElement(e.value), cellWidth * c.x, cellHeight * c.y));
             }
         }
         //Coord is the type we use as a general 2D point, usually in a dungeon.
@@ -489,7 +489,7 @@ public class CaveCops extends ApplicationAdapter {
         playerToCursor = new DijkstraMap(decoDungeon, Measurement.MANHATTAN);
         playerToCursor.setGoal(playerGrid);
         impassable.addAll(blockage);
-        impassable.addAll(moths.keySet());
+        impassable.addAll(creatures.keySet());
         playerToCursor.partialScan(13, impassable);
 
 //        bgColor = new Color(0x132C2DFF); // for GBGreen16
@@ -640,7 +640,7 @@ public class CaveCops extends ApplicationAdapter {
      * @param end
      */
     private void move(final Coord start, final Coord end) {
-        if(moths.containsKey(end))
+        if(creatures.containsKey(end))
         {
             awaitedMoves.clear();
             toCursor.clear();
@@ -679,7 +679,7 @@ public class CaveCops extends ApplicationAdapter {
     {
         final float time = TimeUtils.timeSinceMillis(startTime) * 0.001f;
         Animation<TextureAtlas.AtlasRegion> decoration;
-        Moth moth;
+        Creature creature;
         Coord c;
         for (int i = 0; i < bigWidth; i++) {
             for (int j = 0; j < bigHeight; j++) {
@@ -720,10 +720,10 @@ public class CaveCops extends ApplicationAdapter {
                     {
                         batch.draw(decoration.getKeyFrame(time), i * cellWidth, j * cellHeight);
                     }
-                    if((moth = moths.get(c)) != null)
+                    if((creature = creatures.get(c)) != null)
                     {
-                        batch.setPackedColor(moth.color);
-                        batch.draw(moth.animate(time), moth.getX(), moth.getY());
+                        batch.setPackedColor(creature.moth.color);
+                        batch.draw(creature.moth.animate(time), creature.moth.getX(), creature.moth.getY());
                     }
                 } else if(seen.contains(i, j)) {
 //                    pos.set(i * cellWidth, j * cellHeight, 0f);
@@ -798,7 +798,7 @@ public class CaveCops extends ApplicationAdapter {
                     // GreasedRegion that contains the cells just past the edge of the player's FOV area.
                     impassable.clear();
                     impassable.addAll(blockage);
-                    impassable.addAll(moths.keySet());
+                    impassable.addAll(creatures.keySet());
                     playerToCursor.partialScan(13, impassable);
                     mode = SELECT;
                 }
