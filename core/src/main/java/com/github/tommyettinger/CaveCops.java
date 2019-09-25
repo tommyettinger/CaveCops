@@ -202,7 +202,7 @@ public class CaveCops extends ApplicationAdapter {
 //        add = new Vector3(0, 0, 0);
 //        mul = new Vector3(1, 1, 1);
 
-        mainViewport = new PixelPerfectViewport(Scaling.fill, gridWidth * cellWidth, gridHeight * cellHeight);
+        mainViewport = new PixelPerfectViewport(Scaling.fill, gridWidth, gridHeight);
         mainViewport.setScreenBounds(0, 0, gridWidth * cellWidth, gridHeight * cellHeight);
         camera = mainViewport.getCamera();
         camera.update();
@@ -210,8 +210,10 @@ public class CaveCops extends ApplicationAdapter {
         atlas = new TextureAtlas("Dawnlike2.atlas");
         mapping = makeMapping(atlas);
         font = new BitmapFont(Gdx.files.internal("font2.fnt"), atlas.findRegion("font"));
-        //font.getData().scale(2f);
-        
+        font.setUseIntegerPositions(false);
+        font.getData().setScale(1f / cellHeight);
+//        font.getData().setLineHeight(font.getLineHeight() * 2f / cellHeight);
+
 //        palette = new Texture("AuroraLloyd_GLSL.png");
         palette = new Texture("AuroraRelaxed_GLSL.png");
 //        palette = new Texture("DB_Aurora_GLSL.png");
@@ -417,7 +419,7 @@ public class CaveCops extends ApplicationAdapter {
             floors.mixedRandomRegion(0.1, floors.size() * 48 / floorSpace, rng.nextLong());
             for(Coord c : floors)
             {
-                creatures.put(c, new Creature(rng.getRandomElement(e.value), cellWidth * c.x, cellHeight * c.y));
+                creatures.put(c, new Creature(rng.getRandomElement(e.value), c.x, c.y));
             }
         }
         //Coord is the type we use as a general 2D point, usually in a dungeon.
@@ -452,7 +454,7 @@ public class CaveCops extends ApplicationAdapter {
         // if you gave a seed to the RNG constructor, then the cell this chooses will be reliable for testing. If you
         // don't seed the RNG, any valid cell should be possible.
         playerGrid = floors.singleRandom(rng);
-        playerMoth = new Moth(playerAnimation, playerGrid.x * cellWidth, playerGrid.y * cellHeight, playerGrid.x * cellWidth, playerGrid.y * cellHeight);
+        playerMoth = new Moth(playerAnimation, playerGrid.x, playerGrid.y, playerGrid.x, playerGrid.y);
         // Uses shadowcasting FOV and reuses the visible array without creating new arrays constantly.
         FOV.reuseFOV(resistance, visible, playerGrid.x, playerGrid.y, 9.0, Radius.CIRCLE);//, (System.currentTimeMillis() & 0xFFFF) * 0x1p-4, 60.0);
         
@@ -584,7 +586,7 @@ public class CaveCops extends ApplicationAdapter {
                 if(mode != SELECT) return false;
                 pos.set(screenX, screenY);
                 mainViewport.unproject(pos);
-                if (onGrid(MathUtils.floor(pos.x * 0x1p-5f), MathUtils.floor(pos.y * 0x1p-5f))) {
+                if (onGrid(MathUtils.floor(pos.x), MathUtils.floor(pos.y))) {
                     mouseMoved(screenX, screenY);
                     awaitedMoves.addAll(toCursor);
                     return true;
@@ -606,7 +608,7 @@ public class CaveCops extends ApplicationAdapter {
                     return false;
                 pos.set(screenX, screenY);
                 mainViewport.unproject(pos);
-                if (onGrid(screenX = MathUtils.floor(pos.x * 0x1p-5f), screenY = MathUtils.floor(pos.y * 0x1p-5f))) {
+                if (onGrid(screenX = MathUtils.floor(pos.x), screenY = MathUtils.floor(pos.y))) {
                     // we also need to check if screenX or screenY is out of bounds.
                     if (screenX < 0 || screenY < 0 || screenX >= bigWidth || screenY >= bigHeight ||
                             (cursor.x == screenX && cursor.y == screenY)) {
@@ -650,10 +652,10 @@ public class CaveCops extends ApplicationAdapter {
         if (newX >= 0 && newY >= 0 && newX < bigWidth && newY < bigHeight
                 && bareDungeon[newX][newY] != '#')
         {
-            playerMoth.startX = start.x * cellWidth;
-            playerMoth.startY = start.y * cellHeight;
-            playerMoth.endX = end.x * cellWidth;
-            playerMoth.endY = end.y * cellHeight;
+            playerMoth.startX = start.x;
+            playerMoth.startY = start.y;
+            playerMoth.endX = end.x;
+            playerMoth.endY = end.y;
             playerMoth.alpha = 0f;
             mode = ANIMATE;
             animationStart = TimeUtils.millis();
@@ -715,15 +717,15 @@ public class CaveCops extends ApplicationAdapter {
                     }
                     //batch.draw(solid, pos.x, pos.y);
 //                    batch.setPackedColor(SColor.lerpFloatColors(colors[i][j], FLOAT_LIGHTING, (float)visible[i][j] * 0.75f + 0.25f));
-                    batch.draw(charMapping.get(prunedDungeon[i][j], solid).getKeyFrame(time), i * cellWidth, j * cellHeight);
+                    batch.draw(charMapping.get(prunedDungeon[i][j], solid).getKeyFrame(time), i, j, 1f, 1f);
                     if((decoration = decorations.get(c)) != null)
                     {
-                        batch.draw(decoration.getKeyFrame(time), i * cellWidth, j * cellHeight);
+                        batch.draw(decoration.getKeyFrame(time), i, j, 1f, 1f);
                     }
                     if((creature = creatures.get(c)) != null)
                     {
                         batch.setPackedColor(creature.moth.color);
-                        batch.draw(creature.moth.animate(time), creature.moth.getX(), creature.moth.getY());
+                        batch.draw(creature.moth.animate(time), creature.moth.getX(), creature.moth.getY(), 1f, 1f);
                     }
                 } else if(seen.contains(i, j)) {
 //                    pos.set(i * cellWidth, j * cellHeight, 0f);
@@ -731,10 +733,10 @@ public class CaveCops extends ApplicationAdapter {
 //                    if ((monster = monsters.get(Coord.get(i, j))) != null)
 //                        monster.setAlpha(0f);
                     batch.setPackedColor(FLOAT_GRAY);
-                    batch.draw(charMapping.get(prunedDungeon[i][j], solid).getKeyFrame(time), i * cellWidth, j * cellHeight);
+                    batch.draw(charMapping.get(prunedDungeon[i][j], solid).getKeyFrame(time), i, j, 1f, 1f);
                     if((decoration = decorations.get(Coord.get(i, j))) != null)
                     {
-                        batch.draw(decoration.getKeyFrame(time), i * cellWidth, j * cellHeight);
+                        batch.draw(decoration.getKeyFrame(time), i, j, 1f, 1f);
                     }
                 }
             }
@@ -743,10 +745,10 @@ public class CaveCops extends ApplicationAdapter {
 //            monsters.getAt(i).draw(batch);
 //        }
         batch.setPackedColor(playerMoth.color);
-        batch.draw(playerMoth.animate(time), playerMoth.getX(), playerMoth.getY());
+        batch.draw(playerMoth.animate(time), playerMoth.getX(), playerMoth.getY(), 1f, 1f);
         font.setColor(Color.WHITE);
-        font.draw(batch, horoscope, playerMoth.getX() - Gdx.graphics.getWidth() * 0.25f,
-                playerMoth.getY() + Gdx.graphics.getHeight() * 0.375f, Gdx.graphics.getWidth() * 0.5f,
+        font.draw(batch, horoscope, (playerMoth.getX() - mainViewport.getWorldWidth() * 0.25f),
+                (playerMoth.getY() + mainViewport.getWorldHeight() * 0.375f), mainViewport.getWorldWidth() * 0.5f,
                 Align.center, true);
 //        Gdx.graphics.setTitle(horoscope);
 //        Gdx.graphics.setTitle(Gdx.graphics.getFramesPerSecond() + " FPS");

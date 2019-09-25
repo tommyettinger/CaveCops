@@ -5,10 +5,7 @@ import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.utils.IntFloatMap;
 import squidpony.squidai.DijkstraMap;
 import squidpony.squidgrid.Measurement;
-import squidpony.squidmath.CrossHash;
-import squidpony.squidmath.DiverRNG;
-import squidpony.squidmath.GWTRNG;
-import squidpony.squidmath.NumberTools;
+import squidpony.squidmath.*;
 
 /**
  * Created by Tommy Ettinger on 9/23/2019.
@@ -117,5 +114,4 @@ public class Creature {
             }
         }
     }
-
 }
