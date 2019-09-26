@@ -75,7 +75,7 @@ public class Creature {
      *
      * @param map a dungeon, width by height, with any closed doors as '+' and open doors as '/' as per closeDoors() .
      */
-    public void configureMap(char[][] map) {
+    public void configureMap(final char[][] map) {
         final int width = map.length;
         final int height = map[0].length;
         if(dijkstraMap == null)

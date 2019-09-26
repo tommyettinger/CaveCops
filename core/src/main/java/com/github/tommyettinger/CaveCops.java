@@ -53,7 +53,7 @@ import static com.badlogic.gdx.Input.Keys.*;
  */
 public class CaveCops extends ApplicationAdapter {
     
-    public static final int SELECT = 0, ANIMATE = 1;
+    public static final int SELECT = 0, ANIMATE = 1, NPC = 2;
     
     public int mode = SELECT;
     
@@ -135,7 +135,7 @@ public class CaveCops extends ApplicationAdapter {
     private String horoscope;
 
     private Moth playerMoth;
-    private OrderedMap<Coord, Creature> creatures;
+    private Populace creatures;
     public LinkedHashMap<String, Animation<TextureAtlas.AtlasRegion>> mapping;
     private OrderedMap<Coord, Animation<TextureAtlas.AtlasRegion>> decorations;
 
@@ -154,6 +154,7 @@ public class CaveCops extends ApplicationAdapter {
     @Override
     public void create () {
         startTime = TimeUtils.millis();
+        Coord.expandPoolTo(bigWidth, bigHeight);
 //        png = new IndexedAPNG(gridWidth * cellWidth * gridHeight * cellHeight * 3 >> 1);
         // gotta have a random number generator. We can seed an RNG with any long we want, or even a String.
         // if the seed is identical between two runs, any random factors will also be identical (until user input may
@@ -400,7 +401,7 @@ public class CaveCops extends ApplicationAdapter {
         floors = new GreasedRegion(bareDungeon, '.');
         final int floorSpace = floors.size();
         decorations = new OrderedMap<>(floorSpace >>> 1, 0.25f);
-        creatures = new OrderedMap<>(64, 0.25f);
+        creatures = new Populace(decoDungeon);
         for(IntMap.Entry<ArrayList<Animation<TextureAtlas.AtlasRegion>>> e : decorationMapping.entries())
         {
             floors.refill(decoDungeon, (char)e.key).mixedRandomRegion(0.375, -1, rng.nextLong());
@@ -419,7 +420,7 @@ public class CaveCops extends ApplicationAdapter {
             floors.mixedRandomRegion(0.1, floors.size() * 48 / floorSpace, rng.nextLong());
             for(Coord c : floors)
             {
-                creatures.put(c, new Creature(rng.getRandomElement(e.value), c));
+                creatures.place(new Creature(rng.getRandomElement(e.value), c, Creature.AMPHIBIOUS));
             }
         }
         //Coord is the type we use as a general 2D point, usually in a dungeon.
@@ -769,8 +770,16 @@ public class CaveCops extends ApplicationAdapter {
 //        shader.setUniformf("u_add", add);
         Gdx.gl.glActiveTexture(GL20.GL_TEXTURE0);
         putMap();
-        // if the user clicked, we have a list of moves to perform.
-        if(!awaitedMoves.isEmpty()) {
+        if(mode == NPC) {
+            float t = TimeUtils.timeSinceMillis(animationStart) * 0.006f;
+            for (int i = 0; i < creatures.size(); i++) {
+                creatures.getAt(i).moth.alpha = t;
+            }
+            if(t >= 1f)
+                mode = SELECT;
+
+        }
+        else if(!awaitedMoves.isEmpty()) {
             if(mode == SELECT || playerMoth.alpha >= 1f) {
                 // this doesn't check for input, but instead processes and removes Coords from awaitedMoves.
                 Coord m = awaitedMoves.remove(0);
@@ -797,16 +806,25 @@ public class CaveCops extends ApplicationAdapter {
                     impassable.clear();
                     impassable.addAll(blockage);
                     impassable.addAll(creatures.keySet());
-                    playerToCursor.partialScan(13, impassable);
-                    mode = SELECT;
+                    playerToCursor.partialScan(13, impassable);                     
+//                    mode = SELECT;
                 }
             }
             else {
                 playerMoth.alpha = TimeUtils.timeSinceMillis(animationStart) * 0.006f;
             }
         }
-        else {
+        else if(mode == ANIMATE) {
             playerMoth.alpha = TimeUtils.timeSinceMillis(animationStart) * 0.006f;
+            if(playerMoth.alpha >= 1f)
+            {
+                mode = NPC;
+                animationStart = TimeUtils.millis();
+                for (int i = 0; i < creatures.size(); i++) {
+                    creatures.act(creatures.keyAt(i));
+                }
+
+            }
         }
         batch.end();
     }
