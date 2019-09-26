@@ -719,11 +719,6 @@ public class CaveCops extends ApplicationAdapter {
                     {
                         batch.draw(decoration.getKeyFrame(time), i, j, 1f, 1f);
                     }
-                    if((creature = creatures.get(c)) != null)
-                    {
-                        batch.setPackedColor(creature.moth.color);
-                        batch.draw(creature.moth.animate(time), creature.moth.getX(), creature.moth.getY(), 1f, 1f);
-                    }
                 } else if(seen.contains(i, j)) {
 //                    pos.set(i * cellWidth, j * cellHeight, 0f);
                     //batch.draw(solid, pos.x, pos.y);
@@ -741,6 +736,14 @@ public class CaveCops extends ApplicationAdapter {
 //        for (int i = 0; i < monsters.size(); i++) {
 //            monsters.getAt(i).draw(batch);
 //        }
+        for (int i = 0; i < creatures.size(); i++) {
+            Coord pos = creatures.keyAt(i);
+            if(visible[pos.x][pos.y] > 0) {
+                creature = creatures.getAt(i);
+                batch.setPackedColor(creature.moth.color);
+                batch.draw(creature.moth.animate(time), creature.moth.getX(), creature.moth.getY(), 1f, 1f);
+            }
+        }
         batch.setPackedColor(playerMoth.color);
         batch.draw(playerMoth.animate(time), playerMoth.getX(), playerMoth.getY(), 1f, 1f);
         font.setColor(Color.WHITE);

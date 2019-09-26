@@ -42,18 +42,18 @@ public class Populace extends OrderedMap<Coord, Creature> {
 //        if(creature.rng.next(4) >= creature.activity)
 //            return startingPosition;
 //        g.refill(creature.dijkstraMap.costMap, 0.0, 10.0).remove(startingPosition);
-        creature.dijkstraMap.setGoal(startingPosition.translateCapped(
-                creature.rng.nextSignedInt(5) - 2, creature.rng.nextSignedInt(5) - 2, map.length, map[0].length));
-        creature.dijkstraMap.setGoal(startingPosition.translateCapped(
-                creature.rng.nextSignedInt(5) - 2, creature.rng.nextSignedInt(5) - 2, map.length, map[0].length));
-        creature.dijkstraMap.partialScan(startingPosition, 10, keys);
+        creature.dijkstraMap.setGoal(startingPosition.translate(1, 0));
+        creature.dijkstraMap.setGoal(startingPosition.translate(-1, 0));
+        creature.dijkstraMap.setGoal(startingPosition.translate(0, 1));
+        creature.dijkstraMap.setGoal(startingPosition.translate(0, -1));
+        creature.dijkstraMap.partialScan(startingPosition, 2, keys);
         tempPath.clear();
         creature.dijkstraMap.findPathPreScanned(tempPath, startingPosition);
         if(tempPath.size() < 2)
             return startingPosition;
         creature.moth.end = tempPath.get(tempPath.size() - 2);
         creature.moth.alpha = 0f;
-        alter(startingPosition, creature.moth.end);
+        alterCarefully(startingPosition, creature.moth.end);
         return creature.moth.end;
     }
 }
