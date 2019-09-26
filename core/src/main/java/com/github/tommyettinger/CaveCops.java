@@ -789,6 +789,21 @@ public class CaveCops extends ApplicationAdapter {
                 if (!toCursor.isEmpty())
                     toCursor.remove(0);
                 move(playerGrid, m);
+            }
+            else {
+                playerMoth.alpha = TimeUtils.timeSinceMillis(animationStart) * 0.006f;
+            }
+        }
+        else if(mode == ANIMATE) {
+            playerMoth.alpha = TimeUtils.timeSinceMillis(animationStart) * 0.006f;
+            if(playerMoth.alpha >= 1f)
+            {
+                mode = NPC;
+                animationStart = TimeUtils.millis();
+                for (int i = 0; i < creatures.size(); i++) {
+                    creatures.act(creatures.keyAt(i));
+                }
+
                 // this only happens if we just removed the last Coord from awaitedMoves, and it's only then that we need to
                 // re-calculate the distances from all cells to the player. We don't need to calculate this information on
                 // each part of a many-cell move (just the end), nor do we need to calculate it whenever the mouse moves.
@@ -809,22 +824,7 @@ public class CaveCops extends ApplicationAdapter {
                     impassable.clear();
                     impassable.addAll(blockage);
                     impassable.addAll(creatures.keySet());
-                    playerToCursor.partialScan(13, impassable);                     
-//                    mode = SELECT;
-                }
-            }
-            else {
-                playerMoth.alpha = TimeUtils.timeSinceMillis(animationStart) * 0.006f;
-            }
-        }
-        else if(mode == ANIMATE) {
-            playerMoth.alpha = TimeUtils.timeSinceMillis(animationStart) * 0.006f;
-            if(playerMoth.alpha >= 1f)
-            {
-                mode = NPC;
-                animationStart = TimeUtils.millis();
-                for (int i = 0; i < creatures.size(); i++) {
-                    creatures.act(creatures.keyAt(i));
+                    playerToCursor.partialScan(13, impassable);
                 }
 
             }
