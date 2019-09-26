@@ -4,6 +4,7 @@ import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.MathUtils;
+import squidpony.squidmath.Coord;
 
 /**
  * Like a {@link com.badlogic.gdx.graphics.g2d.Sprite}, but lighter-weight and customized to the conventions of this
@@ -13,7 +14,9 @@ import com.badlogic.gdx.math.MathUtils;
  */
 public class Moth extends TextureRegion {
     public Animation<TextureAtlas.AtlasRegion> animation;
-    public float startX, endX, startY, endY, alpha;
+    public float alpha;
+    public Coord start = Coord.get(0, 0);
+    public Coord end = Coord.get(0, 0);
     public float color;
 
     private Moth()
@@ -29,19 +32,17 @@ public class Moth extends TextureRegion {
         this.color = CaveCops.FLOAT_NEUTRAL;
     }
 
-    public Moth(Animation<TextureAtlas.AtlasRegion> animation, float x, float y) {
-        this(animation, x, y, x, y);
+    public Moth(Animation<TextureAtlas.AtlasRegion> animation, Coord coord) {
+        this(animation, coord, coord);
     }
 
-    public Moth(Animation<TextureAtlas.AtlasRegion> animation, float startX, float startY, float endX, float endY) {
+    public Moth(Animation<TextureAtlas.AtlasRegion> animation, Coord start, Coord end) {
         super();
         this.animation = animation;
         setRegion(animation.getKeyFrame(0f));
         this.color = CaveCops.FLOAT_NEUTRAL;
-        this.startX = startX;
-        this.endX = endX;
-        this.startY = startY;
-        this.endY = endY;
+        this.start = start;
+        this.end = end;
     }
     
     public TextureRegion animate(final float stateTime)
@@ -53,14 +54,14 @@ public class Moth extends TextureRegion {
     public float getX()
     {
         if(alpha >= 1f)
-            return (startX = endX);
-        return MathUtils.lerp(startX, endX, alpha);
+            return (start = end).x;
+        return MathUtils.lerp(start.x, end.x, alpha);
     }
 
     public float getY()
     {
         if(alpha >= 1f)
-            return (startY = endY);
-        return MathUtils.lerp(startY, endY, alpha);
+            return (start = end).y;
+        return MathUtils.lerp(start.y, end.y, alpha);
     }
 }

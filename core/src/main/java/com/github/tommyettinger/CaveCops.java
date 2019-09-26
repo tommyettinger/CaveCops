@@ -419,7 +419,7 @@ public class CaveCops extends ApplicationAdapter {
             floors.mixedRandomRegion(0.1, floors.size() * 48 / floorSpace, rng.nextLong());
             for(Coord c : floors)
             {
-                creatures.put(c, new Creature(rng.getRandomElement(e.value), c.x, c.y));
+                creatures.put(c, new Creature(rng.getRandomElement(e.value), c));
             }
         }
         //Coord is the type we use as a general 2D point, usually in a dungeon.
@@ -454,7 +454,7 @@ public class CaveCops extends ApplicationAdapter {
         // if you gave a seed to the RNG constructor, then the cell this chooses will be reliable for testing. If you
         // don't seed the RNG, any valid cell should be possible.
         playerGrid = floors.singleRandom(rng);
-        playerMoth = new Moth(playerAnimation, playerGrid.x, playerGrid.y, playerGrid.x, playerGrid.y);
+        playerMoth = new Moth(playerAnimation, playerGrid);
         // Uses shadowcasting FOV and reuses the visible array without creating new arrays constantly.
         FOV.reuseFOV(resistance, visible, playerGrid.x, playerGrid.y, 9.0, Radius.CIRCLE);//, (System.currentTimeMillis() & 0xFFFF) * 0x1p-4, 60.0);
         
@@ -648,19 +648,15 @@ public class CaveCops extends ApplicationAdapter {
             toCursor.clear();
             return;
         }
-        int newX = end.x, newY = end.y, xmod = newX - start.x, ymod = newY - start.y;
-        if (newX >= 0 && newY >= 0 && newX < bigWidth && newY < bigHeight
-                && bareDungeon[newX][newY] != '#')
+        if (onGrid(end.x, end.y) && bareDungeon[end.x][end.y] != '#')
         {
-            playerMoth.startX = start.x;
-            playerMoth.startY = start.y;
-            playerMoth.endX = end.x;
-            playerMoth.endY = end.y;
+            playerMoth.start = start;
+            playerMoth.end = end;
             playerMoth.alpha = 0f;
             mode = ANIMATE;
             animationStart = TimeUtils.millis();
             // this just moves the grid position of the player as it is internally tracked.
-            playerGrid = playerGrid.translate(xmod, ymod);
+            playerGrid = end;
             // calculates field of vision around the player again, in a circle of radius 9.0 .
             FOV.reuseFOV(resistance, visible, playerGrid.x, playerGrid.y, 9.0, Radius.CIRCLE);
             // This is just like the constructor used earlier, but affects an existing GreasedRegion without making
@@ -823,9 +819,9 @@ public class CaveCops extends ApplicationAdapter {
         mainViewport.setScreenBounds(0, 0, width, height);
     }
 
-    private boolean onGrid(int screenX, int screenY)
+    private boolean onGrid(int gridX, int gridY)
     {
-        return screenX >= 0 && screenX < bigWidth && screenY >= 0 && screenY < bigHeight;
+        return gridX >= 0 && gridX < bigWidth && gridY >= 0 && gridY < bigHeight;
     }
 
 }

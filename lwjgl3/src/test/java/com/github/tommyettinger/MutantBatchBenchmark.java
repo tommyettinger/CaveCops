@@ -36,8 +36,8 @@ public class MutantBatchBenchmark extends ApplicationAdapter
 		profiler.enable();
 		batch = new MutantBatch(8191);
 		Pixmap pm = new Pixmap(32, 32, Format.RGBA8888);
-		pm.setColor(Color.BLUE);
-		pm.drawRectangle(0, 0, 32, 32);
+//		pm.setColor(Color.BLUE);
+//		pm.drawRectangle(0, 0, 32, 32);
 		Texture texture = new Texture(pm);
 		region = new TextureRegion(texture);
 	}

@@ -37,15 +37,15 @@ public class Creature {
         FLYING.put('_', 1f); // pit
     }
 
-    public Creature(Animation<TextureAtlas.AtlasRegion> animation, float x, float y)
+    public Creature(Animation<TextureAtlas.AtlasRegion> animation, Coord coord)
     {
-        this(animation, x, y, WALKING);
+        this(animation, coord, WALKING);
     }
-    public Creature(Animation<TextureAtlas.AtlasRegion> animation, float x, float y, IntFloatMap costs)
+    public Creature(Animation<TextureAtlas.AtlasRegion> animation, Coord coord, IntFloatMap costs)
     {
-        moth = new Moth(animation, x, y);
-        rng = new GWTRNG(CrossHash.hash64(animation.getKeyFrame(0f).name) ^
-                DiverRNG.randomize(NumberTools.doubleToLongBits(x) + NumberTools.doubleToLongBits(y)));
+        moth = new Moth(animation, coord);
+        rng = new GWTRNG(CrossHash.hash64(animation.getKeyFrame(0f).name) + coord.x ^
+                DiverRNG.randomize(coord.hashCode()) - coord.y);
         this.costs = costs;
     }
 
