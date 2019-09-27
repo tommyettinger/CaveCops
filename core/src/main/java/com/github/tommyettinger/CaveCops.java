@@ -115,7 +115,7 @@ public class CaveCops extends ApplicationAdapter {
 
     private Color bgColor;
     private DijkstraMap playerToCursor;
-    private Coord cursor, playerGrid;
+    private Coord cursor;
     private ArrayList<Coord> toCursor;
     private ArrayList<Coord> awaitedMoves;
 
@@ -134,7 +134,7 @@ public class CaveCops extends ApplicationAdapter {
     private Replacer anReplacer;
     private String horoscope;
 
-    private Moth playerMoth;
+    private Creature playerCreature;
     private Populace creatures;
     public LinkedHashMap<String, Animation<TextureAtlas.AtlasRegion>> mapping;
     private OrderedMap<Coord, Animation<TextureAtlas.AtlasRegion>> decorations;
@@ -454,10 +454,9 @@ public class CaveCops extends ApplicationAdapter {
         // in that region that is "on," or -1,-1 if there are no such cells. It takes an RNG object as a parameter, and
         // if you gave a seed to the RNG constructor, then the cell this chooses will be reliable for testing. If you
         // don't seed the RNG, any valid cell should be possible.
-        playerGrid = floors.singleRandom(rng);
-        playerMoth = new Moth(playerAnimation, playerGrid);
+        playerCreature = new Creature(playerAnimation, floors.singleRandom(rng), Creature.WALKING);
         // Uses shadowcasting FOV and reuses the visible array without creating new arrays constantly.
-        FOV.reuseFOV(resistance, visible, playerGrid.x, playerGrid.y, 9.0, Radius.CIRCLE);//, (System.currentTimeMillis() & 0xFFFF) * 0x1p-4, 60.0);
+        FOV.reuseFOV(resistance, visible, playerCreature.moth.start.x, playerCreature.moth.start.y, 9.0, Radius.CIRCLE);//, (System.currentTimeMillis() & 0xFFFF) * 0x1p-4, 60.0);
         
         // 0.01 is the upper bound (inclusive), so any Coord in visible that is more well-lit than 0.01 will _not_ be in
         // the blockage Collection, but anything 0.01 or less will be in it. This lets us use blockage to prevent access
@@ -490,7 +489,7 @@ public class CaveCops extends ApplicationAdapter {
         // which allows 8 directions of movement at the same cost for all directions, and EUCLIDEAN, which allows 8
         // directions, but will prefer orthogonal moves unless diagonal ones are clearly closer "as the crow flies."
         playerToCursor = new DijkstraMap(decoDungeon, Measurement.MANHATTAN);
-        playerToCursor.setGoal(playerGrid);
+        playerToCursor.setGoal(playerCreature.moth.start);
         impassable.addAll(blockage);
         impassable.addAll(creatures.keySet());
         playerToCursor.partialScan(13, impassable);
@@ -514,7 +513,7 @@ public class CaveCops extends ApplicationAdapter {
                     case NUMPAD_8:
                         toCursor.clear();
                         //+1 is up on the screen
-                        awaitedMoves.add(playerGrid.translate(0, 1));
+                        awaitedMoves.add(playerCreature.moth.start.translate(0, 1));
                         break;
                     case DOWN:
                     case 's':
@@ -522,21 +521,21 @@ public class CaveCops extends ApplicationAdapter {
                     case NUMPAD_2:
                         toCursor.clear();
                         //-1 is down on the screen
-                        awaitedMoves.add(playerGrid.translate(0, -1));
+                        awaitedMoves.add(playerCreature.moth.start.translate(0, -1));
                         break;
                     case LEFT:
                     case 'a':
                     case 'A':
                     case NUMPAD_4:
                         toCursor.clear();
-                        awaitedMoves.add(playerGrid.translate(-1, 0));
+                        awaitedMoves.add(playerCreature.moth.start.translate(-1, 0));
                         break;
                     case RIGHT:
                     case 'd':
                     case 'D':
                     case NUMPAD_6:
                         toCursor.clear();
-                        awaitedMoves.add(playerGrid.translate(1, 0));
+                        awaitedMoves.add(playerCreature.moth.start.translate(1, 0));
                         break;
 //                    case NUMPAD_1:
 //                        toCursor.clear();
@@ -557,7 +556,7 @@ public class CaveCops extends ApplicationAdapter {
                     case '.':
                     case NUMPAD_5:
                         toCursor.clear();
-                        awaitedMoves.add(playerGrid);
+                        awaitedMoves.add(playerCreature.moth.start);
                         break;
 //                    case BACKSLASH:
 //                        byte[] pixels = ScreenUtils.getFrameBufferPixels(0, 0, Gdx.graphics.getBackBufferWidth(), Gdx.graphics.getBackBufferHeight(), true);
@@ -651,15 +650,13 @@ public class CaveCops extends ApplicationAdapter {
         }
         if (onGrid(end.x, end.y) && bareDungeon[end.x][end.y] != '#')
         {
-            playerMoth.start = start;
-            playerMoth.end = end;
-            playerMoth.alpha = 0f;
+            playerCreature.moth.start = start;
+            playerCreature.moth.end = end;
+            playerCreature.moth.alpha = 0f;
             mode = ANIMATE;
             animationStart = TimeUtils.millis();
-            // this just moves the grid position of the player as it is internally tracked.
-            playerGrid = end;
             // calculates field of vision around the player again, in a circle of radius 9.0 .
-            FOV.reuseFOV(resistance, visible, playerGrid.x, playerGrid.y, 9.0, Radius.CIRCLE);
+            FOV.reuseFOV(resistance, visible, end.x, end.y, 9.0, Radius.CIRCLE);
             // This is just like the constructor used earlier, but affects an existing GreasedRegion without making
             // a new one just for this movement.
             blockage.refill(visible, 0.0);
@@ -744,11 +741,11 @@ public class CaveCops extends ApplicationAdapter {
                 batch.draw(creature.moth.animate(time), creature.moth.getX(), creature.moth.getY(), 1f, 1f);
             }
         }
-        batch.setPackedColor(playerMoth.color);
-        batch.draw(playerMoth.animate(time), playerMoth.getX(), playerMoth.getY(), 1f, 1f);
+        batch.setPackedColor(playerCreature.moth.color);
+        batch.draw(playerCreature.moth.animate(time), playerCreature.moth.getX(), playerCreature.moth.getY(), 1f, 1f);
         font.setColor(Color.WHITE);
-        font.draw(batch, horoscope, (playerMoth.getX() - mainViewport.getWorldWidth() * 0.25f),
-                (playerMoth.getY() + mainViewport.getWorldHeight() * 0.375f), mainViewport.getWorldWidth() * 0.5f,
+        font.draw(batch, horoscope, (playerCreature.moth.getX() - mainViewport.getWorldWidth() * 0.25f),
+                (playerCreature.moth.getY() + mainViewport.getWorldHeight() * 0.375f), mainViewport.getWorldWidth() * 0.5f,
                 Align.center, true);
 //        Gdx.graphics.setTitle(horoscope);
 //        Gdx.graphics.setTitle(Gdx.graphics.getFramesPerSecond() + " FPS");
@@ -759,8 +756,8 @@ public class CaveCops extends ApplicationAdapter {
         Gdx.gl.glClearColor(bgColor.r, bgColor.g, bgColor.b, 1.0f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        camera.position.x = playerMoth.getX();
-        camera.position.y =  playerMoth.getY();
+        camera.position.x = playerCreature.moth.getX();
+        camera.position.y =  playerCreature.moth.getY();
         camera.update();
 
         mainViewport.apply(false);
@@ -783,20 +780,20 @@ public class CaveCops extends ApplicationAdapter {
 
         }
         else if(!awaitedMoves.isEmpty()) {
-            if(mode == SELECT || playerMoth.alpha >= 1f) {
+            if(mode == SELECT || playerCreature.moth.alpha >= 1f) {
                 // this doesn't check for input, but instead processes and removes Coords from awaitedMoves.
                 Coord m = awaitedMoves.remove(0);
                 if (!toCursor.isEmpty())
                     toCursor.remove(0);
-                move(playerGrid, m);
+                move(playerCreature.moth.start, m);
             }
             else {
-                playerMoth.alpha = TimeUtils.timeSinceMillis(animationStart) * 0.006f;
+                playerCreature.moth.alpha = TimeUtils.timeSinceMillis(animationStart) * 0.006f;
             }
         }
         else if(mode == ANIMATE) {
-            playerMoth.alpha = TimeUtils.timeSinceMillis(animationStart) * 0.006f;
-            if(playerMoth.alpha >= 1f)
+            playerCreature.moth.alpha = TimeUtils.timeSinceMillis(animationStart) * 0.006f;
+            if(playerCreature.moth.alpha >= 1f)
             {
                 mode = NPC;
                 animationStart = TimeUtils.millis();
@@ -817,7 +814,7 @@ public class CaveCops extends ApplicationAdapter {
                     // found, but the player doesn't move until a cell is clicked, the "goal" is the non-changing cell (the
                     // player's position), and the "target" of a pathfinding method like DijkstraMap.findPathPreScanned() is the
                     // currently-moused-over cell, which we only need to set where the mouse is being handled.
-                    playerToCursor.setGoal(playerGrid);
+                    playerToCursor.setGoal(playerCreature.moth.end);
                     // DijkstraMap.partialScan only finds the distance to get to a cell if that distance is less than some limit,
                     // which is 13 here. It also won't try to find distances through an impassable cell, which here is the blockage
                     // GreasedRegion that contains the cells just past the edge of the player's FOV area.
