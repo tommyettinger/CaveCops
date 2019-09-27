@@ -420,7 +420,7 @@ public class CaveCops extends ApplicationAdapter {
             floors.mixedRandomRegion(0.1, floors.size() * 48 / floorSpace, rng.nextLong());
             for(Coord c : floors)
             {
-                creatures.place(new Creature(rng.getRandomElement(e.value), c, Creature.AMPHIBIOUS));
+                creatures.place(new Creature(rng.getRandomElement(e.value), c, Creature.AQUATIC));
             }
         }
         //Coord is the type we use as a general 2D point, usually in a dungeon.

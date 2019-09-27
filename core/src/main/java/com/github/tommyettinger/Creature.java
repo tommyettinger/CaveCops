@@ -87,30 +87,32 @@ public class Creature {
         for (int i = 0; i < width; i++) {
             for (int j = 0; j < height; j++) {
                 current = map[i][j];
-                if (costs.containsKey(current)) {
-                    dijkstraMap.costMap[i][j] = costs.get(current, 1f);
-                } else {
-                    switch (current) {
-                        case ' ':
-                        case '\1':
-                        case '├':
-                        case '┤':
-                        case '┴':
-                        case '┬':
-                        case '┌':
-                        case '┐':
-                        case '└':
-                        case '┘':
-                        case '│':
-                        case '─':
-                        case '┼':
-                        case '#':
-                            dijkstraMap.costMap[i][j] = costs.get('#', 999500.0f);//(float)squidpony.squidai.DijkstraMap.WALL)
-                            break;
-                        default:
-                            dijkstraMap.costMap[i][j] = 999500.0f; // default to unwalkable
-                    }
-                }
+                if((dijkstraMap.costMap[i][j] = costs.get(current, 999500.0f)) >= DijkstraMap.WALL)
+                    dijkstraMap.physicalMap[i][j] = DijkstraMap.WALL;
+//                if (costs.containsKey(current)) {
+//                    dijkstraMap.costMap[i][j] = costs.get(current, 1f);
+//                } else {
+//                    switch (current) {
+//                        case ' ':
+//                        case '\1':
+//                        case '├':
+//                        case '┤':
+//                        case '┴':
+//                        case '┬':
+//                        case '┌':
+//                        case '┐':
+//                        case '└':
+//                        case '┘':
+//                        case '│':
+//                        case '─':
+//                        case '┼':
+//                        case '#':
+//                            dijkstraMap.costMap[i][j] = costs.get('#', 999500.0f);//(float)squidpony.squidai.DijkstraMap.WALL)
+//                            break;
+//                        default:
+//                            dijkstraMap.costMap[i][j] = 999500.0f; // default to unwalkable
+//                    }
+//                }
             }
         }
     }
