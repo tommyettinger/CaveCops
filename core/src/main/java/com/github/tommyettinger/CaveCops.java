@@ -455,6 +455,8 @@ public class CaveCops extends ApplicationAdapter {
         // if you gave a seed to the RNG constructor, then the cell this chooses will be reliable for testing. If you
         // don't seed the RNG, any valid cell should be possible.
         playerCreature = new Creature(playerAnimation, floors.singleRandom(rng), Creature.WALKING);
+        playerCreature.configureMap(creatures.map);
+        creatures.putAt(playerCreature.moth.end, playerCreature, 0);
         // Uses shadowcasting FOV and reuses the visible array without creating new arrays constantly.
         FOV.reuseFOV(resistance, visible, playerCreature.moth.start.x, playerCreature.moth.start.y, 9.0, Radius.CIRCLE);//, (System.currentTimeMillis() & 0xFFFF) * 0x1p-4, 60.0);
         
@@ -623,12 +625,12 @@ public class CaveCops extends ApplicationAdapter {
                     // work to find the best path with that info.
                     toCursor.clear();
                     playerToCursor.findPathPreScanned(toCursor, cursor);
-                    // findPathPreScanned includes the current cell (goal) by default, which is helpful when
-                    // you're finding a path to a monster or loot, and want to bump into it, but here can be
-                    // confusing because you would "move into yourself" as your first move without this.
-                    if (!toCursor.isEmpty()) {
-                        toCursor.remove(0);
-                    }
+//                    // findPathPreScanned includes the current cell (goal) by default, which is helpful when
+//                    // you're finding a path to a monster or loot, and want to bump into it, but here can be
+//                    // confusing because you would "move into yourself" as your first move without this.
+//                    if (!toCursor.isEmpty()) {
+//                        toCursor.remove(0);
+//                    }
                 }
                 return false;
             }
@@ -650,6 +652,7 @@ public class CaveCops extends ApplicationAdapter {
         }
         if (onGrid(end.x, end.y) && bareDungeon[end.x][end.y] != '#')
         {
+            creatures.alterCarefully(playerCreature.moth.end, end);
             playerCreature.moth.start = start;
             playerCreature.moth.end = end;
             playerCreature.moth.alpha = 0f;
@@ -741,8 +744,8 @@ public class CaveCops extends ApplicationAdapter {
                 batch.draw(creature.moth.animate(time), creature.moth.getX(), creature.moth.getY(), 1f, 1f);
             }
         }
-        batch.setPackedColor(playerCreature.moth.color);
-        batch.draw(playerCreature.moth.animate(time), playerCreature.moth.getX(), playerCreature.moth.getY(), 1f, 1f);
+//        batch.setPackedColor(playerCreature.moth.color);
+//        batch.draw(playerCreature.moth.animate(time), playerCreature.moth.getX(), playerCreature.moth.getY(), 1f, 1f);
         font.setColor(Color.WHITE);
         font.draw(batch, horoscope, (playerCreature.moth.getX() - mainViewport.getWorldWidth() * 0.25f),
                 (playerCreature.moth.getY() + mainViewport.getWorldHeight() * 0.375f), mainViewport.getWorldWidth() * 0.5f,
@@ -772,7 +775,7 @@ public class CaveCops extends ApplicationAdapter {
         putMap();
         if(mode == NPC) {
             float t = TimeUtils.timeSinceMillis(animationStart) * 0.006f;
-            for (int i = 0; i < creatures.size(); i++) {
+            for (int i = 1; i < creatures.size(); i++) {
                 creatures.getAt(i).moth.alpha = t;
             }
             if(t >= 1f)
@@ -797,7 +800,7 @@ public class CaveCops extends ApplicationAdapter {
             {
                 mode = NPC;
                 animationStart = TimeUtils.millis();
-                for (int i = 0; i < creatures.size(); i++) {
+                for (int i = 1; i < creatures.size(); i++) {
                     creatures.act(creatures.keyAt(i));
                 }
 

@@ -114,4 +114,9 @@ public class Creature {
             }
         }
     }
+
+    @Override
+    public String toString() {
+        return moth.animation.getKeyFrame(0).name + moth.start + " to " + moth.end;
+    }
 }
