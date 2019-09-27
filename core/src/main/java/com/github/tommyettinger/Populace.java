@@ -36,17 +36,23 @@ public class Populace extends OrderedMap<Coord, Creature> {
 
     public Coord act(Coord startingPosition)
     {
+        Coord playerPosition = keyAt(0);
         Creature creature = get(startingPosition);
         if(creature == null)
             return startingPosition;
 //        if(creature.rng.next(4) >= creature.activity)
 //            return startingPosition;
 //        g.refill(creature.dijkstraMap.costMap, 0.0, 10.0).remove(startingPosition);
-        creature.dijkstraMap.setGoal(startingPosition.translate(1, 0));
-        creature.dijkstraMap.setGoal(startingPosition.translate(-1, 0));
-        creature.dijkstraMap.setGoal(startingPosition.translate(0, 1));
-        creature.dijkstraMap.setGoal(startingPosition.translate(0, -1));
-        creature.dijkstraMap.partialScan(startingPosition, 2, keys);
+
+        creature.dijkstraMap.clearGoals();
+        creature.dijkstraMap.resetMap();
+        creature.dijkstraMap.setGoal(playerPosition);
+
+//        creature.dijkstraMap.setGoal(startingPosition.translate(1, 0));
+//        creature.dijkstraMap.setGoal(startingPosition.translate(-1, 0));
+//        creature.dijkstraMap.setGoal(startingPosition.translate(0, 1));
+//        creature.dijkstraMap.setGoal(startingPosition.translate(0, -1));
+        creature.dijkstraMap.partialScan(startingPosition, 9, keys);
         tempPath.clear();
         creature.dijkstraMap.findPathPreScanned(tempPath, startingPosition);
         if(tempPath.size() < 2)
