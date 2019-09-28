@@ -95,10 +95,10 @@ public class IndexedAPNG implements Disposable {
     }
 
     /**
-     * Writes the given Pixmap to the requested FileHandle, computing an 8-bit palette from the most common colors in
-     * pixmap. If there are 256 or less colors and none are transparent, this will use 256 colors in its palette exactly
-     * with no transparent entry, but if there are more than 256 colors or any are transparent, then one color will be
-     * used for "fully transparent" and 255 opaque colors will be used.
+     * Writes the sequence of pixmaps to the given FileHandle as an animated PNG. The animation will loop and will try
+     * to run at {@code fps} frames per second. This will use the default palette for {@link PaletteReducer} if
+     * {@link #palette} is null; if palette is already non-null, you can call {@link PaletteReducer#analyze()} to
+     * compute a palette from one image or exact() to match a specific palette. Always dithers the result.
      *
      * @param file   a FileHandle that must be writable, and will have the given Pixmap written as a PNG-8 image
      * @param frames a Pixmap Array to write as a sequence of frames to the given output stream
@@ -110,9 +110,10 @@ public class IndexedAPNG implements Disposable {
     }
 
     /**
-     * Writes the pixmap to the stream without closing the stream, optionally computing an 8-bit palette from the given
-     * Pixmap. If {@link #palette} is null (the default unless it has been assigned a PaletteReducer value), this will
-     * compute a palette from the given Pixmap regardless of computePalette. Optionally dithers the result if
+     * Writes the sequence of pixmaps to the given FileHandle as an animated PNG. The animation will loop and will try
+     * to run at {@code fps} frames per second. This will use the default palette for {@link PaletteReducer} if
+     * {@link #palette} is null; if palette is already non-null, you can call {@link PaletteReducer#analyze()} to
+     * compute a palette from one image or exact() to match a specific palette. Optionally dithers the result if
      * {@code dither} is true.
      *
      * @param file   a FileHandle that must be writable, and will have the given Pixmap written as a PNG-8 image
@@ -131,9 +132,11 @@ public class IndexedAPNG implements Disposable {
     }
 
     /**
-     * Writes the pixmap to the stream without closing the stream, optionally computing an 8-bit palette from the given
-     * Pixmap. If {@link #palette} is null (the default unless it has been assigned a PaletteReducer value), this will
-     * compute a palette from the given Pixmap regardless of computePalette.
+     * Writes the sequence of pixmaps to the stream without closing the stream. The animation will loop and will try
+     * to run at {@code fps} frames per second. This will use the default palette for {@link PaletteReducer} if
+     * {@link #palette} is null; if palette is already non-null, you can call {@link PaletteReducer#analyze()} to
+     * compute a palette from one image or exact() to match a specific palette. Optionally dithers the result if
+     * {@code dither} is true.
      *
      * @param output an OutputStream that will not be closed
      * @param frames a Pixmap Array to write as a sequence of frames to the given output stream

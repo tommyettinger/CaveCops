@@ -2,7 +2,6 @@ package com.github.tommyettinger;
 
 import squidpony.squidmath.Coord;
 import squidpony.squidmath.CrossHash;
-import squidpony.squidmath.GreasedRegion;
 import squidpony.squidmath.OrderedMap;
 
 import java.util.ArrayList;
@@ -12,20 +11,17 @@ import java.util.ArrayList;
  */
 public class Populace extends OrderedMap<Coord, Creature> {
     public char[][] map;
-    public GreasedRegion g;
     public ArrayList<Coord> tempPath;
     public Populace()
     {
         super(64, 0.25f, CrossHash.identityHasher);
         map = new char[][]{{'#', '#', '#', '#'}, {'#', '.', '.', '#'}, {'#', '.', '.', '#'}, {'#', '#', '#', '#'}};
-        g = new GreasedRegion(4, 4);
         tempPath = new ArrayList<>(16);
     }
     public Populace(char[][] map)
     {
         super((map.length * map[0].length >>> 5) + 4, 0.25f, CrossHash.identityHasher);
         this.map = map;
-        g = new GreasedRegion(map.length, map[0].length);
         tempPath = new ArrayList<>(16);
     }
 

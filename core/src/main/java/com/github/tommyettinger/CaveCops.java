@@ -22,7 +22,6 @@ import squidpony.FakeLanguageGen;
 import squidpony.Maker;
 import squidpony.squidai.DijkstraMap;
 import squidpony.squidgrid.FOV;
-import squidpony.squidgrid.Measurement;
 import squidpony.squidgrid.Radius;
 import squidpony.squidgrid.mapping.DungeonGenerator;
 import squidpony.squidgrid.mapping.DungeonUtility;
@@ -490,7 +489,7 @@ public class CaveCops extends ApplicationAdapter {
         // MANHATTAN value is used, which means 4-way movement only, no diagonals possible. Alternatives are CHEBYSHEV,
         // which allows 8 directions of movement at the same cost for all directions, and EUCLIDEAN, which allows 8
         // directions, but will prefer orthogonal moves unless diagonal ones are clearly closer "as the crow flies."
-        playerToCursor = new DijkstraMap(decoDungeon, Measurement.MANHATTAN);
+        playerToCursor = playerCreature.dijkstraMap;//new DijkstraMap(decoDungeon, Measurement.MANHATTAN);
         playerToCursor.setGoal(playerCreature.moth.start);
         impassable.addAll(blockage);
         impassable.addAll(creatures.keySet());
@@ -624,7 +623,10 @@ public class CaveCops extends ApplicationAdapter {
                     // program, and re-calculated whenever the player moves, we only need to do a fraction of the
                     // work to find the best path with that info.
                     toCursor.clear();
+                    final int a = playerCreature.rng.stateA, b = playerCreature.rng.stateB;
+                    playerCreature.rng.setState(Noise.HastyPointHash.hashAll(screenX, screenY, playerCreature.moth.start.hashCode()));
                     playerToCursor.findPathPreScanned(toCursor, cursor);
+                    playerCreature.rng.setState(a, b);
 //                    // findPathPreScanned includes the current cell (goal) by default, which is helpful when
 //                    // you're finding a path to a monster or loot, and want to bump into it, but here can be
 //                    // confusing because you would "move into yourself" as your first move without this.
