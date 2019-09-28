@@ -53,7 +53,8 @@ import static com.badlogic.gdx.Input.Keys.*;
 public class CaveCops extends ApplicationAdapter {
     
     public static final int SELECT = 0, ANIMATE = 1, NPC = 2;
-    
+    private static final int CREATURE_COUNT = 64;
+
     public int mode = SELECT;
     
     // MutantBatch is almost the same as SpriteBatch, but is a bit faster with SquidLib since it sets colors quickly
@@ -69,7 +70,7 @@ public class CaveCops extends ApplicationAdapter {
     // This maps chars, such as '#', to specific images, such as a pillar.
     private IntMap<Animation<TextureAtlas.AtlasRegion>> charMapping;
     private IntMap<ArrayList<Animation<TextureAtlas.AtlasRegion>>> decorationMapping;
-    private IntMap<ArrayList<Animation<TextureAtlas.AtlasRegion>>> spawnMapping;
+//    private IntMap<ArrayList<Animation<TextureAtlas.AtlasRegion>>> spawnMapping;
     private BitmapFont font;
     
     // generates a dungeon as a 2D char array; can also fill some simple features into the dungeon.
@@ -134,9 +135,11 @@ public class CaveCops extends ApplicationAdapter {
     private String horoscope;
 
     private Creature playerCreature;
-    private Populace creatures;
+    public Populace creatures;
+    public CreatureFactory creatureFactory;
     public LinkedHashMap<String, Animation<TextureAtlas.AtlasRegion>> mapping;
     private OrderedMap<Coord, Animation<TextureAtlas.AtlasRegion>> decorations;
+    
 
     public static LinkedHashMap<String, Animation<TextureAtlas.AtlasRegion>> makeMapping(final TextureAtlas atlas){
         final Array<TextureAtlas.AtlasRegion> regions = atlas.getRegions();
@@ -223,7 +226,7 @@ public class CaveCops extends ApplicationAdapter {
         
         charMapping = new IntMap<>(64);
         decorationMapping = new IntMap<>(64);
-        spawnMapping = new IntMap<>(64);
+//        spawnMapping = new IntMap<>(64);
         solid = mapping.get("day tile floor c");
         playerAnimation = mapping.get("keystone kop");
         charMapping.put('.', solid);
@@ -266,61 +269,61 @@ public class CaveCops extends ApplicationAdapter {
                 mapping.get("gray rocks")
         ));
         
-        spawnMapping.put('~', Maker.makeList(
-                mapping.get("fighting fish"),
-                mapping.get("red snapper"),
-                mapping.get("stonefish"),
-                mapping.get("catfish"),
-                mapping.get("piranha"),
-                mapping.get("lobster"),
-                mapping.get("jellyfish"),
-                mapping.get("man o war"),
-                mapping.get("barracuda"),
-                mapping.get("great white shark"),
-                mapping.get("tiger shark"),
-                mapping.get("beluga whale"),
-                mapping.get("blue whale"),
-                mapping.get("river dolphin"),
-                mapping.get("snakefish"),
-                mapping.get("bobbit worm"),
-                mapping.get("eel"),
-                mapping.get("electric eel"),
-                mapping.get("kraken"),
-                mapping.get("sea tiger"),
-                mapping.get("platypus"),
-                mapping.get("cave penguin"),
-                mapping.get("penguin"),
-                mapping.get("pelican"),
-                mapping.get("duck"),
-                mapping.get("puffin"),
-                mapping.get("swan"),
-                mapping.get("albatross")
-        ));
-        spawnMapping.put(',', Maker.makeList(
-                mapping.get("fighting fish"),
-                mapping.get("stonefish"),
-                mapping.get("piranha"),
-                mapping.get("lobster"),
-                mapping.get("snakefish"),
-                mapping.get("sea nymph"),
-                mapping.get("river nymph"),
-                mapping.get("bog nymph"),
-                mapping.get("platypus"),
-                mapping.get("leech"),
-                mapping.get("frog"),
-                mapping.get("cave penguin"),
-                mapping.get("penguin"),
-                mapping.get("baby pelican"),
-                mapping.get("pelican"),
-                mapping.get("baby duck"),
-                mapping.get("duck"),
-                mapping.get("baby puffin"),
-                mapping.get("puffin"),
-                mapping.get("baby swan"),
-                mapping.get("swan"),
-                mapping.get("baby albatross"),
-                mapping.get("albatross")
-        ));
+//        spawnMapping.put('~', Maker.makeList(
+//                mapping.get("fighting fish"),
+//                mapping.get("red snapper"),
+//                mapping.get("stonefish"),
+//                mapping.get("catfish"),
+//                mapping.get("piranha"),
+//                mapping.get("lobster"),
+//                mapping.get("jellyfish"),
+//                mapping.get("man o war"),
+//                mapping.get("barracuda"),
+//                mapping.get("great white shark"),
+//                mapping.get("tiger shark"),
+//                mapping.get("beluga whale"),
+//                mapping.get("blue whale"),
+//                mapping.get("river dolphin"),
+//                mapping.get("snakefish"),
+//                mapping.get("bobbit worm"),
+//                mapping.get("eel"),
+//                mapping.get("electric eel"),
+//                mapping.get("kraken"),
+//                mapping.get("sea tiger"),
+//                mapping.get("platypus"),
+//                mapping.get("cave penguin"),
+//                mapping.get("penguin"),
+//                mapping.get("pelican"),
+//                mapping.get("duck"),
+//                mapping.get("puffin"),
+//                mapping.get("swan"),
+//                mapping.get("albatross")
+//        ));
+//        spawnMapping.put(',', Maker.makeList(
+//                mapping.get("fighting fish"),
+//                mapping.get("stonefish"),
+//                mapping.get("piranha"),
+//                mapping.get("lobster"),
+//                mapping.get("snakefish"),
+//                mapping.get("sea nymph"),
+//                mapping.get("river nymph"),
+//                mapping.get("bog nymph"),
+//                mapping.get("platypus"),
+//                mapping.get("leech"),
+//                mapping.get("frog"),
+//                mapping.get("cave penguin"),
+//                mapping.get("penguin"),
+//                mapping.get("baby pelican"),
+//                mapping.get("pelican"),
+//                mapping.get("baby duck"),
+//                mapping.get("duck"),
+//                mapping.get("baby puffin"),
+//                mapping.get("puffin"),
+//                mapping.get("baby swan"),
+//                mapping.get("swan"),
+//                mapping.get("baby albatross"),
+//                mapping.get("albatross")
+//        ));
 //        
 //        for(ArrayList<Animation<TextureAtlas.AtlasRegion>> list : spawnMapping.values())
 //        {
@@ -401,6 +404,7 @@ public class CaveCops extends ApplicationAdapter {
         final int floorSpace = floors.size();
         decorations = new OrderedMap<>(floorSpace >>> 1, 0.25f);
         creatures = new Populace(decoDungeon);
+        creatureFactory = new CreatureFactory(creatures, mapping);
         for(IntMap.Entry<ArrayList<Animation<TextureAtlas.AtlasRegion>>> e : decorationMapping.entries())
         {
             floors.refill(decoDungeon, (char)e.key).mixedRandomRegion(0.375, -1, rng.nextLong());
@@ -413,15 +417,18 @@ public class CaveCops extends ApplicationAdapter {
                 }
             }
         }
-        for(IntMap.Entry<ArrayList<Animation<TextureAtlas.AtlasRegion>>> e : spawnMapping.entries())
-        {
-            floors.refill(decoDungeon, (char)e.key);
-            floors.mixedRandomRegion(0.1, floors.size() * 48 / floorSpace, rng.nextLong());
-            for(Coord c : floors)
-            {
-                creatures.place(new Creature(rng.getRandomElement(e.value), c, Creature.AQUATIC));
-            }
+        for (int i = 0; i < CREATURE_COUNT; i++) {
+            creatureFactory.place();
         }
+//        for(IntMap.Entry<ArrayList<Animation<TextureAtlas.AtlasRegion>>> e : spawnMapping.entries())
+//        {
+//            floors.refill(decoDungeon, (char)e.key);
+//            floors.mixedRandomRegion(0.1, floors.size() * 48 / floorSpace, rng.nextLong());
+//            for(Coord c : floors)
+//            {
+//                creatures.place(new Creature(rng.getRandomElement(e.value), c, Creature.AQUATIC));
+//            }
+//        }
         //Coord is the type we use as a general 2D point, usually in a dungeon.
         //Because we know dungeons won't be incredibly huge, Coord performs best for x and y values less than 256, but
         // by default it can also handle some negative x and y values (-3 is the lowest it can efficiently store). You
