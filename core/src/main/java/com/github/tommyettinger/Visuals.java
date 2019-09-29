@@ -95,6 +95,17 @@ public class Visuals {
 //                MathUtils.clamp(luma - warm * 0.375f - mild * 0.5f, 0f, 1f), opacity);
     }
 
+    public static float lerpFloatColors(final float start, final float end, float change) {
+        final int s = NumberTools.floatToIntBits(start), e = NumberTools.floatToIntBits(end),
+                ys = (s & 0xFF), cws = (s >>> 8) & 0xFF, cms = (s >>> 16) & 0xFF, sas = s >>> 24 & 0xFE,
+                ye = (e & 0xFF), cwe = (e >>> 8) & 0xFF, cme = (e >>> 16) & 0xFF, sae = e >>> 24 & 0xFE;
+        return NumberTools.intBitsToFloat(((int) (ys + change * (ye - ys)) & 0xFF)
+                | (((int) (cws + change * (cwe - cws)) & 0xFF) << 8)
+                | (((int) (cms + change * (cme - cms)) & 0xFF) << 16)
+                | (((int) (sas + change * (sae - sas)) & 0xFE) << 24));
+    }
+
+
     /**
      * This is the default vertex shader from libGDX.
      */
