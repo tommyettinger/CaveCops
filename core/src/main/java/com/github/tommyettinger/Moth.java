@@ -23,13 +23,13 @@ public class Moth extends TextureRegion {
     {
         super();
         animation = new Animation<TextureAtlas.AtlasRegion>(0.375f);
-        this.color = CaveCops.FLOAT_NEUTRAL;
+        this.color = Visuals.FLOAT_NEUTRAL;
     }
     public Moth(Animation<TextureAtlas.AtlasRegion> animation) {
         super();
         this.animation = animation;
         setRegion(animation.getKeyFrame(0f));
-        this.color = CaveCops.FLOAT_NEUTRAL;
+        this.color = Visuals.FLOAT_NEUTRAL;
     }
 
     public Moth(Animation<TextureAtlas.AtlasRegion> animation, Coord coord) {
@@ -40,7 +40,7 @@ public class Moth extends TextureRegion {
         super();
         this.animation = animation;
         setRegion(animation.getKeyFrame(0f));
-        this.color = CaveCops.FLOAT_NEUTRAL;
+        this.color = Visuals.FLOAT_NEUTRAL;
         this.start = start;
         this.end = end;
     }

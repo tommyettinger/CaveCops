@@ -105,11 +105,6 @@ public class CaveCops extends ApplicationAdapter {
     private static final int cellHeight = 32;
     public long startTime = 0L, animationStart = 0L;
     private Animation<TextureAtlas.AtlasRegion> solid, playerAnimation;
-    public static final float
-//            FLOAT_BLOOD = -0x1.564f86p125F,  // same result as SColor.PURE_CRIMSON.toFloatBits()
-//            FLOAT_LIGHTING = SColor.floatGetHSV(0.17f, 0.12f, 0.8f, 1f),//-0x1.cff1fep126F, // same result as SColor.COSMIC_LATTE.toFloatBits()
-            FLOAT_GRAY = Color.toFloatBits(0.15f, 0.45f, 0.5f, 0.2f),
-            FLOAT_NEUTRAL = Color.toFloatBits(0.5f, 0.5f, 0.5f, 0.5f);
 
     private InputProcessor input;
 
@@ -198,8 +193,8 @@ public class CaveCops extends ApplicationAdapter {
         for (int i = 0; i < 20; i++) {
             System.out.println(horoscope = anReplacer.replace(zodiacShuffler.next() + phraseShuffler.next() + meaningShuffler.next().replace("@", zodiacShuffler.next())) );
         }
-        shader = new ShaderProgram(ShaderUtils.vertexShader, ShaderUtils.fragmentShader);
-//        shader = new ShaderProgram(ShaderUtils.vertexShader, ShaderUtils.fragmentShaderWarmMildLimited);
+        shader = new ShaderProgram(Visuals.vertexShader, Visuals.fragmentShader);
+//        shader = new ShaderProgram(Visuals.vertexShader, Visuals.fragmentShaderWarmMildLimited);
         if (!shader.isCompiled()) throw new GdxRuntimeException("Couldn't compile shader: " + shader.getLog());
         batch = new MutantBatch(8000, shader);
 //        add = new Vector3(0, 0, 0);
@@ -733,7 +728,7 @@ public class CaveCops extends ApplicationAdapter {
                     //batch.draw(solid, pos.x, pos.y);
 //                    if ((monster = monsters.get(Coord.get(i, j))) != null)
 //                        monster.setAlpha(0f);
-                    batch.setPackedColor(FLOAT_GRAY);
+                    batch.setPackedColor(Visuals.FLOAT_GRAY);
                     batch.draw(charMapping.get(prunedDungeon[i][j], solid).getKeyFrame(time), i, j, 1f, 1f);
                     if((decoration = decorations.get(Coord.get(i, j))) != null)
                     {
