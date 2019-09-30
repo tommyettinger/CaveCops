@@ -166,9 +166,11 @@ public class CaveCops extends ApplicationAdapter {
         rng = new GWTRNG(Long.parseLong("CAVECOPS", 36));
         
         String[] zodiac = new String[12];
-        RNG shuffleRNG = new RNG(new XoshiroStarPhi32RNG(DiverRNG.determine(startTime)));
+        RNG languageRNG = new RNG(new XoshiroStarPhi32RNG(DiverRNG.determine(startTime)));
+        FakeLanguageGen lang = FakeLanguageGen.randomLanguage(languageRNG).mix(FakeLanguageGen.ANCIENT_EGYPTIAN, 0.6);
+        lang.modifiers.add(FakeLanguageGen.Modifier.REDUCE_ACCENTS);
         for (int i = 0; i < zodiac.length; i++) {
-            zodiac[i] = FakeLanguageGen.ANCIENT_EGYPTIAN.word(shuffleRNG, true, shuffleRNG.maxIntOf(4, 2) + 1);
+            zodiac[i] = lang.word(languageRNG, true, languageRNG.maxIntOf(4, 2) + 1);
         }
         String[] phrases = new String[]{" is in retrograde", " ascends", " reaches toward the North", " leans Southward",
                 " stands against the West wind", " charges into the East", " resides in the Castle",
@@ -188,13 +190,12 @@ public class CaveCops extends ApplicationAdapter {
                                 ". Does anyone else smell smoke?",
                                 "! Party time!",
                                 "! This is the dawning of the Age of Aquarius!"};
-        zodiacShuffler = new GapShuffler<>(zodiac, shuffleRNG);
-        phraseShuffler = new GapShuffler<>(phrases, shuffleRNG);
-        meaningShuffler = new GapShuffler<>(meanings, shuffleRNG);
+        zodiacShuffler = new GapShuffler<>(zodiac, languageRNG);
+        phraseShuffler = new GapShuffler<>(phrases, languageRNG);
+        meaningShuffler = new GapShuffler<>(meanings, languageRNG);
         anReplacer = new Replacer(Pattern.compile("\\b([Aa]) (?=[AEIOUaeiou])"), "$1n ");
-        for (int i = 0; i < 20; i++) {
-            System.out.println(horoscope = anReplacer.replace(zodiacShuffler.next() + phraseShuffler.next() + meaningShuffler.next().replace("@", zodiacShuffler.next())) );
-        }
+        horoscope = anReplacer.replace(zodiacShuffler.next() + phraseShuffler.next() + meaningShuffler.next().replace("@", zodiacShuffler.next()));
+        
         shader = new ShaderProgram(Visuals.vertexShader, Visuals.fragmentShader);
 //        shader = new ShaderProgram(Visuals.vertexShader, Visuals.fragmentShaderWarmMildLimited);
         if (!shader.isCompiled()) throw new GdxRuntimeException("Couldn't compile shader: " + shader.getLog());
@@ -826,7 +827,7 @@ public class CaveCops extends ApplicationAdapter {
                 // this only happens if we just removed the last Coord from awaitedMoves, and it's only then that we need to
                 // re-calculate the distances from all cells to the player. We don't need to calculate this information on
                 // each part of a many-cell move (just the end), nor do we need to calculate it whenever the mouse moves.
-                if (awaitedMoves.isEmpty()) {
+//                if (awaitedMoves.isEmpty()) {
                     // the next two lines remove any lingering data needed for earlier paths
                     playerToCursor.clearGoals();
                     playerToCursor.resetMap();
@@ -844,7 +845,9 @@ public class CaveCops extends ApplicationAdapter {
                     impassable.addAll(blockage);
                     impassable.addAll(creatures.keySet());
                     playerToCursor.partialScan(13, impassable);
-                }
+                    
+                    horoscope = anReplacer.replace(zodiacShuffler.next() + phraseShuffler.next() + meaningShuffler.next().replace("@", zodiacShuffler.next()));
+//                }
 
             }
         }
