@@ -8,7 +8,7 @@ import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.Affine2;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Matrix4;
-import com.badlogic.gdx.utils.NumberUtils;
+import squidpony.squidmath.NumberTools;
 
 /**
  * A drop-in substitute for {@link com.badlogic.gdx.graphics.g2d.SpriteBatch} that behaves more like libGDX 1.9.8's
@@ -186,8 +186,8 @@ public class MutantBatch implements Batch {
 
     @Override
     public void setColor (float r, float g, float b, float a) {
-        color = NumberUtils.intBitsToFloat(((int)(255 * a) << 24 & 0xFE000000)
-                | (int)(255 * b) << 16 | (int)(255 * g) << 8 | (int)(255 * r));
+        color = NumberTools.intBitsToFloat(((int)(0xFFp24f * a) & 0xFE000000)
+                | ((int)(0xFFp16f * b) & 0xFF0000) | ((int)(0xFFp8f * g) & 0xFF00) | ((int)(255f * r) & 0xFF));
     }
 
     public void setColor (final float color) {
@@ -195,11 +195,11 @@ public class MutantBatch implements Batch {
     }
 
     public void setRGBAColor (final int color) {
-        this.color = NumberUtils.intBitsToFloat(Integer.reverseBytes(color & -2));
+        this.color = NumberTools.reversedIntBitsToFloat(color & -2);
     }
 
     public void setRGBAColor (int r, int g, int b, int a) {
-        color = NumberUtils.intBitsToFloat((a << 24 & 0xFE000000)
+        color = NumberTools.intBitsToFloat((a << 24 & 0xFE000000)
                 | (b << 16 & 0xFF0000) | (g << 8 & 0xFF00) | (r & 0xFF));
     }
 
@@ -210,7 +210,7 @@ public class MutantBatch implements Batch {
 
     @Override
     public Color getColor () {
-        final int intBits = NumberUtils.floatToIntBits(color);
+        final int intBits = NumberTools.floatToIntBits(color);
         Color color = tempColor;
         color.r = (intBits & 0xff) / 255f;
         color.g = ((intBits >>> 8) & 0xff) / 255f;

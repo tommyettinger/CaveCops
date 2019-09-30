@@ -47,13 +47,14 @@ public class Visuals {
     /**
      * Gets a color as a packed float given floats representing luma (Y, akin to lightness), chroma warm (Cw, one of two
      * kinds of chroma used here), chroma mild (Cm, the other kind of chroma), and opacity. Luma should be between 0 and
-     * 1, inclusive, with 0 used for very dark colors including but not limited to black, and 1 used for very light
-     * colors including but not limited to white. The two chroma values range from -1.0 to 1.0, unlike YCbCr and YCoCg,
-     * and also unlike those color spaces, there's some aesthetic value in changing just one chroma value. When warm is
-     * high and mild is low, the color is more reddish; when both are low it is more bluish, and when mild is high and
-     * warm is low, the color tends to be greenish, and when both are high it tends to be brown or yellow. When warm and
-     * mild are both near 0.0f, the color is closer to gray. Because chroma values are centered on 0.0f, you can multiply
-     * them by a value like 0.5f to halve the colorfulness of the color.
+     * 1, inclusive, with 0 used for very dark colors (almost only black), and 1 used for very light colors (almost only
+     * white). The two chroma values range from 0.0 to 1.0, and unlike YCbCr and YCoCg, there's some aesthetic value in
+     * changing just one chroma value. When warm is high and mild is low, the color is more reddish; when both are low
+     * it is more bluish, and when mild is high and warm is low, the color tends to be greenish, and when both are high
+     * it tends to be brown or yellow. When warm and mild are both near 0.5f, the color is closer to gray. The Sat
+     * component is a multiplier for the colorfulness of a color this modifies (warm and mild are additive); Sat is
+     * doubled before multiplying it by the warm and mild components of a color, so 0.5 Sat is neutral, 0.0 Sat makes a
+     * color grayscale, and 1.0 Sat makes a color more vivid, if possible.
      * <br>
      * This method clamps the resulting color's RGB values, so any values can technically be given to this as luma,
      * warm, and mild, but they will only be reversible from the returned float color to the original Y, Cw, and Cm
@@ -89,10 +90,37 @@ public class Visuals {
         //g = (mild * 4 - warm * 3 + luma * 8) / 8; g4 - b4 - r3 + b3 + r3 + g4 + b1
         //b = (luma * 8 - warm * 3 - mild * 4) / 8; r3 + g4 + b1 - r3 + b3 - g4 + b4
         return NumberTools.intBitsToFloat(((int) (saturation * 255) << 24 & 0xFE000000) | ((int) (mild * 255) << 16 & 0xFF0000)
-                | ((int) (warm * 255) << 8 & 0xFF00) | (int) (luma * 255) & 0xFF);
+                | ((int) (warm * 255) << 8 & 0xFF00) | ((int) (luma * 255) & 0xFF));
 //        return floatGet(MathUtils.clamp(luma + warm * 0.625f - mild * 0.5f, 0f, 1f),
 //                MathUtils.clamp(luma + mild * 0.5f - warm * 0.375f, 0f, 1f),
 //                MathUtils.clamp(luma - warm * 0.375f - mild * 0.5f, 0f, 1f), opacity);
+    }
+    /**
+     * Gets a color as a packed float given floats representing luma (Y, akin to lightness), chroma warm (Cw, one of two
+     * kinds of chroma used here), chroma mild (Cm, the other kind of chroma), and opacity. Luma should be between 0 and
+     * 255, inclusive, with 0 used for very dark colors (almost only black), and 255 used for very light colors (almost
+     * only white). The two chroma values range from 0 to 255, and unlike YCbCr and YCoCg, there's some aesthetic value
+     * in changing just one chroma value. When warm is high and mild is low, the color is more reddish; when both are
+     * low it is more bluish, and when mild is high and warm is low, the color tends to be greenish, and when both are
+     * high it tends to be brown or yellow. When warm and mild are both near 128, the color is closer to gray. The Sat
+     * component is a multiplier for the colorfulness of a color this modifies (warm and mild are additive); Sat is
+     * divided by 128 before multiplying it by the warm and mild components of a color, so 128 Sat is neutral, 0 Sat
+     * makes a color grayscale, and 255 Sat makes a color more vivid, if possible.
+     * <br>
+     * This method clamps the resulting color's RGB values, so any values can technically be given to this as luma,
+     * warm, and mild, but they will only be reversible from the returned float color to the original Y, Cw, and Cm
+     * values if the original values were in the range that {@link #chromaWarm(Color)}, {@link #chromaMild(Color)}, and
+     * {@link #luma(Color)} return.
+     *
+     * @param luma       0 to 255, luma or Y component of YCwCm, with 128 meaning "no change" and 255 brightening
+     * @param warm       0 to 255, "chroma warm" or Cw component of YCwCm, with 255 more red or yellow
+     * @param mild       0 to 255, "chroma mild" or Cm component of YCwCm, with 255 more green or yellow
+     * @param saturation 0 to 255, 1 makes the color grayscale and 255 over-saturates it
+     * @return a float encoding a color with the given properties
+     */
+    public static float getYCwCmSat(int luma, int warm, int mild, int saturation) {
+        return NumberTools.intBitsToFloat((saturation << 24 & 0xFE000000) | (mild << 16 & 0xFF0000)
+                | (warm << 8 & 0xFF00) | (luma & 0xFF));
     }
 
     public static float lerpFloatColors(final float start, final float end, float change) {
@@ -140,7 +168,7 @@ public class Visuals {
                     "void main()\n" +
                     "{\n" +
                     "   vec4 tgt = texture2D( u_texture, v_texCoords );\n" +
-                    "   vec3 ycc = 2.0 * vec3(v_color.r * dot(tgt.rgb, bright), (v_color.g - 0.5) + v_color.a * (tgt.r - tgt.b), (v_color.b - 0.5) + v_color.a * (tgt.g - tgt.b));\n" +
+                    "   vec3 ycc = 2.0 * vec3(v_color.r * dot(tgt.rgb, bright), v_color.a * ((v_color.g - 0.5) + tgt.r - tgt.b), v_color.a * ((v_color.b - 0.5) + tgt.g - tgt.b));\n" +
                     "   tgt.rgb = clamp(vec3(dot(ycc, vec3(1.0, 0.625, -0.5)), dot(ycc, vec3(1.0, -0.375, 0.5)), dot(ycc, vec3(1.0, -0.375, -0.5))), 0.0, 1.0);\n" +
                     "   vec4 used = texture2D(u_palette, vec2((tgt.b * b_adj + floor(tgt.r * 31.999)) * rb_adj, 1.0 - tgt.g));\n" +
                     "   float len = ycc.r + 1.5;\n" +

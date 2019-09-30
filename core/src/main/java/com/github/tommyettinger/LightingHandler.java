@@ -511,7 +511,7 @@ public class LightingHandler implements Serializable {
      * present in line of sight of the viewer and the various flicker or strobe effects that Radiance light sources can
      * do. You should usually call {@link #update()} before each call to draw(), but you may want to make custom
      * changes to the lighting in between those two calls (that is the only place those changes will be noticed).
-     * @param backgrounds a 2D float array of packed colors, here YCwCm+Sat format
+     * @param backgrounds a 2D float array of packed colors, here YCwCm+Sat format, which will be modified
      */
     public void draw(float[][] backgrounds)
     {
@@ -519,11 +519,34 @@ public class LightingHandler implements Serializable {
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
                 if (losResult[x][y] > 0.0 && fovResult[x][y] > 0.0) {
-                        current = backgrounds[x][y];
-                        if(current == 0f)
-                            current = backgroundColor;
-                        backgrounds[x][y] = Visuals.lerpFloatColors(current,
-                                colorLighting[1][x][y], colorLighting[0][x][y] * 0.4f);
+                    current = backgrounds[x][y];
+                    if(current == 0f)
+                        current = backgroundColor;
+                    backgrounds[x][y] = Visuals.lerpFloatColors(current,
+                            colorLighting[1][x][y], colorLighting[0][x][y] * 0.4f);
+                }
+            }
+        }
+    }
+    /**
+     * Given a 2D array of packed float colors, fills the 2D array with different colors based on what lights are
+     * present in line of sight of the viewer and the various flicker or strobe effects that Radiance light sources can
+     * do. You should usually call {@link #update()} before each call to draw(), but you may want to make custom
+     * changes to the lighting in between those two calls (that is the only place those changes will be noticed).
+     * @param editingBackgrounds a 2D float array of packed colors, here YCwCm+Sat format, which will be overwritten
+     * @param stableBackgrounds a 2D float array of packed colors, here YCwCm+Sat format, which will stay the same
+     */
+    public void draw(float[][] editingBackgrounds, float[][] stableBackgrounds)
+    {
+        float current;
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                if (losResult[x][y] > 0.0 && fovResult[x][y] > 0.0) {
+                    current = stableBackgrounds[x][y];
+                    if(current == 0f)
+                        current = backgroundColor;
+                    editingBackgrounds[x][y] = Visuals.lerpFloatColors(current,
+                            colorLighting[1][x][y], colorLighting[0][x][y] * 0.4f);
                 }
             }
         }

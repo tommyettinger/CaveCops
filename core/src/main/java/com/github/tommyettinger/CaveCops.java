@@ -83,6 +83,8 @@ public class CaveCops extends ApplicationAdapter {
     //   are removed from rendering; unlike the others, it is frequently changed.
     private char[][] decoDungeon, bareDungeon, lineDungeon, prunedDungeon;
     
+    private float[][] backgrounds;
+    
     public ShaderProgram shader;
 //    public Vector3 add, mul;
     private Texture palette;
@@ -481,6 +483,19 @@ public class CaveCops extends ApplicationAdapter {
         // drawing chars map to don't support half-lines, so we instead use the default, LineKit.light , which will
         // replace '╴' and '╶' with '─', and '╷' and '╵' with '│'.
         LineKit.pruneLines(lineDungeon, seen, LineKit.light, prunedDungeon);
+        final int seed = CrossHash.hash(decoDungeon);
+        backgrounds = new float[bigWidth][bigHeight];
+        for (int x = 0; x < bigWidth; x++) {
+            for (int y = 0; y < bigHeight; y++) {
+                int h = Noise.IntPointHash.hashAll(x, y, seed);
+                backgrounds[x][y] = Visuals.getYCwCmSat(
+                        128 + (h & 7) - (h >>> 3 & 7) + (h >>> 6 & 7) - (h >>> 9 & 7) + (h >>> 12 & 3) - (h >>> 14 & 3),
+                        128 + (h >>> 16 & 7) - (h >>> 19 & 7), 
+                        128 + (h >>> 22 & 7) - (h >>> 25 & 7),
+                        48 + (h >>> 29) // LSB of alpha/Sat is discarded
+                );
+            }
+        }
 
         //This is used to allow clicks or taps to take the player to the desired area.
         toCursor = new ArrayList<>(200);
@@ -499,7 +514,7 @@ public class CaveCops extends ApplicationAdapter {
 
 //        bgColor = new Color(0x132C2DFF); // for GBGreen16
 //        bgColor = new Color(0x000008FF);   // for AuroraLloyd
-        bgColor = new Color(0x000010FF);   // for AuroraLloydFlat
+        bgColor = new Color(0x000010FF);   // for AuroraRelaxed
 //        bgColor = new Color(0x010101FF);   // for DB_Aurora
 //        bgColor = new Color(0x000000FF);   // for Sheltzy32
 //        bgColor = new Color(0x140C1CFF);   // for DawnSmash256
@@ -700,22 +715,22 @@ public class CaveCops extends ApplicationAdapter {
                                             ? 210
                                             : (int)(visible[i][j] * 110
                                             + FastNoise.instance.getConfiguredNoise(i * 2f, j * 2f, time * 3.5f) * 60) + 70,
-                                    140, 135, (int)(visible[i][j] * 60) + 70);
+                                    140, 135, (int)(visible[i][j] * 90) + 70);
                             break;
                         case ',':
                             batch.setRGBAColor(toCursor.contains(c)
                                             ? 210
                                             : (int)(visible[i][j] * 120
                                             + FastNoise.instance.getConfiguredNoise(i * 2.25f, j * 2.25f, time * 5.5f) * 65) + 75,
-                                    140, 135, (int)(visible[i][j] * 65) + 80);
+                                    140, 135, (int)(visible[i][j] * 95) + 80);
                                     break;
                         default:
                             batch.setRGBAColor(toCursor.contains(c)
                                             ? 210
                                             : (int)(visible[i][j] * 150) + 40,
-                                    140, 135, (int)(visible[i][j] * 75) + 40);
-
+                                    140, 135, (int)(visible[i][j] * 105) + 40);
                     }
+                    batch.setPackedColor(Visuals.lerpFloatColors(backgrounds[i][j], batch.getPackedColor(), 0.6f));
                     //batch.draw(solid, pos.x, pos.y);
 //                    batch.setPackedColor(SColor.lerpFloatColors(colors[i][j], FLOAT_LIGHTING, (float)visible[i][j] * 0.75f + 0.25f));
                     batch.draw(charMapping.get(prunedDungeon[i][j], solid).getKeyFrame(time), i, j, 1f, 1f);
