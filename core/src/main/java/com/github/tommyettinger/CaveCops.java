@@ -73,16 +73,8 @@ public class CaveCops extends ApplicationAdapter {
 //    private IntMap<ArrayList<Animation<TextureAtlas.AtlasRegion>>> spawnMapping;
     private BitmapFont font;
     
-    // generates a dungeon as a 2D char array; can also fill some simple features into the dungeon.
     private DungeonGenerator dungeonGen;
-    // decoDungeon stores the dungeon map with features like grass and water, if present, as chars like '"' and '~'.
-    // bareDungeon stores the dungeon map with just walls as '#' and anything not a wall as '.'.
-    // Both of the above maps use '#' for walls, and the next two use box-drawing characters instead.
-    // lineDungeon stores the whole map the same as decoDungeon except for walls, which are box-drawing characters here.
-    // prunedDungeon takes lineDungeon and adjusts it so unseen segments of wall (represented by box-drawing characters)
-    //   are removed from rendering; unlike the others, it is frequently changed.
     private char[][] decoDungeon, bareDungeon, lineDungeon, prunedDungeon;
-    
     private float[][] backgrounds;
     
     public ShaderProgram shader;
@@ -357,45 +349,7 @@ public class CaveCops extends ApplicationAdapter {
 //        decoDungeon = dungeonGen.generate(TilesetType.DEFAULT_DUNGEON);
         bareDungeon = dungeonGen.getBareDungeon();
         lineDungeon = DungeonUtility.hashesToLines(decoDungeon);
-//        DungeonUtility.debugPrint(lineDungeon);
 
-        //When we draw, we may want to use a nicer representation of walls. DungeonUtility has lots of useful methods
-        //for modifying char[][] dungeon grids, and this one takes each '#' and replaces it with a box-drawing char.
-        //The end result looks something like this, for a smaller 60x30 map:
-        /*
-          ┌───┐┌──────┬──────┐┌──┬─────┐   ┌──┐    ┌──────────┬─────┐
-          │...││......│......└┘..│.....│   │..├───┐│..........│.....└┐
-          │...││......│..........├──┐..├───┤..│...└┴────......├┐.....│
-          │...││.................│┌─┘..│...│..│...............││.....│
-          │...││...........┌─────┘│....│...│..│...........┌───┴┴───..│
-          │...│└─┐....┌───┬┘      │........│..│......─────┤..........│
-          │...└─┐│....│...│       │.......................│..........│
-          │.....││........└─┐     │....│..................│.....┌────┘
-          │.....││..........│     │....├─┬───────┬─┐......│.....│
-          └┬──..└┼───┐......│   ┌─┴─..┌┘ │.......│ │.....┌┴──┐..│
-           │.....│  ┌┴─..───┴───┘.....└┐ │.......│┌┘.....└─┐ │..│
-           │.....└──┘..................└─┤.......││........│ │..│
-           │.............................│.......├┘........│ │..│
-           │.............┌──────┐........│.......│...─┐....│ │..│
-           │...........┌─┘      └──┐.....│..─────┘....│....│ │..│
-          ┌┴─────......└─┐      ┌──┘..................│..──┴─┘..└─┐
-          │..............└──────┘.....................│...........│
-          │............................┌─┐.......│....│...........│
-          │..│..│..┌┐..................│ │.......├────┤..──┬───┐..│
-          │..│..│..│└┬──..─┬───┐......┌┘ └┐.....┌┘┌───┤....│   │..│
-          │..├──┤..│ │.....│   │......├───┘.....│ │...│....│┌──┘..└──┐
-          │..│┌─┘..└┐└┬─..─┤   │......│.........└─┘...│....││........│
-          │..││.....│ │....│   │......│...............│....││........│
-          │..││.....│ │....│   │......│..┌──┐.........├────┘│..│.....│
-          ├──┴┤...│.└─┴─..┌┘   └┐....┌┤..│  │.....│...└─────┘..│.....│
-          │...│...│.......└─────┴─..─┴┘..├──┘.....│............└─────┤
-          │...│...│......................│........│..................│
-          │.......├───┐..................│.......┌┤.......┌─┐........│
-          │.......│   └──┐..┌────┐..┌────┤..┌────┘│.......│ │..┌──┐..│
-          └───────┘      └──┘    └──┘    └──┘     └───────┘ └──┘  └──┘
-         */
-        //this is also good to compare against if the map looks incorrect, and you need an example of a correct map when
-        //no parameters are given to generate().
         resistance = DungeonUtility.generateResistances(decoDungeon);
         visible = new double[bigWidth][bigHeight];
         floors = new GreasedRegion(bareDungeon, '.');
@@ -479,10 +433,6 @@ public class CaveCops extends ApplicationAdapter {
         // By calling LineKit.pruneLines(), we adjust prunedDungeon to hold a variant on lineDungeon that removes any
         // line segments that haven't ever been visible. This is called again whenever seen changes. 
         prunedDungeon = ArrayTools.copy(lineDungeon);
-        // We could call pruneLines with an optional parameter here, LineKit.lightAlt, which would allow prunedDungeon
-        // to use the half-line chars "╴╵╶╷". These chars aren't supported by all fonts, and the wall tiles these box
-        // drawing chars map to don't support half-lines, so we instead use the default, LineKit.light , which will
-        // replace '╴' and '╶' with '─', and '╷' and '╵' with '│'.
         LineKit.pruneLines(lineDungeon, seen, LineKit.light, prunedDungeon);
         final int seed = CrossHash.hash(decoDungeon);
         backgrounds = new float[bigWidth][bigHeight];
