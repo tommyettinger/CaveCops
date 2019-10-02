@@ -17,16 +17,13 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.*;
 import regexodus.Pattern;
 import regexodus.Replacer;
-import squidpony.ArrayTools;
 import squidpony.FakeLanguageGen;
 import squidpony.Maker;
 import squidpony.squidai.DijkstraMap;
 import squidpony.squidgrid.FOV;
 import squidpony.squidgrid.Radius;
 import squidpony.squidgrid.mapping.DungeonGenerator;
-import squidpony.squidgrid.mapping.DungeonUtility;
 import squidpony.squidgrid.mapping.FlowingCaveGenerator;
-import squidpony.squidgrid.mapping.LineKit;
 import squidpony.squidgrid.mapping.styled.TilesetType;
 import squidpony.squidmath.OrderedMap;
 import squidpony.squidmath.*;
@@ -62,21 +59,19 @@ public class CaveCops extends ApplicationAdapter {
     private PixelPerfectViewport mainViewport;
     private Camera camera;
 
-    // a type of random number generator, see below
     private GWTRNG rng;
 
-    // Stores all images we use here efficiently, as well as the font image 
     private TextureAtlas atlas;
     // This maps chars, such as '#', to specific images, such as a pillar.
     private IntMap<Animation<TextureAtlas.AtlasRegion>> charMapping;
     private IntMap<ArrayList<Animation<TextureAtlas.AtlasRegion>>> decorationMapping;
     private IntIntMap decorationIndices;
-//    private IntMap<ArrayList<Animation<TextureAtlas.AtlasRegion>>> spawnMapping;
     private BitmapFont font;
     
     private DungeonGenerator dungeonGen;
-    private char[][] decoDungeon, bareDungeon, lineDungeon, prunedDungeon;
-    private float[][] backgrounds;
+    public DungeonLevel dl;
+//    private char[][] decoDungeon, bareDungeon, lineDungeon, prunedDungeon;
+//    private float[][] backgrounds;
     
     public ShaderProgram shader;
 //    public Vector3 add, mul;
@@ -117,7 +112,7 @@ public class CaveCops extends ApplicationAdapter {
     // Here, we use a GreasedRegion to store all floors that the player can walk on, a small rim of cells just beyond
     // the player's vision that blocks pathfinding to areas we can't see a path to, and we also store all cells that we
     // have seen in the past in a GreasedRegion (in most roguelikes, there would be one of these per dungeon floor).
-    private GreasedRegion floors, blockage, seen, currentlySeen;
+    private GreasedRegion blockage, seen, currentlySeen;
     private LinkedHashSet<Coord> impassable;
     
     private GapShuffler<String> zodiacShuffler, phraseShuffler, meaningShuffler;
@@ -342,7 +337,8 @@ public class CaveCops extends ApplicationAdapter {
         dungeonGen.addWater(18);
         dungeonGen.addGrass(12);
         FlowingCaveGenerator flowing = new FlowingCaveGenerator(bigWidth, bigHeight, TilesetType.DEFAULT_DUNGEON, rng);
-        decoDungeon = dungeonGen.generate(flowing.generate());
+        dungeonGen.generate(flowing.generate());
+        dl = new DungeonLevel(0, dungeonGen, decorationIndices);
 //        DungeonBoneGen gen = new DungeonBoneGen(this.rng);
 //        CellularAutomaton ca = new CellularAutomaton(bigWidth, bigHeight);
 //        gen.generate(TilesetType.DEFAULT_DUNGEON, bigWidth, bigHeight);
@@ -355,27 +351,20 @@ public class CaveCops extends ApplicationAdapter {
 //        decoDungeon = dungeonGen.generate(gen.region.intoChars(gen.getDungeon(), '.', '#'));
 
 //        decoDungeon = dungeonGen.generate(TilesetType.DEFAULT_DUNGEON);
-        bareDungeon = dungeonGen.getBareDungeon();
-        lineDungeon = DungeonUtility.hashesToLines(decoDungeon);
+        
+//        bareDungeon = dungeonGen.getBareDungeon();
+//        lineDungeon = DungeonUtility.hashesToLines(decoDungeon);
 
-        resistance = DungeonUtility.generateResistances(decoDungeon);
-        visible = new double[bigWidth][bigHeight];
-        floors = new GreasedRegion(bareDungeon, '.');
-        final int floorSpace = floors.size();
+        resistance = dl.lighting.resistances;
+        visible = dl.lighting.fovResult;
+        final int floorSpace = dl.floors.size();
         decorations = new OrderedMap<>(floorSpace >>> 1, 0.25f);
-        for(IntMap.Entry<ArrayList<Animation<TextureAtlas.AtlasRegion>>> e : decorationMapping.entries())
-        {
-            floors.refill(decoDungeon, (char)e.key).mixedRandomRegion(0.375, -1, rng.nextLong());
-            final int count = floors.size(), count2 = (32 - Integer.numberOfLeadingZeros(count)) << 4;
-            for(Coord c : floors)
-            {
-                if(rng.nextSignedInt(count) < count2)
-                {
-                    decorations.put(c, e.value.get(~rng.next(1) & (int)(rng.nextFloat() * (rng.nextSignedInt(e.value.size()) + 0.5f))));
-                }
-            }
+        final int decoSize = dl.decorations.size();
+        for (int i = 0; i < decoSize; i++) {
+            Coord ki = dl.decorations.getAt(i);
+            decorations.put(dl.decorations.keyAt(i), decorationMapping.get(ki.x).get(ki.y));
         }
-        creatures = new Populace(decoDungeon);
+        creatures = new Populace(dl.decoDungeon);
         creatureFactory = new CreatureFactory(creatures, mapping);
         for (int i = 0; i < CREATURE_COUNT; i++) {
             creatureFactory.place();
@@ -414,13 +403,13 @@ public class CaveCops extends ApplicationAdapter {
         // being especially fast. Both of them can be seen as storing regions of points in 2D space as "on" and "off."
 
         // Here we fill a GreasedRegion so it stores the cells that contain a floor, the '.' char, as "on."
-        floors.refill(bareDungeon, '.');
+        dl.floors.refill(dl.bareDungeon, '.');
         //player is, here, just a Coord that stores his position. In a real game, you would probably have a class for
         //creatures, and possibly a subclass for the player. The singleRandom() method on GreasedRegion finds one Coord
         // in that region that is "on," or -1,-1 if there are no such cells. It takes an RNG object as a parameter, and
         // if you gave a seed to the RNG constructor, then the cell this chooses will be reliable for testing. If you
         // don't seed the RNG, any valid cell should be possible.
-        playerCreature = new Creature(playerAnimation, floors.singleRandom(rng), Creature.WALKING);
+        playerCreature = new Creature(playerAnimation, dl.floors.singleRandom(rng), Creature.WALKING);
         playerCreature.configureMap(creatures.map);
         creatures.putAt(playerCreature.moth.end, playerCreature, 0);
         // Uses shadowcasting FOV and reuses the visible array without creating new arrays constantly.
@@ -440,21 +429,7 @@ public class CaveCops extends ApplicationAdapter {
         // that cell and so has never seen the southern connecting wall, and would have no reason to know it is there.
         // By calling LineKit.pruneLines(), we adjust prunedDungeon to hold a variant on lineDungeon that removes any
         // line segments that haven't ever been visible. This is called again whenever seen changes. 
-        prunedDungeon = ArrayTools.copy(lineDungeon);
-        LineKit.pruneLines(lineDungeon, seen, LineKit.light, prunedDungeon);
-        final int seed = CrossHash.hash(decoDungeon);
-        backgrounds = new float[bigWidth][bigHeight];
-        for (int x = 0; x < bigWidth; x++) {
-            for (int y = 0; y < bigHeight; y++) {
-                int h = Noise.IntPointHash.hashAll(x, y, seed);
-                backgrounds[x][y] = Visuals.getYCwCmSat(
-                        128 + (h & 7) - (h >>> 3 & 7) + (h >>> 6 & 7) - (h >>> 9 & 7) + (h >>> 12 & 3) - (h >>> 14 & 3),
-                        128 + (h >>> 16 & 7) - (h >>> 19 & 7), 
-                        128 + (h >>> 22 & 7) - (h >>> 25 & 7),
-                        48 + (h >>> 29) // LSB of alpha/Sat is discarded
-                );
-            }
-        }
+        dl.prune(seen);
 
         //This is used to allow clicks or taps to take the player to the desired area.
         toCursor = new ArrayList<>(200);
@@ -628,7 +603,7 @@ public class CaveCops extends ApplicationAdapter {
             toCursor.clear();
             return;
         }
-        if (onGrid(end.x, end.y) && bareDungeon[end.x][end.y] != '#')
+        if (onGrid(end.x, end.y) && dl.bareDungeon[end.x][end.y] != '#')
         {
             creatures.alterCarefully(playerCreature.moth.end, end);
             playerCreature.moth.start = start;
@@ -645,7 +620,7 @@ public class CaveCops extends ApplicationAdapter {
             blockage.fringe8way();
             // By calling LineKit.pruneLines(), we adjust prunedDungeon to hold a variant on lineDungeon that removes any
             // line segments that haven't ever been visible. This is called again whenever seen changes.
-            LineKit.pruneLines(lineDungeon, seen, LineKit.light, prunedDungeon);
+            dl.prune(seen);
         }
     }
 
@@ -666,7 +641,7 @@ public class CaveCops extends ApplicationAdapter {
 //                    batch.setPackedColor(toCursor.contains(Coord.get(i, j))
 //                            ? FLOAT_WHITE
 //                            : SColor.lerpFloatColors(FLOAT_GRAY, FLOAT_LIGHTING, (float)visible[i][j] * 0.75f + 0.25f));
-                    switch (prunedDungeon[i][j])
+                    switch (dl.prunedDungeon[i][j])
                     {
                         case '"':
                         case '~':
@@ -689,10 +664,10 @@ public class CaveCops extends ApplicationAdapter {
                                             : (int)(visible[i][j] * 150) + 40,
                                     140, 135, (int)(visible[i][j] * 105) + 40);
                     }
-                    batch.setPackedColor(Visuals.lerpFloatColors(backgrounds[i][j], batch.getPackedColor(), 0.6f));
+                    batch.setPackedColor(Visuals.lerpFloatColors(dl.backgrounds[i][j], batch.getPackedColor(), 0.6f));
                     //batch.draw(solid, pos.x, pos.y);
 //                    batch.setPackedColor(SColor.lerpFloatColors(colors[i][j], FLOAT_LIGHTING, (float)visible[i][j] * 0.75f + 0.25f));
-                    batch.draw(charMapping.get(prunedDungeon[i][j], solid).getKeyFrame(time), i, j, 1f, 1f);
+                    batch.draw(charMapping.get(dl.prunedDungeon[i][j], solid).getKeyFrame(time), i, j, 1f, 1f);
                     if((decoration = decorations.get(c)) != null)
                     {
                         batch.draw(decoration.getKeyFrame(time), i, j, 1f, 1f);
@@ -703,7 +678,7 @@ public class CaveCops extends ApplicationAdapter {
 //                    if ((monster = monsters.get(Coord.get(i, j))) != null)
 //                        monster.setAlpha(0f);
                     batch.setPackedColor(Visuals.FLOAT_GRAY);
-                    batch.draw(charMapping.get(prunedDungeon[i][j], solid).getKeyFrame(time), i, j, 1f, 1f);
+                    batch.draw(charMapping.get(dl.prunedDungeon[i][j], solid).getKeyFrame(time), i, j, 1f, 1f);
                     if((decoration = decorations.get(Coord.get(i, j))) != null)
                     {
                         batch.draw(decoration.getKeyFrame(time), i, j, 1f, 1f);
