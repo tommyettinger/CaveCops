@@ -70,6 +70,7 @@ public class CaveCops extends ApplicationAdapter {
     // This maps chars, such as '#', to specific images, such as a pillar.
     private IntMap<Animation<TextureAtlas.AtlasRegion>> charMapping;
     private IntMap<ArrayList<Animation<TextureAtlas.AtlasRegion>>> decorationMapping;
+    private IntIntMap decorationIndices;
 //    private IntMap<ArrayList<Animation<TextureAtlas.AtlasRegion>>> spawnMapping;
     private BitmapFont font;
     
@@ -216,6 +217,7 @@ public class CaveCops extends ApplicationAdapter {
         
         charMapping = new IntMap<>(64);
         decorationMapping = new IntMap<>(64);
+        decorationIndices = new IntIntMap(64);
 //        spawnMapping = new IntMap<>(64);
         solid = mapping.get("day tile floor c");
         playerAnimation = mapping.get("keystone kop");
@@ -250,7 +252,8 @@ public class CaveCops extends ApplicationAdapter {
                 mapping.get("sparse gold flowers"),
                 mapping.get("gold flowers"),
                 mapping.get("sparse red flowers"),
-                mapping.get("red flowers")));
+                mapping.get("red flowers")
+        ));
         decorationMapping.put('.', Maker.makeList(mapping.get("sparse gray pebbles"),
                 mapping.get("gray pebbles"),
                 mapping.get("sparse brown pebbles"),
@@ -258,6 +261,11 @@ public class CaveCops extends ApplicationAdapter {
                 mapping.get("sparse gray rocks"),
                 mapping.get("gray rocks")
         ));
+        
+        for (IntMap.Entry<ArrayList<Animation<TextureAtlas.AtlasRegion>>> e : decorationMapping.entries())
+        {
+            decorationIndices.put(e.key, e.value.size());
+        }
         
 //        spawnMapping.put('~', Maker.makeList(
 //                mapping.get("fighting fish"),
@@ -355,8 +363,6 @@ public class CaveCops extends ApplicationAdapter {
         floors = new GreasedRegion(bareDungeon, '.');
         final int floorSpace = floors.size();
         decorations = new OrderedMap<>(floorSpace >>> 1, 0.25f);
-        creatures = new Populace(decoDungeon);
-        creatureFactory = new CreatureFactory(creatures, mapping);
         for(IntMap.Entry<ArrayList<Animation<TextureAtlas.AtlasRegion>>> e : decorationMapping.entries())
         {
             floors.refill(decoDungeon, (char)e.key).mixedRandomRegion(0.375, -1, rng.nextLong());
@@ -369,6 +375,8 @@ public class CaveCops extends ApplicationAdapter {
                 }
             }
         }
+        creatures = new Populace(decoDungeon);
+        creatureFactory = new CreatureFactory(creatures, mapping);
         for (int i = 0; i < CREATURE_COUNT; i++) {
             creatureFactory.place();
         }

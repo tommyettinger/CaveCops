@@ -1,5 +1,6 @@
 package com.github.tommyettinger;
 
+import com.badlogic.gdx.utils.IntIntMap;
 import squidpony.ArrayTools;
 import squidpony.squidgrid.Radius;
 import squidpony.squidgrid.mapping.DungeonGenerator;
@@ -15,13 +16,15 @@ public class DungeonLevel {
     public char[][] decoDungeon, bareDungeon, lineDungeon, prunedDungeon;
     public float[][] backgrounds;
     public LightingHandler lighting;
-    
+    public GreasedRegion floors;
+    public OrderedMap<Coord, Coord> decorations;
+
     public DungeonLevel()
     {
-        this(0, new DungeonGenerator(80, 48));
+        this(0, new DungeonGenerator(80, 48), new IntIntMap(0));
     }
     
-    public DungeonLevel(int depth, DungeonGenerator dg)
+    public DungeonLevel(int depth, DungeonGenerator dg, IntIntMap decorationIndices)
     {
         this.depth = depth;
         width = dg.getWidth();
@@ -45,6 +48,23 @@ public class DungeonLevel {
                 );
             }
         }
+        floors = new GreasedRegion(bareDungeon, '.');
+        final int floorSpace = floors.size();
+        decorations = new OrderedMap<>(floorSpace >>> 1, 0.25f);
+//        for(IntMap.Entry<ArrayList<Animation<TextureAtlas.AtlasRegion>>> e : decorationMapping.entries())
+        for(IntIntMap.Entry e : decorationIndices.entries())
+        {
+            floors.refill(decoDungeon, (char)e.key).mixedRandomRegion(0.375, -1, dg.rng.nextLong());
+            final int count = floors.size(), count2 = (32 - Integer.numberOfLeadingZeros(count)) << 4;
+            for(Coord c : floors)
+            {
+                if(dg.rng.nextSignedInt(count) < count2)
+                {
+                    decorations.put(c, Coord.get(e.key, ~dg.rng.next(1) & (int)(dg.rng.nextFloat() * (dg.rng.nextSignedInt(e.value) + 0.5f))));
+                }
+            }
+        }
+
         lighting = new LightingHandler(DungeonUtility.generateResistances(decoDungeon), Visuals.FLOAT_BLACK, Radius.CIRCLE, 3.0);
     }
     
