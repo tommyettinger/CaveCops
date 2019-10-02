@@ -20,8 +20,6 @@ import regexodus.Replacer;
 import squidpony.FakeLanguageGen;
 import squidpony.Maker;
 import squidpony.squidai.DijkstraMap;
-import squidpony.squidgrid.FOV;
-import squidpony.squidgrid.Radius;
 import squidpony.squidgrid.mapping.DungeonGenerator;
 import squidpony.squidgrid.mapping.FlowingCaveGenerator;
 import squidpony.squidgrid.mapping.styled.TilesetType;
@@ -412,8 +410,10 @@ public class CaveCops extends ApplicationAdapter {
         playerCreature = new Creature(playerAnimation, dl.floors.singleRandom(rng), Creature.WALKING);
         playerCreature.configureMap(creatures.map);
         creatures.putAt(playerCreature.moth.end, playerCreature, 0);
+        dl.lighting.addLight(playerCreature.moth.start, new Radiance(8f, Visuals.getYCwCmSat(200, languageRNG.between(80, 177), languageRNG.between(80, 177), 70), 0.4f));
+        dl.lighting.calculateFOV(playerCreature.moth.start);
         // Uses shadowcasting FOV and reuses the visible array without creating new arrays constantly.
-        FOV.reuseFOV(resistance, visible, playerCreature.moth.start.x, playerCreature.moth.start.y, 9.0, Radius.CIRCLE);//, (System.currentTimeMillis() & 0xFFFF) * 0x1p-4, 60.0);
+        //FOV.reuseFOV(resistance, visible, playerCreature.moth.start.x, playerCreature.moth.start.y, 9.0, Radius.CIRCLE);//, (System.currentTimeMillis() & 0xFFFF) * 0x1p-4, 60.0);
         
         // 0.01 is the upper bound (inclusive), so any Coord in visible that is more well-lit than 0.01 will _not_ be in
         // the blockage Collection, but anything 0.01 or less will be in it. This lets us use blockage to prevent access
@@ -611,8 +611,10 @@ public class CaveCops extends ApplicationAdapter {
             playerCreature.moth.alpha = 0f;
             mode = ANIMATE;
             animationStart = TimeUtils.millis();
+            dl.lighting.moveLight(start, end);
             // calculates field of vision around the player again, in a circle of radius 9.0 .
-            FOV.reuseFOV(resistance, visible, end.x, end.y, 9.0, Radius.CIRCLE);
+            //FOV.reuseFOV(resistance, visible, end.x, end.y, 9.0, Radius.CIRCLE);
+            dl.lighting.calculateFOV(end);
             // This is just like the constructor used earlier, but affects an existing GreasedRegion without making
             // a new one just for this movement.
             blockage.refill(visible, 0.0);
@@ -630,9 +632,39 @@ public class CaveCops extends ApplicationAdapter {
     public void putMap()
     {
         final float time = TimeUtils.timeSinceMillis(startTime) * 0.001f;
+        dl.lighting.update();
+        dl.lighting.draw(dl.backgrounds);
         Animation<TextureAtlas.AtlasRegion> decoration;
         Creature creature;
         Coord c;
+        
+        for (int i = 0; i < bigWidth; i++) {
+            for (int j = 0; j < bigHeight; j++) {
+                c = Coord.get(i, j);
+                switch (dl.prunedDungeon[i][j])
+                    {
+                        case '"':
+                        case '~':
+                            dl.lighting.currentBackgrounds[i][j] =
+                                    toCursor.contains(c)
+                                            ? NumberTools.setSelectedByte(dl.lighting.currentBackgrounds[i][j], 3, (byte)-26)
+                                            : NumberTools.setSelectedByte(dl.lighting.currentBackgrounds[i][j], 3, (byte)(visible[i][j] * 110
+                                            + FastNoise.instance.getConfiguredNoise(i * 2f, j * 2f, time * 3.5f) * 60 + 70));
+                            break;
+                        case ',':
+                            dl.lighting.currentBackgrounds[i][j] = 
+                                    toCursor.contains(c)
+                                            ? NumberTools.setSelectedByte(dl.lighting.currentBackgrounds[i][j], 3, (byte)-26)
+                                            : NumberTools.setSelectedByte(dl.lighting.currentBackgrounds[i][j], 3, (byte)(visible[i][j] * 120
+                                            + FastNoise.instance.getConfiguredNoise(i * 2.25f, j * 2.25f, time * 5.5f) * 65 + 75));
+                                    break;
+                        default:
+                            if(toCursor.contains(c))
+                                dl.lighting.currentBackgrounds[i][j] = NumberTools.setSelectedByte(dl.lighting.currentBackgrounds[i][j], 3, (byte)-26);
+                    }
+
+            }
+        }
         for (int i = 0; i < bigWidth; i++) {
             for (int j = 0; j < bigHeight; j++) {
                 if(visible[i][j] > 0.0) {
@@ -641,30 +673,8 @@ public class CaveCops extends ApplicationAdapter {
 //                    batch.setPackedColor(toCursor.contains(Coord.get(i, j))
 //                            ? FLOAT_WHITE
 //                            : SColor.lerpFloatColors(FLOAT_GRAY, FLOAT_LIGHTING, (float)visible[i][j] * 0.75f + 0.25f));
-                    switch (dl.prunedDungeon[i][j])
-                    {
-                        case '"':
-                        case '~':
-                            batch.setRGBAColor(toCursor.contains(c)
-                                            ? 210
-                                            : (int)(visible[i][j] * 110
-                                            + FastNoise.instance.getConfiguredNoise(i * 2f, j * 2f, time * 3.5f) * 60) + 70,
-                                    140, 135, (int)(visible[i][j] * 90) + 70);
-                            break;
-                        case ',':
-                            batch.setRGBAColor(toCursor.contains(c)
-                                            ? 210
-                                            : (int)(visible[i][j] * 120
-                                            + FastNoise.instance.getConfiguredNoise(i * 2.25f, j * 2.25f, time * 5.5f) * 65) + 75,
-                                    140, 135, (int)(visible[i][j] * 95) + 80);
-                                    break;
-                        default:
-                            batch.setRGBAColor(toCursor.contains(c)
-                                            ? 210
-                                            : (int)(visible[i][j] * 150) + 40,
-                                    140, 135, (int)(visible[i][j] * 105) + 40);
-                    }
-                    batch.setPackedColor(Visuals.lerpFloatColors(dl.backgrounds[i][j], batch.getPackedColor(), 0.6f));
+//                    batch.setPackedColor(Visuals.lerpFloatColors(dl.backgrounds[i][j], batch.getPackedColor(), 0.6f));
+                    batch.setPackedColor(dl.lighting.currentBackgrounds[i][j]);
                     //batch.draw(solid, pos.x, pos.y);
 //                    batch.setPackedColor(SColor.lerpFloatColors(colors[i][j], FLOAT_LIGHTING, (float)visible[i][j] * 0.75f + 0.25f));
                     batch.draw(charMapping.get(dl.prunedDungeon[i][j], solid).getKeyFrame(time), i, j, 1f, 1f);

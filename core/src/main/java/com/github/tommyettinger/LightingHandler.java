@@ -103,6 +103,11 @@ public class LightingHandler implements Serializable {
      * potentially cast light into such a cell. Depends on the highest {@link Radiance#range} in {@link #lights}.
      */
     public GreasedRegion noticeable;
+    /**
+     * Background packed colors in YCwCm+Sat format; written to by {@link #draw(float[][])}
+     */
+    public float[][] currentBackgrounds;
+    
     
     /**
      * Unlikely to be used except during serialization; makes a LightingHandler for a 20x20 fully visible level.
@@ -165,6 +170,7 @@ public class LightingHandler implements Serializable {
         Coord.expandPoolTo(width, height);
         lights = new OrderedMap<>(32);
         noticeable = new GreasedRegion(width, height);
+        currentBackgrounds = new float[width][height];
     }
 
     /**
@@ -515,18 +521,7 @@ public class LightingHandler implements Serializable {
      */
     public void draw(float[][] backgrounds)
     {
-        float current;
-        for (int x = 0; x < width; x++) {
-            for (int y = 0; y < height; y++) {
-                if (losResult[x][y] > 0.0 && fovResult[x][y] > 0.0) {
-                    current = backgrounds[x][y];
-                    if(current == 0f)
-                        current = backgroundColor;
-                    backgrounds[x][y] = Visuals.lerpFloatColors(current,
-                            colorLighting[1][x][y], colorLighting[0][x][y] * 0.4f);
-                }
-            }
-        }
+        draw(currentBackgrounds, backgrounds);
     }
     /**
      * Given a 2D array of packed float colors, fills the 2D array with different colors based on what lights are
@@ -546,7 +541,7 @@ public class LightingHandler implements Serializable {
                     if(current == 0f)
                         current = backgroundColor;
                     editingBackgrounds[x][y] = Visuals.lerpFloatColors(current,
-                            colorLighting[1][x][y], colorLighting[0][x][y] * 0.4f);
+                            colorLighting[1][x][y], colorLighting[0][x][y]);
                 }
             }
         }
