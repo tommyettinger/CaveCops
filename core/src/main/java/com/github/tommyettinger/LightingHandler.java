@@ -343,7 +343,7 @@ public class LightingHandler implements Serializable {
 
     /**
      * Edits {@link #colorLighting} by adding in and mixing the given color where the light strength in {@link #tempFOV}
-     * is greater than 0, with that strengt boosted by flare (which can be any finite float greater than -1f, but is
+     * is greater than 0, with that strength boosted by flare (which can be any finite float greater than -1f, but is
      * usually from 0f to 1f when increasing strength).
      * Primarily used internally, but exposed so outside code can do the same things this class can.
      * @param flare boosts the effective strength of lighting in {@link #tempColorLighting}; usually from 0 to 1
@@ -395,22 +395,24 @@ public class LightingHandler implements Serializable {
                     }
                     b0 = basis[0][x][y];
                     b1 = basis[1][x][y];
+                    final float baseStrength = Math.min(1.0f, b0 + o0 * flare);
                     if (b1 == FLOAT_NEUTRAL) {
                         basis[1][x][y] = o1;
-                        basis[0][x][y] = Math.min(1.0f, b0 + o0 * flare);
+                        basis[0][x][y] = baseStrength;
                     } else {
                         if (o1 != FLOAT_NEUTRAL) {
-                            float change = (o0 - b0) * 0.5f + 0.5f;
+                            float change = (o0 - b0) * 0.5f + 0.5f,
+                                    str = Math.min(1.0f, b0 + o0 * change * flare);
                             final int s = NumberTools.floatToIntBits(b1), e = NumberTools.floatToIntBits(o1),
                                     ys = (s & 0xFF), cws = (s >>> 8) & 0xFF, cms = (s >>> 16) & 0xFF, sas = s >>> 24 & 0xFE,
                                     ye = (e & 0xFF), cwe = (e >>> 8) & 0xFF, cme = (e >>> 16) & 0xFF, sae = e >>> 24 & 0xFE;
+                            basis[0][x][y] = str;
                             basis[1][x][y] = NumberTools.intBitsToFloat(((int) (ys + change * (ye - ys)) & 0xFF)
                                     | (((int) (cws + change * (cwe - cws)) & 0xFF) << 8)
                                     | (((int) (cms + change * (cme - cms)) & 0xFF) << 16)
-                                    | (((int) (sas + change * (sae - sas)) & 0xFE) << 24));
-                            basis[0][x][y] = Math.min(1.0f, b0 + o0 * change * flare);
+                                    | (((int) (str * (sas + change * (sae - sas))) & 0xFE) << 24));
                         } else {
-                            basis[0][x][y] = Math.min(1.0f, b0 + o0 * flare);
+                            basis[0][x][y] = baseStrength;
                         }
                     }
                 }

@@ -410,7 +410,7 @@ public class CaveCops extends ApplicationAdapter {
         playerCreature = new Creature(playerAnimation, dl.floors.singleRandom(rng), Creature.WALKING);
         playerCreature.configureMap(creatures.map);
         creatures.putAt(playerCreature.moth.end, playerCreature, 0);
-        dl.lighting.addLight(playerCreature.moth.start, new Radiance(8f, Visuals.getYCwCmSat(200, languageRNG.between(80, 177), languageRNG.between(80, 177), 90), 0.4f));
+        dl.lighting.addLight(playerCreature.moth.start, new Radiance(8f, Visuals.getYCwCmSat(160, languageRNG.between(40, 217), languageRNG.between(40, 217), languageRNG.between(100, 190)), 0.4f));
         dl.lighting.calculateFOV(playerCreature.moth.start);
         // Uses shadowcasting FOV and reuses the visible array without creating new arrays constantly.
         //FOV.reuseFOV(resistance, visible, playerCreature.moth.start.x, playerCreature.moth.start.y, 9.0, Radius.CIRCLE);//, (System.currentTimeMillis() & 0xFFFF) * 0x1p-4, 60.0);

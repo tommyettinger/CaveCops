@@ -39,12 +39,12 @@ public class Radiance implements Serializable {
      */
     public float range;
     /**
-     * The color of light as a float; typically opaque and lighter than the glowing object's symbol.
+     * The color of light as a YCwCm+Sat float; typically has moderately high luma (above 0.5f, up to 1.0f).
      */
     public float color;
     /**
      * The rate of random continuous change to radiance range, like the light from a campfire. The random component of
-     * the change is determined by the {@link System#identityHashCode(Object)} of this Radiance, which will probably
+     * the change is determined by the {@link #seed} of this Radiance, which will probably
      * make all flicker effects different when flicker is non-0.
      */
     public float flicker;
@@ -67,6 +67,11 @@ public class Radiance implements Serializable {
      * This should be a float between 0f and 1f, with 0f meaning no change and 1f meaning always max radius.
      */
     public float flare;
+
+    /**
+     * The random number generator seed used for flicker effects; can be any int.
+     */
+    public int seed;
 
     /**
      * All-default constructor; makes a single-cell unchanging white light.
@@ -163,7 +168,7 @@ public class Radiance implements Serializable {
      * makes the most sense to set when an event should brighten a Radiance, not in the constructor. Valid values for
      * flare are usually between 0f and 1f.
      * @param range possibly-non-integer radius to light, in cells
-     * @param color packed float color, as produced by {@link Visuals#getYCwCmSat(float, float, float, float)} 
+     * @param color packed float color, as produced by {@link Visuals#getYCwCmSat(float, float, float, float)}
      * @param flicker the rate at which to flicker, as a non-negative float
      * @param strobe the rate at which to strobe or pulse, as a non-negative float
      * @param delay a delay applied to the "high points" and "low points" of strobe and flicker, from 0f to 1f
@@ -171,12 +176,35 @@ public class Radiance implements Serializable {
      */
     public Radiance(float range, float color, float flicker, float strobe, float delay, float flare)
     {
+        this(range, color, flicker, strobe, delay, flare, (int)((Math.random() - 0.5) * 0x1p32));
+    }
+    /**
+     * Makes a flickering light with the given color (as a packed float) and the specified range in cells; the flicker
+     * parameter affects the rate at which this will randomly reduce its range and return to normal, and the strobe
+     * parameter affects the rate at which this will steadily reduce its range and return to normal. Usually one of
+     * flicker or strobe is 0; if both are non-0, the radius will be smaller than normal. The delay parameter is usually
+     * from 0f to 1f, and is almost always 0f unless this is part of a group of related Radiance objects; it affects
+     * when strobe and flicker hit "high points" and "low points", and should usually be used with strobe. This allows
+     * setting flare, where flare is used to create a sudden increase in the minimum radius for the Radiance, but flare
+     * makes the most sense to set when an event should brighten a Radiance, not in the constructor. Valid values for
+     * flare are usually between 0f and 1f. This allows specifying a seed, but you hardly ever would need this feature.
+     * @param range possibly-non-integer radius to light, in cells
+     * @param color packed float color, as produced by {@link Visuals#getYCwCmSat(float, float, float, float)}
+     * @param flicker the rate at which to flicker, as a non-negative float
+     * @param strobe the rate at which to strobe or pulse, as a non-negative float
+     * @param delay a delay applied to the "high points" and "low points" of strobe and flicker, from 0f to 1f
+     * @param flare affects the minimum radius for the Radiance, from 0f to 1f with a default of 0f
+     * @param seed the typically-random seed; this can be used to load an existing Radiance if the seed matters
+     */
+    public Radiance(float range, float color, float flicker, float strobe, float delay, float flare, int seed)
+    {
         this.range = range;
         this.color = color;
         this.flicker = flicker;
         this.strobe = strobe;
         this.delay = delay;
         this.flare = flare;
+        this.seed = seed;
     }
 
     /**
@@ -201,7 +229,7 @@ public class Radiance implements Serializable {
         final float time = (TimeUtils.millis() & 0x3ffffL) * 0x1.9p-9f;
         float current = range;
         if(flicker != 0f) 
-            current *= NumberTools.swayRandomized(System.identityHashCode(this), time * flicker + delay) * 0.375f + 0.625f;
+            current *= NumberTools.swayRandomized(seed, time * flicker + delay) * 0.25f + 0.75f;
         if(strobe != 0f)
             current *= NumberTools.swayTight(time * strobe + delay) * 0.5f + 0.5f;
         return Math.max(current, range * flare);
@@ -237,6 +265,7 @@ public class Radiance implements Serializable {
                 ", strobe=" + strobe +
                 ", delay=" + delay +
                 ", flare=" + flare +
+                ", seed=" + seed +
                 '}';
     }
 
@@ -247,6 +276,7 @@ public class Radiance implements Serializable {
 
         Radiance radiance = (Radiance) o;
 
+        if (seed != radiance.seed) return false;
         if (Float.compare(radiance.range, range) != 0) return false;
         if (Float.compare(radiance.color, color) != 0) return false;
         if (Float.compare(radiance.flicker, flicker) != 0) return false;
@@ -257,7 +287,8 @@ public class Radiance implements Serializable {
 
     @Override
     public int hashCode() {
-        int result = NumberTools.floatToIntBits(range);
+        int result = seed;
+        result ^= (result << 11 | result >>> 21) + (result << 19 | result >>> 13) + NumberTools.floatToIntBits(range);
         result ^= (result << 11 | result >>> 21) + (result << 19 | result >>> 13) + NumberTools.floatToIntBits(color);
         result ^= (result << 11 | result >>> 21) + (result << 19 | result >>> 13) + NumberTools.floatToIntBits(flicker);
         result ^= (result << 11 | result >>> 21) + (result << 19 | result >>> 13) + NumberTools.floatToIntBits(strobe);
@@ -274,6 +305,7 @@ public class Radiance implements Serializable {
                 "," + StringKit.hex(NumberTools.floatToIntBits(strobe)) + 
                 "," + StringKit.hex(NumberTools.floatToIntBits(delay)) +
                 "," + StringKit.hex(NumberTools.floatToIntBits(flare)) +
+                "," + StringKit.hex(seed) +
                 "}";
     }
     
@@ -286,7 +318,8 @@ public class Radiance implements Serializable {
                 NumberTools.intBitsToFloat(StringKit.intFromHex(data, 19, 27)),
                 NumberTools.intBitsToFloat(StringKit.intFromHex(data, 28, 36)),
                 NumberTools.intBitsToFloat(StringKit.intFromHex(data, 37, 45)),
-                NumberTools.intBitsToFloat(StringKit.intFromHex(data, 46, 54)))
+                NumberTools.intBitsToFloat(StringKit.intFromHex(data, 46, 54)),
+                StringKit.intFromHex(data, 55, 63))
                 : null;
     }
 }
