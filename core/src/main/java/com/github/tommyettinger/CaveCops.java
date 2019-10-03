@@ -410,7 +410,7 @@ public class CaveCops extends ApplicationAdapter {
         playerCreature = new Creature(playerAnimation, dl.floors.singleRandom(rng), Creature.WALKING);
         playerCreature.configureMap(creatures.map);
         creatures.putAt(playerCreature.moth.end, playerCreature, 0);
-        dl.lighting.addLight(playerCreature.moth.start, new Radiance(8f, Visuals.getYCwCmSat(200, languageRNG.between(80, 177), languageRNG.between(80, 177), 70), 0.4f));
+        dl.lighting.addLight(playerCreature.moth.start, new Radiance(8f, Visuals.getYCwCmSat(200, languageRNG.between(80, 177), languageRNG.between(80, 177), 90), 0.4f));
         dl.lighting.calculateFOV(playerCreature.moth.start);
         // Uses shadowcasting FOV and reuses the visible array without creating new arrays constantly.
         //FOV.reuseFOV(resistance, visible, playerCreature.moth.start.x, playerCreature.moth.start.y, 9.0, Radius.CIRCLE);//, (System.currentTimeMillis() & 0xFFFF) * 0x1p-4, 60.0);
@@ -647,20 +647,20 @@ public class CaveCops extends ApplicationAdapter {
                         case '~':
                             dl.lighting.currentBackgrounds[i][j] =
                                     toCursor.contains(c)
-                                            ? NumberTools.setSelectedByte(dl.lighting.currentBackgrounds[i][j], 3, (byte)-26)
-                                            : NumberTools.setSelectedByte(dl.lighting.currentBackgrounds[i][j], 3, (byte)(visible[i][j] * 110
-                                            + FastNoise.instance.getConfiguredNoise(i * 2f, j * 2f, time * 3.5f) * 60 + 70));
+                                            ? NumberTools.setSelectedByte(dl.lighting.currentBackgrounds[i][j], 0, (byte)-26)
+                                            : NumberTools.setSelectedByte(dl.lighting.currentBackgrounds[i][j], 0, (byte)(dl.lighting.colorLighting[0][i][j] * 140
+                                            + FastNoise.instance.getConfiguredNoise(i * 2f, j * 2f, time * 3.5f) * 45 + 50));
                             break;
                         case ',':
                             dl.lighting.currentBackgrounds[i][j] = 
                                     toCursor.contains(c)
-                                            ? NumberTools.setSelectedByte(dl.lighting.currentBackgrounds[i][j], 3, (byte)-26)
-                                            : NumberTools.setSelectedByte(dl.lighting.currentBackgrounds[i][j], 3, (byte)(visible[i][j] * 120
-                                            + FastNoise.instance.getConfiguredNoise(i * 2.25f, j * 2.25f, time * 5.5f) * 65 + 75));
+                                            ? NumberTools.setSelectedByte(dl.lighting.currentBackgrounds[i][j], 0, (byte)-26)
+                                            : NumberTools.setSelectedByte(dl.lighting.currentBackgrounds[i][j], 0, (byte)(dl.lighting.colorLighting[0][i][j] * 130
+                                            + FastNoise.instance.getConfiguredNoise(i * 2.25f, j * 2.25f, time * 5.5f) * 40 + 55));
                                     break;
                         default:
                             if(toCursor.contains(c))
-                                dl.lighting.currentBackgrounds[i][j] = NumberTools.setSelectedByte(dl.lighting.currentBackgrounds[i][j], 3, (byte)-26);
+                                dl.lighting.currentBackgrounds[i][j] = NumberTools.setSelectedByte(dl.lighting.currentBackgrounds[i][j], 0, (byte)-26);
                     }
 
             }
