@@ -29,7 +29,7 @@ public class DungeonLevel {
         this.depth = depth;
         width = dg.getWidth();
         height = dg.getHeight();
-        dg.rng = new GWTRNG(DiverRNG.randomize(depth));
+        dg.rng = new SilkRNG(DiverRNG.randomize(depth));
         decoDungeon = dg.getDungeon();
         if(decoDungeon == null)
             decoDungeon = dg.generate();

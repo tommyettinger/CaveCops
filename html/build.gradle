@@ -37,14 +37,13 @@ task startHttpServer () {
 }
 
 dependencies {
-  api project(':core')
-  api "com.badlogicgames.gdx:gdx:$gdxVersion:sources"
-  api "com.badlogicgames.gdx:gdx-backend-gwt:$gdxVersion"
-  api "com.badlogicgames.gdx:gdx-backend-gwt:$gdxVersion:sources"
-  api "com.github.SquidPony.SquidLib:squidlib-util:$squidLibVersion:sources"
-  api "com.github.tommyettinger:regexodus:$regExodusVersion:sources"
-  api 'space.earlygrey:shapedrawer:1.3.0:sources'
-
+  implementation project(':core')
+  implementation "com.badlogicgames.gdx:gdx:$gdxVersion:sources"
+  implementation "com.badlogicgames.gdx:gdx-backend-gwt:$gdxVersion"
+  implementation "com.badlogicgames.gdx:gdx-backend-gwt:$gdxVersion:sources"
+  implementation "com.github.SquidPony.SquidLib:squidlib-util:$squidLibVersion:sources"
+  implementation "com.github.tommyettinger:regexodus:$regExodusVersion:sources"
+  implementation 'space.earlygrey:shapedrawer:1.3.0:sources'
 }
 
 task superDev(type: GwtSuperDev) {

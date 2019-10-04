@@ -57,7 +57,7 @@ public class CaveCops extends ApplicationAdapter {
     private PixelPerfectViewport mainViewport;
     private Camera camera;
 
-    private GWTRNG rng;
+    private SilkRNG rng;
 
     private TextureAtlas atlas;
     // This maps chars, such as '#', to specific images, such as a pillar.
@@ -144,12 +144,12 @@ public class CaveCops extends ApplicationAdapter {
         // gotta have a random number generator. We can seed an RNG with any long we want, or even a String.
         // if the seed is identical between two runs, any random factors will also be identical (until user input may
         // cause the usage of an RNG to change). You can randomize the dungeon and several other initial settings by
-        // just removing the String seed, making the line "rng = new GWTRNG();" . Keeping the seed as a default allows
+        // just removing the String seed, making the line "rng = new SilkRNG();" . Keeping the seed as a default allows
         // changes to be more easily reproducible, and using a fixed seed is strongly recommended for tests. 
 
         // SquidLib has many methods that expect an IRNG instance, and there's several classes to choose from.
-        // In this program we'll use GWTRNG, which will behave better on the HTML target than other generators.
-        rng = new GWTRNG(Long.parseLong("CAVECOPS", 36));
+        // In this program we'll use SilkRNG, which will behave better on the HTML target than other generators.
+        rng = new SilkRNG(Long.parseLong("CAVECOPS", 36));
         
         String[] zodiac = new String[12];
         RNG languageRNG = new RNG(new XoshiroStarPhi32RNG(DiverRNG.determine(startTime)));
@@ -362,7 +362,7 @@ public class CaveCops extends ApplicationAdapter {
             Coord ki = dl.decorations.getAt(i);
             decorations.put(dl.decorations.keyAt(i), decorationMapping.get(ki.x).get(ki.y));
         }
-        creatures = new Populace(dl.decoDungeon);
+        creatures = new Populace(dl);
         creatureFactory = new CreatureFactory(creatures, mapping);
         for (int i = 0; i < CREATURE_COUNT; i++) {
             creatureFactory.place();
@@ -408,9 +408,10 @@ public class CaveCops extends ApplicationAdapter {
         // if you gave a seed to the RNG constructor, then the cell this chooses will be reliable for testing. If you
         // don't seed the RNG, any valid cell should be possible.
         playerCreature = new Creature(playerAnimation, dl.floors.singleRandom(rng), Creature.WALKING);
-        playerCreature.configureMap(creatures.map);
+        playerCreature.glow = new Radiance(8f, Visuals.getYCwCmSat(160, languageRNG.between(40, 217), languageRNG.between(40, 217), languageRNG.between(100, 190)), 0.4f);
+        playerCreature.configureMap(creatures.dl);
         creatures.putAt(playerCreature.moth.end, playerCreature, 0);
-        dl.lighting.addLight(playerCreature.moth.start, new Radiance(8f, Visuals.getYCwCmSat(160, languageRNG.between(40, 217), languageRNG.between(40, 217), languageRNG.between(100, 190)), 0.4f));
+        dl.lighting.addLight(playerCreature.moth.start, playerCreature.glow);
         dl.lighting.calculateFOV(playerCreature.moth.start);
         // Uses shadowcasting FOV and reuses the visible array without creating new arrays constantly.
         //FOV.reuseFOV(resistance, visible, playerCreature.moth.start.x, playerCreature.moth.start.y, 9.0, Radius.CIRCLE);//, (System.currentTimeMillis() & 0xFFFF) * 0x1p-4, 60.0);

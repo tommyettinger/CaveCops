@@ -41,19 +41,19 @@ public class CreatureFactory {
             Populace populace,
             LinkedHashMap<String, Animation<TextureAtlas.AtlasRegion>> mapping){
         this.populace = populace;
-        rng = new GWTRNG(CrossHash.hash64(populace.map));
+        rng = new SilkRNG(CrossHash.hash64(populace.dl.lineDungeon));
         this.mapping = mapping;
         shuffle = MoveType.values();
         regions = new LinkedHashMap<>(8, 0.25f);
-        GreasedRegion all = new GreasedRegion(populace.map.length, populace.map[0].length);
+        GreasedRegion all = new GreasedRegion(populace.dl.width, populace.dl.height);
         for(MoveType move : MoveType.ALL)
         {
-            GreasedRegion gr = new GreasedRegion(populace.map.length, populace.map[0].length), temp = gr.copy();
+            GreasedRegion gr = new GreasedRegion(populace.dl.width, populace.dl.height), temp = gr.copy();
             IntFloatMap.Keys grounds = move.moves.keys();
             while (grounds.hasNext)
             {
                 char g = (char)grounds.next();
-                gr.or(temp.refill(populace.map, g));
+                gr.or(temp.refill(populace.dl.decoDungeon, g));
             }
             regions.put(move, gr);
             all.or(gr);

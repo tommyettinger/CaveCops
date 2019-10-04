@@ -15,7 +15,8 @@ public class Creature {
     public IntFloatMap costs;
     public int activity = 12;
     public DijkstraMap dijkstraMap;
-    public GWTRNG rng;
+    public SilkRNG rng;
+    public Radiance glow;
     
     public static final IntFloatMap WALKING = new IntFloatMap(), AQUATIC = new IntFloatMap(),
             AMPHIBIOUS = new IntFloatMap(), FLYING = new IntFloatMap();
@@ -44,8 +45,13 @@ public class Creature {
     public Creature(Animation<TextureAtlas.AtlasRegion> animation, Coord coord, IntFloatMap costs)
     {
         moth = new Moth(animation, coord);
-        rng = new GWTRNG(CrossHash.hash64(animation.getKeyFrame(0f).name) + coord.x ^
+        rng = new SilkRNG(CrossHash.hash64(animation.getKeyFrame(0f).name) + coord.x ^
                 DiverRNG.randomize(coord.hashCode()) - coord.y);
+        final int c = rng.nextInt();
+        glow = new Radiance(rng.nextFloat() * 3f + 2f,
+                Visuals.getYCwCmSat((c & 0x3F) + 0x90, c >>> 8 & 0xFF, c >>> 16 & 0xFF, (c >>> 26) + 20),
+                rng.nextFloat() * 0.45f + 0.3f,
+                0f);
         this.costs = costs;
     }
 
@@ -75,18 +81,18 @@ public class Creature {
      *
      * @param map a dungeon, width by height, with any closed doors as '+' and open doors as '/' as per closeDoors() .
      */
-    public void configureMap(final char[][] map) {
-        final int width = map.length;
-        final int height = map[0].length;
+    public void configureMap(final DungeonLevel map) {
+        final int width = map.width;
+        final int height = map.height;
         if(dijkstraMap == null)
-            dijkstraMap = new DijkstraMap(map, Measurement.MANHATTAN, rng);
+            dijkstraMap = new DijkstraMap(map.decoDungeon, Measurement.MANHATTAN, rng);
         else 
-            dijkstraMap.initialize(map);
+            dijkstraMap.initialize(map.decoDungeon);
         dijkstraMap.standardCosts = false;
         int current;
         for (int i = 0; i < width; i++) {
             for (int j = 0; j < height; j++) {
-                current = map[i][j];
+                current = map.decoDungeon[i][j];
                 if((dijkstraMap.costMap[i][j] = costs.get(current, 999500.0f)) >= DijkstraMap.WALL)
                     dijkstraMap.physicalMap[i][j] = DijkstraMap.WALL;
 //                if (costs.containsKey(current)) {

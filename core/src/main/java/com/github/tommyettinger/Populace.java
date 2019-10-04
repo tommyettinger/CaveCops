@@ -10,23 +10,24 @@ import java.util.ArrayList;
  * Created by Tommy Ettinger on 9/25/2019.
  */
 public class Populace extends OrderedMap<Coord, Creature> {
-    public char[][] map;
+    public DungeonLevel dl;
     public ArrayList<Coord> tempPath;
     public Populace()
     {
         super(64, 0.25f, CrossHash.identityHasher);
-        map = new char[][]{{'#', '#', '#', '#'}, {'#', '.', '.', '#'}, {'#', '.', '.', '#'}, {'#', '#', '#', '#'}};
+        dl = new DungeonLevel();
         tempPath = new ArrayList<>(16);
     }
-    public Populace(char[][] map)
+    public Populace(DungeonLevel dungeon)
     {
-        super((map.length * map[0].length >>> 5) + 4, 0.25f, CrossHash.identityHasher);
-        this.map = map;
+        super((dungeon.width * dungeon.height >>> 5) + 4, 0.25f, CrossHash.identityHasher);
+        this.dl = dungeon;
         tempPath = new ArrayList<>(16);
     }
 
     public Creature place(Creature creature) {
-        creature.configureMap(map);
+        creature.configureMap(dl);
+        dl.lighting.addLight(creature.moth.end, creature.glow);
         return super.put(creature.moth.end, creature);
     }
 
@@ -56,6 +57,7 @@ public class Populace extends OrderedMap<Coord, Creature> {
         creature.moth.end = tempPath.get(tempPath.size() - 2);
         creature.moth.alpha = 0f;
         alterCarefully(startingPosition, creature.moth.end);
+        dl.lighting.moveLight(startingPosition, creature.moth.end);
         return creature.moth.end;
     }
 }
