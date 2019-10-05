@@ -202,7 +202,8 @@ public class CaveCops extends ApplicationAdapter {
 //        font.getData().setLineHeight(font.getLineHeight() * 2f / cellHeight);
 
 //        palette = new Texture("AuroraLloyd_GLSL.png");
-        palette = new Texture("AuroraRelaxed_GLSL.png");
+        palette = new Texture("RelaxedRoll_GLSL.png");
+//        palette = new Texture("AuroraRelaxed_GLSL.png");
 //        palette = new Texture("DB_Aurora_GLSL.png");
 //        palette = new Texture("Sheltzy32_GLSL.png");
 //        palette = new Texture("DawnSmash256_GLSL.png");
@@ -447,9 +448,10 @@ public class CaveCops extends ApplicationAdapter {
         impassable.addAll(creatures.keySet());
         playerToCursor.partialScan(13, impassable);
 
+        bgColor = new Color(0x100818FF); // for RelaxedRoll
 //        bgColor = new Color(0x132C2DFF); // for GBGreen16
 //        bgColor = new Color(0x000008FF);   // for AuroraLloyd
-        bgColor = new Color(0x000010FF);   // for AuroraRelaxed
+//        bgColor = new Color(0x000010FF);   // for AuroraRelaxed
 //        bgColor = new Color(0x010101FF);   // for DB_Aurora
 //        bgColor = new Color(0x000000FF);   // for Sheltzy32
 //        bgColor = new Color(0x140C1CFF);   // for DawnSmash256
@@ -576,7 +578,8 @@ public class CaveCops extends ApplicationAdapter {
                     // work to find the best path with that info.
                     toCursor.clear();
                     final int a = playerCreature.rng.stateA, b = playerCreature.rng.stateB;
-                    playerCreature.rng.setState(Noise.HastyPointHash.hashAll(screenX, screenY, playerCreature.moth.start.hashCode()));
+                    playerCreature.rng.stateA = playerCreature.moth.start.hashCode();
+                    playerCreature.rng.stateB = Noise.IntPointHash.hashAll(screenX, screenY, ~playerCreature.rng.stateA);
                     playerToCursor.findPathPreScanned(toCursor, cursor);
                     playerCreature.rng.setState(a, b);
 //                    // findPathPreScanned includes the current cell (goal) by default, which is helpful when
