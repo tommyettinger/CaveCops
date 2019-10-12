@@ -720,6 +720,7 @@ public class CaveCops extends ApplicationAdapter {
 //        Gdx.graphics.setTitle(horoscope);
 //        Gdx.graphics.setTitle(Gdx.graphics.getFramesPerSecond() + " FPS");
     }
+
     @Override
     public void render () {
         // standard clear the background routine for libGDX
@@ -746,20 +747,28 @@ public class CaveCops extends ApplicationAdapter {
                 creatures.getAt(i).moth.alpha = t;
             }
             if(t >= 1f)
+            {
                 mode = SELECT;
-
+                if(!awaitedMoves.isEmpty()) {
+//                    if(mode == SELECT) { // || playerCreature.moth.alpha >= 1f
+//                        // this doesn't check for input, but instead processes and removes Coords from awaitedMoves.
+                        Coord m = awaitedMoves.remove(0);
+                        if (!toCursor.isEmpty())
+                            toCursor.remove(0);
+                        move(playerCreature.moth.start, m);
+//                    }
+//                    else {
+//                        playerCreature.moth.alpha = TimeUtils.timeSinceMillis(animationStart) * 0.006f;
+//                    }
+                }
+            }
         }
-        else if(!awaitedMoves.isEmpty()) {
-            if(mode == SELECT || playerCreature.moth.alpha >= 1f) {
-                // this doesn't check for input, but instead processes and removes Coords from awaitedMoves.
-                Coord m = awaitedMoves.remove(0);
-                if (!toCursor.isEmpty())
-                    toCursor.remove(0);
-                move(playerCreature.moth.start, m);
-            }
-            else {
-                playerCreature.moth.alpha = TimeUtils.timeSinceMillis(animationStart) * 0.006f;
-            }
+        else if(mode == SELECT && !awaitedMoves.isEmpty())
+        {
+            Coord m = awaitedMoves.remove(0);
+            if (!toCursor.isEmpty())
+                toCursor.remove(0);
+            move(playerCreature.moth.start, m);
         }
         else if(mode == ANIMATE) {
             playerCreature.moth.alpha = TimeUtils.timeSinceMillis(animationStart) * 0.006f;
