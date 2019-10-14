@@ -105,12 +105,12 @@ public class CaveCops extends ApplicationAdapter {
     private Vector2 pos = new Vector2();
 
 
-    private double[][] resistance;
+//    private double[][] resistance;
     private double[][] visible;
     // Here, we use a GreasedRegion to store all floors that the player can walk on, a small rim of cells just beyond
     // the player's vision that blocks pathfinding to areas we can't see a path to, and we also store all cells that we
     // have seen in the past in a GreasedRegion (in most roguelikes, there would be one of these per dungeon floor).
-    private GreasedRegion blockage, seen, currentlySeen;
+    //private GreasedRegion blockage, seen, currentlySeen;
     private LinkedHashSet<Coord> impassable;
     
     private GapShuffler<String> zodiacShuffler, phraseShuffler, meaningShuffler;
@@ -193,7 +193,7 @@ public class CaveCops extends ApplicationAdapter {
         mainViewport.setScreenBounds(0, 0, gridWidth * cellWidth, gridHeight * cellHeight);
         camera = mainViewport.getCamera();
         camera.update();
-
+        
         atlas = new TextureAtlas("Dawnlike2.atlas");
         mapping = makeMapping(atlas);
         font = new BitmapFont(Gdx.files.internal("font2.fnt"), atlas.findRegion("font"));
@@ -354,8 +354,9 @@ public class CaveCops extends ApplicationAdapter {
 //        bareDungeon = dungeonGen.getBareDungeon();
 //        lineDungeon = DungeonUtility.hashesToLines(decoDungeon);
 
-        resistance = dl.lighting.resistances;
-        visible = dl.lighting.fovResult;
+        //resistance = dl.lighting.resistances;
+        visible = new double[bigWidth][bigHeight];
+        dl.floors.copy().expand8way().writeDoublesInto(visible, 1.0);
         final int floorSpace = dl.floors.size();
         decorations = new OrderedMap<>(floorSpace >>> 1, 0.25f);
         final int decoSize = dl.decorations.size();
@@ -409,29 +410,30 @@ public class CaveCops extends ApplicationAdapter {
         // if you gave a seed to the RNG constructor, then the cell this chooses will be reliable for testing. If you
         // don't seed the RNG, any valid cell should be possible.
         playerCreature = new Creature(playerAnimation, dl.floors.singleRandom(rng), Creature.WALKING);
-        playerCreature.glow = new Radiance(8f, Visuals.getYCwCmSat(160, languageRNG.between(40, 217), languageRNG.between(40, 217), languageRNG.between(100, 190)), 0.4f);
+        playerCreature.glow = new Radiance(1f, Visuals.getYCwCmSat(0xB0, 0x00, 0x60, 0x70), 0f, 0.9f, languageRNG.nextFloat());
         playerCreature.configureMap(creatures.dl);
         creatures.putAt(playerCreature.moth.end, playerCreature, 0);
         dl.lighting.addLight(playerCreature.moth.start, playerCreature.glow);
-        dl.lighting.calculateFOV(playerCreature.moth.start);
+//        dl.lighting.calculateFOV(playerCreature.moth.start);
+        dl.lighting.updateAll();
         // Uses shadowcasting FOV and reuses the visible array without creating new arrays constantly.
         //FOV.reuseFOV(resistance, visible, playerCreature.moth.start.x, playerCreature.moth.start.y, 9.0, Radius.CIRCLE);//, (System.currentTimeMillis() & 0xFFFF) * 0x1p-4, 60.0);
         
         // 0.01 is the upper bound (inclusive), so any Coord in visible that is more well-lit than 0.01 will _not_ be in
         // the blockage Collection, but anything 0.01 or less will be in it. This lets us use blockage to prevent access
         // to cells we can't see from the start of the move.
-        blockage = new GreasedRegion(visible, 0.0);
-        seen = blockage.not().copy();
-        currentlySeen = seen.copy();
-        blockage.fringe8way();
-        impassable = new LinkedHashSet<>(blockage.size() + 64, 0.25f);
+        //blockage = new GreasedRegion(visible, 0.0);
+        //seen = blockage.not().copy();
+        //currentlySeen = seen.copy();
+        //blockage.fringe8way();
+        impassable = new LinkedHashSet<>(creatures.size(), 0.25f);
         // prunedDungeon starts with the full lineDungeon, which includes features like water and grass but also stores
         // all walls as box-drawing characters. The issue with using lineDungeon as-is is that a character like '┬' may
         // be used because there are walls to the east, west, and south of it, even when the player is to the north of
         // that cell and so has never seen the southern connecting wall, and would have no reason to know it is there.
         // By calling LineKit.pruneLines(), we adjust prunedDungeon to hold a variant on lineDungeon that removes any
         // line segments that haven't ever been visible. This is called again whenever seen changes. 
-        dl.prune(seen);
+        //dl.prune(seen);
 
         //This is used to allow clicks or taps to take the player to the desired area.
         toCursor = new ArrayList<>(200);
@@ -444,9 +446,9 @@ public class CaveCops extends ApplicationAdapter {
         // directions, but will prefer orthogonal moves unless diagonal ones are clearly closer "as the crow flies."
         playerToCursor = playerCreature.dijkstraMap;//new DijkstraMap(decoDungeon, Measurement.MANHATTAN);
         playerToCursor.setGoal(playerCreature.moth.start);
-        impassable.addAll(blockage);
+        //impassable.addAll(blockage);
         impassable.addAll(creatures.keySet());
-        playerToCursor.partialScan(13, impassable);
+        playerToCursor.partialScan(gridWidth + gridHeight, impassable);
 
         bgColor = new Color(0x100818FF); // for RelaxedRoll
 //        bgColor = new Color(0x132C2DFF); // for GBGreen16
@@ -621,12 +623,12 @@ public class CaveCops extends ApplicationAdapter {
             dl.lighting.calculateFOV(end);
             // This is just like the constructor used earlier, but affects an existing GreasedRegion without making
             // a new one just for this movement.
-            blockage.refill(visible, 0.0);
-            seen.or(currentlySeen.remake(blockage.not()));
-            blockage.fringe8way();
+            //blockage.refill(visible, 0.0);
+            //seen.or(currentlySeen.remake(blockage.not()));
+            //blockage.fringe8way();
             // By calling LineKit.pruneLines(), we adjust prunedDungeon to hold a variant on lineDungeon that removes any
             // line segments that haven't ever been visible. This is called again whenever seen changes.
-            dl.prune(seen);
+            //dl.prune(seen);
         }
     }
 
@@ -636,7 +638,7 @@ public class CaveCops extends ApplicationAdapter {
     public void putMap()
     {
         final float time = TimeUtils.timeSinceMillis(startTime) * 0.001f;
-        dl.lighting.update();
+        dl.lighting.updateAll();
         dl.lighting.draw(dl.backgrounds);
         Animation<TextureAtlas.AtlasRegion> decoration;
         Creature creature;
@@ -652,15 +654,15 @@ public class CaveCops extends ApplicationAdapter {
                             dl.lighting.currentBackgrounds[i][j] =
                                     toCursor.contains(c)
                                             ? NumberTools.setSelectedByte(dl.lighting.currentBackgrounds[i][j], 0, (byte)-26)
-                                            : NumberTools.setSelectedByte(dl.lighting.currentBackgrounds[i][j], 0, (byte)(dl.lighting.colorLighting[0][i][j] * 140
-                                            + FastNoise.instance.getConfiguredNoise(i * 2f, j * 2f, time * 3.5f) * 45 + 50));
+                                            : NumberTools.setSelectedByte(dl.lighting.currentBackgrounds[i][j], 0, (byte)(//dl.lighting.colorLighting[0][i][j] * 140
+                                            110 + FastNoise.instance.getConfiguredNoise(i * 2f, j * 2f, time * 3.5f) * 60));
                             break;
                         case ',':
                             dl.lighting.currentBackgrounds[i][j] = 
                                     toCursor.contains(c)
                                             ? NumberTools.setSelectedByte(dl.lighting.currentBackgrounds[i][j], 0, (byte)-26)
-                                            : NumberTools.setSelectedByte(dl.lighting.currentBackgrounds[i][j], 0, (byte)(dl.lighting.colorLighting[0][i][j] * 130
-                                            + FastNoise.instance.getConfiguredNoise(i * 2.25f, j * 2.25f, time * 5.5f) * 40 + 55));
+                                            : NumberTools.setSelectedByte(dl.lighting.currentBackgrounds[i][j], 0, (byte)(//dl.lighting.colorLighting[0][i][j] * 130
+                                            140 + FastNoise.instance.getConfiguredNoise(i * 2.25f, j * 2.25f, time * 5.5f) * 50));
                                     break;
                         default:
                             if(toCursor.contains(c))
@@ -686,18 +688,15 @@ public class CaveCops extends ApplicationAdapter {
                     {
                         batch.draw(decoration.getKeyFrame(time), i, j, 1f, 1f);
                     }
-                } else if(seen.contains(i, j)) {
-//                    pos.set(i * cellWidth, j * cellHeight, 0f);
-                    //batch.draw(solid, pos.x, pos.y);
-//                    if ((monster = monsters.get(Coord.get(i, j))) != null)
-//                        monster.setAlpha(0f);
-                    batch.setPackedColor(Visuals.FLOAT_GRAY);
-                    batch.draw(charMapping.get(dl.prunedDungeon[i][j], solid).getKeyFrame(time), i, j, 1f, 1f);
-                    if((decoration = decorations.get(Coord.get(i, j))) != null)
-                    {
-                        batch.draw(decoration.getKeyFrame(time), i, j, 1f, 1f);
-                    }
                 }
+//                else if(seen.contains(i, j)) {
+//                    batch.setPackedColor(Visuals.FLOAT_GRAY);
+//                    batch.draw(charMapping.get(dl.prunedDungeon[i][j], solid).getKeyFrame(time), i, j, 1f, 1f);
+//                    if((decoration = decorations.get(Coord.get(i, j))) != null)
+//                    {
+//                        batch.draw(decoration.getKeyFrame(time), i, j, 1f, 1f);
+//                    }
+//                }
             }
         }
 //        for (int i = 0; i < monsters.size(); i++) {
@@ -798,9 +797,9 @@ public class CaveCops extends ApplicationAdapter {
                     // which is 13 here. It also won't try to find distances through an impassable cell, which here is the blockage
                     // GreasedRegion that contains the cells just past the edge of the player's FOV area.
                     impassable.clear();
-                    impassable.addAll(blockage);
+                    //impassable.addAll(blockage);
                     impassable.addAll(creatures.keySet());
-                    playerToCursor.partialScan(13, impassable);
+                    playerToCursor.partialScan(gridWidth + gridHeight, impassable);
                     
                     horoscope = anReplacer.replace(zodiacShuffler.next() + phraseShuffler.next() + meaningShuffler.next().replace("@", zodiacShuffler.next()));
 //                }

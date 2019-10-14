@@ -64,7 +64,7 @@ public class DungeonLevel {
                 }
             }
         }
-
+        floors.refill(bareDungeon, '.');
         lighting = new LightingHandler(DungeonUtility.generateResistances(decoDungeon), Visuals.FLOAT_BLACK, Radius.CIRCLE, 3.0);
     }
     

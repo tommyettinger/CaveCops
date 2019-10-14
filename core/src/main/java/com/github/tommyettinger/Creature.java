@@ -47,11 +47,16 @@ public class Creature {
         moth = new Moth(animation, coord);
         rng = new SilkRNG(CrossHash.hash64(animation.getKeyFrame(0f).name) + coord.x ^
                 DiverRNG.randomize(coord.hashCode()) - coord.y);
-        final int c = rng.nextInt();
-        glow = new Radiance(rng.nextFloat() * 3f + 2f,
-                Visuals.getYCwCmSat((c & 0x3F) + 0x90, c >>> 8 & 0xFF, c >>> 16 & 0xFF, (c >>> 26) + 20),
-                rng.nextFloat() * 0.45f + 0.3f,
-                0f);
+        glow = new Radiance(0.9f,
+                Visuals.getYCwCmSat(0xA0, 0xFF, 0x08, 0x40),
+                0f,
+                0.4f,
+                rng.nextFloat());
+//          final int c = rng.nextInt();
+//          glow = new Radiance(rng.nextFloat() * 3f + 2f,
+//                Visuals.getYCwCmSat((c & 0x3F) + 0x90, c >>> 8 & 0xFF, c >>> 16 & 0xFF, (c >>> 26) + 20),
+//                rng.nextFloat() * 0.45f + 0.3f,
+//                0f);
         this.costs = costs;
     }
 
