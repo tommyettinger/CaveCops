@@ -714,7 +714,8 @@ public class CaveCops extends ApplicationAdapter {
 //        batch.setPackedColor(playerCreature.moth.color);
 //        batch.draw(playerCreature.moth.animate(time), playerCreature.moth.getX(), playerCreature.moth.getY(), 1f, 1f);
         font.setColor(Color.WHITE);
-        font.draw(batch, horoscope, (playerCreature.moth.getX() - mainViewport.getWorldWidth() * 0.25f),
+        font.draw(batch, horoscope + "\nHow do you like " + Gdx.graphics.getFramesPerSecond() + " FPS???", (playerCreature.moth.getX() - mainViewport.getWorldWidth() * 0.25f),
+                //horoscope + "\nHow do you like " + Gdx.graphics.getFramesPerSecond() + " FPS???"
                 (playerCreature.moth.getY() + mainViewport.getWorldHeight() * 0.375f), mainViewport.getWorldWidth() * 0.5f,
                 Align.center, true);
 //        Gdx.graphics.setTitle(horoscope);

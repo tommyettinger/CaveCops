@@ -3,6 +3,4 @@
 dependencies {
   api "com.badlogicgames.gdx:gdx:$gdxVersion"
   api "com.github.SquidPony.SquidLib:squidlib-util:$squidLibVersion"
-  api "com.github.tommyettinger:regexodus:$regExodusVersion"
-  api 'space.earlygrey:shapedrawer:1.3.0'
 }
