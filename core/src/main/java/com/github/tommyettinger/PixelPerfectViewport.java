@@ -18,7 +18,6 @@ package com.github.tommyettinger;
 
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Scaling;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
@@ -60,7 +59,7 @@ public class PixelPerfectViewport extends Viewport {
 
     @Override
     public void update(int screenWidth, int screenHeight, boolean centerCamera) {
-        Vector2 scaled = scaling.apply(getWorldWidth(), getWorldHeight(), screenWidth, screenHeight);
+        //Vector2 scaled = scaling.apply(getWorldWidth(), getWorldHeight(), screenWidth, screenHeight);
         float worldWidth = getWorldWidth(), worldHeight = getWorldHeight();
 
         int viewportWidth = 0;
@@ -68,7 +67,7 @@ public class PixelPerfectViewport extends Viewport {
 
         switch (scaling) {
             case fit: {
-                float screenRatio = screenHeight / screenWidth;
+                float screenRatio = screenHeight / (float)screenWidth;
                 float worldRatio = worldHeight / worldWidth;
                 float scale = (int) (screenRatio > worldRatio ? screenWidth / worldWidth : screenHeight / worldHeight);
                 if (scale < 1) scale = 0.5f;
@@ -77,7 +76,7 @@ public class PixelPerfectViewport extends Viewport {
                 break;
             }
             case fill: {
-                float screenRatio = screenHeight / screenWidth;
+                float screenRatio = screenHeight / (float)screenWidth;
                 float worldRatio = worldHeight / worldWidth;
                 float scale = (int) Math.ceil(screenRatio < worldRatio ? screenWidth / worldWidth : screenHeight / worldHeight);
                 if (scale < 1) scale = 0.5f;

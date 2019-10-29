@@ -181,9 +181,9 @@ public class CaveCops extends ApplicationAdapter {
         meaningShuffler = new GapShuffler<>(meanings, languageRNG);
         anReplacer = new Replacer(Pattern.compile("\\b([Aa]) (?=[AEIOUaeiou])"), "$1n ");
         horoscope = anReplacer.replace(zodiacShuffler.next() + phraseShuffler.next() + meaningShuffler.next().replace("@", zodiacShuffler.next()));
-        
+        ShaderProgram.pedantic = false;
         shader = new ShaderProgram(Visuals.vertexShader, Visuals.fragmentShader);
-//        shader = new ShaderProgram(Visuals.vertexShader, Visuals.fragmentShaderWarmMildLimited);
+        //shader = new ShaderProgram(Visuals.vertexShader, Visuals.fragmentShaderTrue);
         if (!shader.isCompiled()) throw new GdxRuntimeException("Couldn't compile shader: " + shader.getLog());
         batch = new MutantBatch(8000, shader);
 //        add = new Vector3(0, 0, 0);
@@ -203,6 +203,7 @@ public class CaveCops extends ApplicationAdapter {
 
 //        palette = new Texture("AuroraLloyd_GLSL.png");
         palette = new Texture("RelaxedRoll_GLSL.png");
+//        palette = new Texture("GBGreen_GLSL.png");
 //        palette = new Texture("AuroraRelaxed_GLSL.png");
 //        palette = new Texture("DB_Aurora_GLSL.png");
 //        palette = new Texture("Sheltzy32_GLSL.png");
