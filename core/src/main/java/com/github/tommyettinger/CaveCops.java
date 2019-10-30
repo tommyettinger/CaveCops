@@ -1,9 +1,6 @@
 package com.github.tommyettinger;
 
-import com.badlogic.gdx.ApplicationAdapter;
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.InputAdapter;
-import com.badlogic.gdx.InputProcessor;
+import com.badlogic.gdx.*;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
@@ -476,31 +473,27 @@ public class CaveCops extends ApplicationAdapter {
                 switch (keycode)
                 {
                     case UP:
-                    case 'w':
-                    case 'W':
+                    case W:
                     case NUMPAD_8:
                         toCursor.clear();
                         //+1 is up on the screen
                         awaitedMoves.add(playerCreature.moth.start.translate(0, 1));
                         break;
                     case DOWN:
-                    case 's':
-                    case 'S':
+                    case S:
                     case NUMPAD_2:
                         toCursor.clear();
                         //-1 is down on the screen
                         awaitedMoves.add(playerCreature.moth.start.translate(0, -1));
                         break;
                     case LEFT:
-                    case 'a':
-                    case 'A':
+                    case A:
                     case NUMPAD_4:
                         toCursor.clear();
                         awaitedMoves.add(playerCreature.moth.start.translate(-1, 0));
                         break;
                     case RIGHT:
-                    case 'd':
-                    case 'D':
+                    case D:
                     case NUMPAD_6:
                         toCursor.clear();
                         awaitedMoves.add(playerCreature.moth.start.translate(1, 0));
@@ -521,7 +514,7 @@ public class CaveCops extends ApplicationAdapter {
 //                        toCursor.clear();
 //                        awaitedMoves.add(playerGrid.translate(1, 1));
 //                        break;
-                    case '.':
+                    case PERIOD:
                     case NUMPAD_5:
                         toCursor.clear();
                         awaitedMoves.add(playerCreature.moth.start);
@@ -540,6 +533,12 @@ public class CaveCops extends ApplicationAdapter {
 //                        }
 //                        pixmap.dispose();
 //                        break;
+                    case F:
+                        if(Gdx.graphics.isFullscreen())
+                            Gdx.graphics.setWindowedMode(cellWidth * gridWidth, cellHeight * gridHeight);
+                        else 
+                            Gdx.graphics.setFullscreenMode(Gdx.graphics.getDisplayMode());
+                        break;
                     case ESCAPE:
                         Gdx.app.exit();
                         break;
@@ -734,7 +733,7 @@ public class CaveCops extends ApplicationAdapter {
 
     @Override
     public void render () {
-        sync.sync(60);
+        sync.sync(Gdx.graphics.getDisplayMode().refreshRate);
         // standard clear the background routine for libGDX
         Gdx.gl.glClearColor(bgColor.r, bgColor.g, bgColor.b, 1.0f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
