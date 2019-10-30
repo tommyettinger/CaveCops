@@ -46,6 +46,16 @@ import static com.badlogic.gdx.Input.Keys.*;
  * use out of the assets directory when you produce a release JAR, APK, or GWT build.
  */
 public class CaveCops extends ApplicationAdapter {
+    public ISync sync;
+    public CaveCops()
+    {
+        sync = new ISync.EmptySync();
+    }
+    
+    public CaveCops(ISync iSync)
+    {
+        sync = iSync;
+    }
     
     public static final int SELECT = 0, ANIMATE = 1, NPC = 2;
     private static final int CREATURE_COUNT = 64;
@@ -724,6 +734,7 @@ public class CaveCops extends ApplicationAdapter {
 
     @Override
     public void render () {
+        sync.sync(60);
         // standard clear the background routine for libGDX
         Gdx.gl.glClearColor(bgColor.r, bgColor.g, bgColor.b, 1.0f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);

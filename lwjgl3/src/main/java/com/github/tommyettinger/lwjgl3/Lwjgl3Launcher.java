@@ -11,7 +11,7 @@ public class Lwjgl3Launcher {
     }
 
     private static Lwjgl3Application createApplication() {
-        return new Lwjgl3Application(new CaveCops(), getDefaultConfiguration());
+        return new Lwjgl3Application(new CaveCops(new Sync()), getDefaultConfiguration());
     }
 
     private static Lwjgl3ApplicationConfiguration getDefaultConfiguration() {
