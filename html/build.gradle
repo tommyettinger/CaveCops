@@ -8,6 +8,7 @@ gwt {
 	minHeapSize = '1G'
 
 	src = files(file('src/main/java')) // Needs to be in front of "modules" below.
+	
 	modules 'com.github.tommyettinger.GdxDefinition'
 	devModules 'com.github.tommyettinger.GdxDefinitionSuperdev'
 	project.webAppDirName = 'webapp'
@@ -83,5 +84,5 @@ task addSource {
 tasks.compileGwt.dependsOn(addSource)
 tasks.draftCompileGwt.dependsOn(addSource)
 
-sourceCompatibility = 1.7
+sourceCompatibility = 1.8
 sourceSets.main.java.srcDirs = [ "src/main/java/" ]

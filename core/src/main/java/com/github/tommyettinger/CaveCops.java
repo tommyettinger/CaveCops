@@ -1,6 +1,9 @@
 package com.github.tommyettinger;
 
-import com.badlogic.gdx.*;
+import com.badlogic.gdx.ApplicationAdapter;
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.InputAdapter;
+import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
@@ -16,6 +19,7 @@ import regexodus.Pattern;
 import regexodus.Replacer;
 import squidpony.FakeLanguageGen;
 import squidpony.Maker;
+import squidpony.StringKit;
 import squidpony.squidai.DijkstraMap;
 import squidpony.squidgrid.mapping.DungeonGenerator;
 import squidpony.squidgrid.mapping.FlowingCaveGenerator;
@@ -726,10 +730,19 @@ public class CaveCops extends ApplicationAdapter {
 //        batch.setPackedColor(playerCreature.moth.color);
 //        batch.draw(playerCreature.moth.animate(time), playerCreature.moth.getX(), playerCreature.moth.getY(), 1f, 1f);
         font.setColor(Color.WHITE);
-        font.draw(batch, horoscope + "\nHow do you like " + Gdx.graphics.getFramesPerSecond() + " FPS???", (playerCreature.moth.getX() - mainViewport.getWorldWidth() * 0.25f),
-                //horoscope + "\nHow do you like " + Gdx.graphics.getFramesPerSecond() + " FPS???"
+        font.draw(batch, 
+                horoscope + "\nRunning at " + StringKit.padLeftStrict(Gdx.graphics.getFramesPerSecond() + " FPS???", ' ', 11),
+                        (playerCreature.moth.getX() - mainViewport.getWorldWidth() * 0.25f),
                 (playerCreature.moth.getY() + mainViewport.getWorldHeight() * 0.375f), mainViewport.getWorldWidth() * 0.5f,
                 Align.center, true);
+
+        //Visuals.getYCwCmSat(140, 128, 128, 0)
+        
+//        final String trogdor = "TROGDOR! TROGDOR! Trogdor was a man! Or maybe he was a... Dragon-Man!";
+//        font.getCache().clear();
+//        font.getCache().addText(trogdor, 24f, 37, 20, Align.center, true);
+//        font.getCache().setColors(Color.FOREST, 0, trogdor.length());
+//        font.getCache().draw(batch);
 //        Gdx.graphics.setTitle(horoscope);
 //        Gdx.graphics.setTitle(Gdx.graphics.getFramesPerSecond() + " FPS");
     }
