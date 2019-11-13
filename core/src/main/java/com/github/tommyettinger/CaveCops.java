@@ -84,7 +84,7 @@ public class CaveCops extends ApplicationAdapter {
     
     public ShaderProgram shader;
 //    public Vector3 add, mul;
-    private Texture palette;
+    private Texture palette, currentPalette, oldPalette, bigPalette;
     
 //    public IndexedAPNG png;
 
@@ -213,7 +213,9 @@ public class CaveCops extends ApplicationAdapter {
 //        font.getData().setLineHeight(font.getLineHeight() * 2f / cellHeight);
 
 //        palette = new Texture("AuroraLloyd_GLSL.png");
-        palette = new Texture("RelaxedRoll_GLSL.png");
+        palette = currentPalette = new Texture("Ward_GLSL.png");
+        oldPalette = new Texture("RelaxedRoll_GLSL.png");
+        bigPalette = new Texture("WardBonus_GLSL.png");
 //        palette = new Texture("GBGreen_GLSL.png");
 //        palette = new Texture("AuroraRelaxed_GLSL.png");
 //        palette = new Texture("DB_Aurora_GLSL.png");
@@ -462,7 +464,8 @@ public class CaveCops extends ApplicationAdapter {
         impassable.addAll(creatures.keySet());
         playerToCursor.partialScan(gridWidth + gridHeight, impassable);
 
-        bgColor = new Color(0x100818FF); // for RelaxedRoll
+        bgColor = new Color(0x100818ff); // for Ward
+//        bgColor = new Color(0x100818FF); // for RelaxedRoll
 //        bgColor = new Color(0x132C2DFF); // for GBGreen16
 //        bgColor = new Color(0x000008FF);   // for AuroraLloyd
 //        bgColor = new Color(0x000010FF);   // for AuroraRelaxed
@@ -522,6 +525,12 @@ public class CaveCops extends ApplicationAdapter {
                     case NUMPAD_5:
                         toCursor.clear();
                         awaitedMoves.add(playerCreature.moth.start);
+                        break;
+                    case P:
+                        if(Gdx.input.isKeyPressed(SHIFT_LEFT))
+                            palette = bigPalette;
+                        else 
+                            palette = (palette == oldPalette) ? currentPalette : oldPalette;
                         break;
 //                    case BACKSLASH:
 //                        byte[] pixels = ScreenUtils.getFrameBufferPixels(0, 0, Gdx.graphics.getBackBufferWidth(), Gdx.graphics.getBackBufferHeight(), true);
