@@ -32,7 +32,6 @@ public class CreatureFactory {
     
     public LinkedHashMap<String, Animation<TextureAtlas.AtlasRegion>> mapping;
     public LinkedHashMap<MoveType, GreasedRegion> regions;
-    private transient MoveType[] shuffle;
     public Populace populace;
     public IRNG rng;
     
@@ -43,7 +42,6 @@ public class CreatureFactory {
         this.populace = populace;
         rng = new SilkRNG(CrossHash.hash64(populace.dl.lineDungeon));
         this.mapping = mapping;
-        shuffle = MoveType.values();
         regions = new LinkedHashMap<>(8, 0.25f);
         GreasedRegion all = new GreasedRegion(populace.dl.width, populace.dl.height);
         for(MoveType move : MoveType.ALL)

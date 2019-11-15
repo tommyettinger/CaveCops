@@ -68,12 +68,13 @@ public class CaveCops extends ApplicationAdapter {
     private PixelPerfectViewport mainViewport;
     private Camera camera;
 
-    private SilkRNG rng;
+    public SilkRNG rng;
 
     private TextureAtlas atlas;
     // This maps chars, such as '#', to specific images, such as a pillar.
     private IntMap<Animation<TextureAtlas.AtlasRegion>> charMapping;
     private IntMap<ArrayList<Animation<TextureAtlas.AtlasRegion>>> decorationMapping;
+    public TextureAtlas.AtlasRegion pixel;
     private IntIntMap decorationIndices;
     private BitmapFont font;
     
@@ -228,6 +229,7 @@ public class CaveCops extends ApplicationAdapter {
         decorationIndices = new IntIntMap(64);
 //        spawnMapping = new IntMap<>(64);
         solid = mapping.get("day tile floor c");
+        pixel = atlas.findRegion("pixel");
         playerAnimation = mapping.get("keystone kop");
         charMapping.put('.', solid);
         charMapping.put(',', mapping.get("brick clear pool center"      ));
