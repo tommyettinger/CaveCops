@@ -12,9 +12,9 @@ public class StatHolder {
     }
     public StatHolder(int maxHealth, int maxEnergy)
     {
-        this.maxHealth = maxHealth;
-        this.maxEnergy = maxEnergy;
         values = new int[Stat.all.length];
+        values[0] = this.maxHealth = maxHealth;
+        values[1] = this.maxEnergy = maxEnergy;
     }
     public int get(Stat stat)
     {

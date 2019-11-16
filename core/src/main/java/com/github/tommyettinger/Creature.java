@@ -18,6 +18,8 @@ public class Creature {
     public SilkRNG rng;
     public Radiance glow;
     
+    public StatHolder stats;
+    
     public static final IntFloatMap WALKING = new IntFloatMap(), AQUATIC = new IntFloatMap(),
             AMPHIBIOUS = new IntFloatMap(), FLYING = new IntFloatMap();
     
@@ -44,6 +46,10 @@ public class Creature {
     }
     public Creature(Animation<TextureAtlas.AtlasRegion> animation, Coord coord, IntFloatMap costs)
     {
+        this(animation, coord, costs, null); 
+    }
+    public Creature(Animation<TextureAtlas.AtlasRegion> animation, Coord coord, IntFloatMap costs, StatHolder stats)
+    {
         moth = new Moth(animation, coord);
         rng = new SilkRNG(CrossHash.hash64(animation.getKeyFrame(0f).name) + coord.x ^
                 DiverRNG.randomize(coord.hashCode()) - coord.y);
@@ -58,6 +64,9 @@ public class Creature {
 //                rng.nextFloat() * 0.45f + 0.3f,
 //                0f);
         this.costs = costs;
+        this.stats = (stats == null)
+                ? new StatHolder(rng.between(4, 16), rng.between(4, 16)) 
+                : stats;
     }
 
     /**

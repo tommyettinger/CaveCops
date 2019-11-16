@@ -736,6 +736,8 @@ public class CaveCops extends ApplicationAdapter {
                 creature = creatures.getAt(i);
                 batch.setPackedColor(creature.moth.color);
                 batch.draw(creature.moth.animate(time), creature.moth.getX(), creature.moth.getY(), 1f, 1f);
+                batch.setPackedColor(Visuals.FLOAT_HOT);
+                batch.draw(pixel, creature.moth.getX() + 0x1p-4f, creature.moth.getY() + 0x1p-4f, creature.stats.get(Stat.HEALTH) * 0x1p-4f, 0x1p-4f);
             }
         }
 //        batch.setPackedColor(playerCreature.moth.color);
