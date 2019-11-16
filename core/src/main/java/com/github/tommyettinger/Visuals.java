@@ -13,8 +13,8 @@ public class Visuals {
     public static final float FLOAT_BLACK = getYCwCmSat(0f, 0.5f, 0.5f, 0f);
     public static final float FLOAT_GRAY = getYCwCmSat(0.15f, 0.45f, 0.5f, 0.2f);
     public static final float FLOAT_NEUTRAL = getYCwCmSat(0.5f, 0.5f, 0.5f, 0.5f);
-    public static final float FLOAT_HOT = getYCwCmSat(0.55f, 1.0f, 0.45f, 0.7f);
-    public static final float FLOAT_COLD = getYCwCmSat(0.45f, 0.0f, 0.55f, 0.4f);
+    public static final float FLOAT_HOT = getYCwCmSat(0.225f, 1.0f, 0.58f, 0.85f);
+    public static final float FLOAT_COLD = getYCwCmSat(0.3f, 0.0f, 0.45f, 0.4f);
 
     /**
      * The "luma" of the given libGDX Color, which is like its lightness, in YCwCm format; ranges from 0f to 1f .
@@ -149,7 +149,7 @@ public class Visuals {
             + "void main()\n"
             + "{\n"
             + "   v_color = " + ShaderProgram.COLOR_ATTRIBUTE + ";\n"
-            + "   v_color.a = v_color.a * (255.0/254.0);\n"
+//            + "   v_color.a = v_color.a * (255.0/254.0);\n"
             + "   v_texCoords = " + ShaderProgram.TEXCOORD_ATTRIBUTE + "0;\n"
             + "   gl_Position =  u_projTrans * " + ShaderProgram.POSITION_ATTRIBUTE + ";\n"
             + "}\n";
