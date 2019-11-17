@@ -44,6 +44,7 @@ public class Populace extends OrderedMap<Coord, Creature> {
         creature.dijkstraMap.clearGoals();
         creature.dijkstraMap.resetMap();
         creature.dijkstraMap.setGoal(playerPosition);
+        Creature player = removeAt(0);
 
 //        creature.dijkstraMap.setGoal(startingPosition.translate(1, 0));
 //        creature.dijkstraMap.setGoal(startingPosition.translate(-1, 0));
@@ -52,9 +53,13 @@ public class Populace extends OrderedMap<Coord, Creature> {
         creature.dijkstraMap.partialScan(startingPosition, 9, keys);
         tempPath.clear();
         creature.dijkstraMap.findPathPreScanned(tempPath, startingPosition);
+        putAt(playerPosition, player, 0);
         if(tempPath.size() < 2)
             return startingPosition;
-        creature.moth.end = tempPath.get(tempPath.size() - 2);
+        Coord goal = tempPath.get(tempPath.size() - 2);
+        if(goal.equals(playerPosition))
+            return startingPosition;
+        creature.moth.end = goal;
         creature.moth.alpha = 0f;
         alterCarefully(startingPosition, creature.moth.end);
         dl.lighting.moveLight(startingPosition, creature.moth.end);

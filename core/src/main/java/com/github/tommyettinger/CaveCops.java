@@ -631,24 +631,27 @@ public class CaveCops extends ApplicationAdapter {
      * @param end
      */
     private void move(final Coord start, final Coord end) {
-        if(creatures.containsKey(end))
+        Creature target;
+        if((target = creatures.get(end)) != null && target != playerCreature)
         {
             awaitedMoves.clear();
             toCursor.clear();
+            if(target.stats.inc(Stat.HEALTH, -1) <= 0) {
+                creatures.remove(end);
+                dl.lighting.removeLight(end);
+            }
             return;
         }
         if (onGrid(end.x, end.y) && dl.bareDungeon[end.x][end.y] != '#')
         {
             creatures.alterCarefully(playerCreature.moth.end, end);
+                dl.lighting.moveLight(start, end);
+                dl.lighting.calculateFOV(end);
             playerCreature.moth.start = start;
             playerCreature.moth.end = end;
             playerCreature.moth.alpha = 0f;
             mode = ANIMATE;
             animationStart = TimeUtils.millis();
-            dl.lighting.moveLight(start, end);
-            // calculates field of vision around the player again, in a circle of radius 9.0 .
-            //FOV.reuseFOV(resistance, visible, end.x, end.y, 9.0, Radius.CIRCLE);
-            dl.lighting.calculateFOV(end);
             // This is just like the constructor used earlier, but affects an existing GreasedRegion without making
             // a new one just for this movement.
             //blockage.refill(visible, 0.0);
