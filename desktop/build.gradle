@@ -17,7 +17,7 @@ run {
 	setIgnoreExitValue(true)
 	
 	if (OperatingSystem.current() == OperatingSystem.MAC_OS) {
-		// Required to run LWJGL3 Java apps on MacOS
+		// Required to run LWJGL Java apps on MacOS
 		jvmArgs += "-XstartOnFirstThread"
 	}
 }
@@ -28,4 +28,62 @@ jar {
 	manifest {
 		attributes 'Main-Class': project.mainClassName
 	}
+}
+// creates a slim JDK runtime for distribution
+task createRuntime(type: Exec) {
+	doFirst() {
+		project.delete("${buildDir}/runtime")
+	}
+	String runtimePath = "${buildDir}/runtime"
+
+	workingDir project.projectDir
+	commandLine = [
+			"${rootDir}/jpackage/bin/jlink",
+			'-p', "${rootDir}/jpackage/jmods",
+			'--add-modules', 'java.base,java.desktop,jdk.unsupported',
+			'--strip-debug',
+			'--no-header-files',
+			'--no-man-pages',
+			'--strip-native-commands',
+			"--vm=server",
+			"--compress=2",
+			'--output', runtimePath
+	]
+}
+
+// creates application bundle (executable + runtime)
+task jpackage(type: Exec, dependsOn: jar) {
+	doFirst() {
+		project.delete("${buildDir}/distribution/$project.appName")
+	}
+	dependsOn createRuntime
+	workingDir project.projectDir
+	def commands = [
+			"${rootDir}/jpackage/bin/jpackage",
+			'--dest', "${buildDir}/distribution",
+			'--input', "${buildDir}/libs",
+			'--name', project.appName,
+			'--main-class', project.mainClassName,
+			'--main-jar', jar.archiveFile.get().asFile.getName(),
+			'--runtime-image', "${buildDir}/runtime"
+	]
+
+	if (OperatingSystem.current() == OperatingSystem.WINDOWS) {
+		commands << '--icon'
+		commands << "${rootDir}/logo.ico"
+//		commands << '--java-options'
+//		commands << "-splash:splash.png"
+	} else if (OperatingSystem.current() == OperatingSystem.LINUX) {
+		commands << '--icon'
+		commands << "${project.projectDir}/src/main/resources/libgdx64.png"
+//		commands << '--java-options'
+//		commands << "-splash:splash.png"
+	} else if (OperatingSystem.current() == OperatingSystem.MAC_OS) {
+		commands << '--icon'
+		commands << "${rootDir}/logo.icns"
+		commands << '--java-options'
+		commands << "-XstartOnFirstThread"
+	}
+
+	commandLine = commands
 }
