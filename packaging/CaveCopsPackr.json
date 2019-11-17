@@ -1,0 +1,18 @@
+{
+  "platform": "windows64",
+  "jdk": "C:/Program Files/AdoptOpenJDK/jdk-14-jpackage",
+  "executable": "CaveCops",
+  "classpath": [
+    "../desktop/build/libs/CaveCops-Demo.jar"
+  ],
+  "mainclass": "com.github.tommyettinger.desktop.DesktopLauncher",
+  "vmargs": [
+    "Xmx1G"
+  ],
+  "resources": [
+  ],
+  "removelibs": [
+    "CaveCops-Demo.jar"
+  ],
+  "output": "out"
+}
