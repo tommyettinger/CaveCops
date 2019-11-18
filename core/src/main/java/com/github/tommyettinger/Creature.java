@@ -12,6 +12,7 @@ import squidpony.squidmath.*;
  */
 public class Creature {
     public Moth moth;
+    public MoveType moveType;
     public IntFloatMap costs;
     public int activity = 12;
     public DijkstraMap dijkstraMap;
@@ -42,13 +43,13 @@ public class Creature {
 
     public Creature(Animation<TextureAtlas.AtlasRegion> animation, Coord coord)
     {
-        this(animation, coord, WALKING);
+        this(animation, coord, MoveType.WALKING);
     }
-    public Creature(Animation<TextureAtlas.AtlasRegion> animation, Coord coord, IntFloatMap costs)
+    public Creature(Animation<TextureAtlas.AtlasRegion> animation, Coord coord, MoveType moveType)
     {
-        this(animation, coord, costs, null); 
+        this(animation, coord, moveType, null); 
     }
-    public Creature(Animation<TextureAtlas.AtlasRegion> animation, Coord coord, IntFloatMap costs, StatHolder stats)
+    public Creature(Animation<TextureAtlas.AtlasRegion> animation, Coord coord, MoveType moveType, StatHolder stats)
     {
         moth = new Moth(animation, coord);
         rng = new SilkRNG(CrossHash.hash64(animation.getKeyFrame(0f).name) + coord.x ^
@@ -63,7 +64,8 @@ public class Creature {
 //                Visuals.getYCwCmSat((c & 0x3F) + 0x90, c >>> 8 & 0xFF, c >>> 16 & 0xFF, (c >>> 26) + 20),
 //                rng.nextFloat() * 0.45f + 0.3f,
 //                0f);
-        this.costs = costs;
+        this.moveType = moveType;
+        this.costs = moveType.moves;
         this.stats = (stats == null)
                 ? new StatHolder(rng.between(4, 16), rng.between(4, 16)) 
                 : stats;
@@ -140,5 +142,22 @@ public class Creature {
     @Override
     public String toString() {
         return moth.animation.getKeyFrame(0).name + moth.start + " to " + moth.end;
+    }
+
+    public enum MoveType {
+        WALKING(Creature.WALKING),
+        AQUATIC(Creature.AQUATIC),
+        AMPHIBIOUS(Creature.AMPHIBIOUS),
+        FLYING(Creature.FLYING);
+        
+        MoveType() {
+            moves = Creature.WALKING;
+        }
+        MoveType(IntFloatMap moves) {
+            this.moves = moves;
+        }
+        public IntFloatMap moves;
+        
+        public static final MoveType[] ALL = values();
     }
 }

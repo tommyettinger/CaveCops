@@ -16,6 +16,7 @@ gwt {
 	compiler.strict = true
 	compiler.disableCastChecking = true
 }
+// I have no idea why this shows an error; it doesn't block compilation at all
 import org.wisepersist.gradle.plugins.gwt.GwtSuperDev
 
 def HttpFileServer server = null
@@ -52,7 +53,7 @@ task superDev(type: GwtSuperDev) {
 				gwt.modules = gwt.devModules
 		}
 }
-
+//helps avoid extra (large) cache.js files with gibberish names being stored by the dozen
 clean.doFirst {
 	delete fileTree(dir:'../docs/html/', include: '**.cache.js')
 }

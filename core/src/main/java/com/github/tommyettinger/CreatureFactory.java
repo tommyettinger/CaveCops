@@ -5,33 +5,21 @@ import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.utils.IntFloatMap;
 import squidpony.squidmath.*;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
-import static com.github.tommyettinger.CreatureFactory.MoveType.*;
+import static com.github.tommyettinger.Attack.AttackType.*;
+import static com.github.tommyettinger.Attack.DamageType.*;
+import static com.github.tommyettinger.Creature.MoveType.*;
+import static com.github.tommyettinger.HandType.*;
 
 /**
  * Created by Tommy Ettinger on 9/27/2019.
  */
 public class CreatureFactory {
-    public enum MoveType {
-        WALKING(Creature.WALKING),
-        AQUATIC(Creature.AQUATIC),
-        AMPHIBIOUS(Creature.AMPHIBIOUS),
-        FLYING(Creature.FLYING);
-        
-        MoveType() {
-            moves = Creature.WALKING;
-        }
-        MoveType(IntFloatMap moves) {
-            this.moves = moves;
-        }
-        public IntFloatMap moves;
-        
-        public static final MoveType[] ALL = values();
-    }
-    
+
     public LinkedHashMap<String, Animation<TextureAtlas.AtlasRegion>> mapping;
-    public LinkedHashMap<MoveType, GreasedRegion> regions;
+    public LinkedHashMap<Creature.MoveType, GreasedRegion> regions;
     public Populace populace;
     public IRNG rng;
     
@@ -44,7 +32,7 @@ public class CreatureFactory {
         this.mapping = mapping;
         regions = new LinkedHashMap<>(8, 0.25f);
         GreasedRegion all = new GreasedRegion(populace.dl.width, populace.dl.height);
-        for(MoveType move : MoveType.ALL)
+        for(Creature.MoveType move : Creature.MoveType.ALL)
         {
             GreasedRegion gr = new GreasedRegion(populace.dl.width, populace.dl.height), temp = gr.copy();
             IntFloatMap.Keys grounds = move.moves.keys();
@@ -59,9 +47,9 @@ public class CreatureFactory {
         regions.put(null, all);
     }
 
-    public Creature make(String name, MoveType move){
+    public Creature make(String name, Creature.MoveType move){
         Coord pt = regions.get(move).singleRandom(rng);
-        Creature cr = new Creature(mapping.get(name), pt, move.moves);
+        Creature cr = new Creature(mapping.get(name), pt, move);
         populace.place(cr);
         return cr;
     }
@@ -71,142 +59,172 @@ public class CreatureFactory {
         Creature cr;
         do {
             int idx = rng.nextSignedInt(KNOWN_CREATURES.size());
-            MoveType move = KNOWN_CREATURES.getAt(idx);
+            Creature.MoveType move = KNOWN_CREATURES.getAt(idx).move;
             pt = regions.get(move).singleRandom(rng);
-            cr = new Creature(mapping.get(KNOWN_CREATURES.keyAt(idx)), pt, move.moves);
+            cr = new Creature(mapping.get(KNOWN_CREATURES.keyAt(idx)), pt, move);
         } while (populace.containsKey(pt));
         populace.place(cr);
         return cr;
     }
     
-    public static final OrderedMap<String, MoveType> KNOWN_CREATURES = OrderedMap.makeMap(
-            "lobster", AQUATIC,
-            "sea tiger", AQUATIC,
-            "frog", AMPHIBIOUS,
-            "penguin", AMPHIBIOUS,
-            "pelican", FLYING,
-            "puffin", FLYING,
-            "golden eagle", FLYING,
-            "ostrich", WALKING,
-            "leopard", WALKING,
-            "lion", WALKING,
-            "barn cat", WALKING,
-            "barbed devil", WALKING,
-            "balrog", WALKING,
-            "ice devil", WALKING,
-            "demogorgon", WALKING,
-            "jackal", WALKING,
-            "wolf", WALKING,
-            "hound", WALKING,
-            "paper golem", WALKING,
-            "wood golem", WALKING,
-            "flesh golem", WALKING,
-            "clay golem", WALKING,
-            "stone golem", WALKING,
-            "iron golem", WALKING,
-            "crystal golem", WALKING,
-            "air elemental", FLYING,
-            "fire elemental", WALKING,
-            "earth elemental", WALKING,
-            "water elemental", AMPHIBIOUS,
-            "eye tyrant", FLYING,
-            "giant", WALKING,
-            "minotaur", WALKING,
-            "cyclops", WALKING,
-            "militant orc", WALKING,
-            "orc shaman", WALKING,
-            "soldier", WALKING,
-            "captain", WALKING,
-            "elf", WALKING,
-            "troll", WALKING,
-            "gnome", WALKING,
-            "leprechaun", WALKING,
-            "dwarf", WALKING,
-            "satyr", WALKING,
-            "forest centaur", WALKING,
-            "ogre", WALKING,
-            "quantum mechanic", WALKING,
-            "angel", FLYING,
-            "tengu", FLYING,
-            "djinn", FLYING,
-            "goblin", WALKING,
-            "mind flayer", AMPHIBIOUS,
-            "bugbear", WALKING,
-            "yeti", WALKING,
-            "medusa", WALKING,
-            "owlbear", WALKING,
-            "kirin", FLYING,
-            "gargoyle", FLYING,
-            "kobold", WALKING,
-            "ape", WALKING,
-            "jabberwock", WALKING,
-            "umber hulk", WALKING,
-            "zruty", WALKING,
-            "giant tick", WALKING,
-            "giant beetle", WALKING,
-            "dung worm", AMPHIBIOUS,
-            "dragonfly", FLYING,
-            "killer bee", FLYING,
-            "giant spider", WALKING,
-            "scorpion", WALKING,
-            "giant ant", WALKING,
-            "locust", FLYING,
-            "giant slug", WALKING,
-            "giant snail", WALKING,
-            "feral hog", WALKING,
-            "bull", WALKING,
-            "camel", WALKING,
-            "llama", WALKING,
-            "gray goat", WALKING,
-            "white sheep", WALKING,
-            "white unicorn", WALKING,
-            "brown horse", WALKING,
-            "deer", WALKING,
-            "mastodon", WALKING,
-            "wumpus", WALKING,
-            "wyvern", FLYING,
-            "dreadwyrm", FLYING,
-            "glendrake", WALKING,
-            "firedrake", WALKING,
-            "icewyrm", FLYING,
-            "sanddrake", WALKING,
-            "storrmwyrm", FLYING,
-            "darkwyrm", FLYING,
-            "lightwyrm", FLYING,
-            "bogwyrm", FLYING,
-            "sheenwyrm", FLYING,
-            "kingwyrm", FLYING,
-            "hydra", WALKING,
-            "python", AMPHIBIOUS,
-            "cobra", AMPHIBIOUS,
-            "golden naga", WALKING,
-            "cockatrice", WALKING,
-            "chameleon", WALKING,
-            "crocodile", AMPHIBIOUS,
-            "red squirrel", WALKING,
-            "rabbit", WALKING,
-            "giant rat", WALKING,
-            "rust monster", WALKING,
-            "kobold zombie", WALKING,
-            "gnome zombie", WALKING,
-            "orc zombie", WALKING,
-            "dwarf zombie", WALKING,
-            "elf zombie", WALKING,
-            "human zombie", WALKING,
-            "ettin zombie", WALKING,
-            "giant zombie", WALKING,
-            "kobold mummy", WALKING,
-            "gnome mummy", WALKING,
-            "orc mummy", WALKING,
-            "dwarf mummy", WALKING,
-            "elf mummy", WALKING,
-            "human mummy", WALKING,
-            "ettin mummy", WALKING,
-            "giant mummy", WALKING,
-            "skeleton", WALKING,
-            "lich", WALKING,
-            "vampire", WALKING,
-            "spirit", FLYING,
-            "ghoul", WALKING
+    public static class CreatureArchetype {
+        public String name;
+        public Creature.MoveType move;
+        public ArrayList<Attack> attacks;
+        public int hands;
+        public HandType handType;
+        public CreatureArchetype(String creatureName, Creature.MoveType moveType, int attackCountA, Attack.DamageType damageTypeA, Attack.AttackType attackTypeA) {
+            name = creatureName;
+            move = moveType;
+            attacks = new ArrayList<>(4);
+            attacks.add(new Attack(attackCountA, damageTypeA, attackTypeA));
+            hands = 0;
+            handType = NONE;
+        }
+
+        public CreatureArchetype(String creatureName, Creature.MoveType moveType, int handCount, HandType handType) {
+            name = creatureName;
+            move = moveType;
+            attacks = new ArrayList<>(4);
+            hands = handCount;
+            this.handType = handType;
+        }
+
+        public CreatureArchetype(String creatureName, Creature.MoveType moveType, int handCount, HandType handType, int attackCountA, Attack.DamageType damageTypeA, Attack.AttackType attackTypeA) {
+            name = creatureName;
+            move = moveType;
+            attacks = new ArrayList<>(4);
+            attacks.add(new Attack(attackCountA, damageTypeA, attackTypeA));
+            hands = handCount;
+            this.handType = handType;
+        }
+
+        public CreatureArchetype(String creatureName, Creature.MoveType moveType, int attackCountA, Attack.DamageType damageTypeA, Attack.AttackType attackTypeA, int attackCountB, Attack.DamageType damageTypeB, Attack.AttackType attackTypeB) {
+            name = creatureName;
+            move = moveType;
+            attacks = new ArrayList<>(4);
+            attacks.add(new Attack(attackCountA, damageTypeA, attackTypeA));
+            attacks.add(new Attack(attackCountB, damageTypeB, attackTypeB));
+            hands = 0;
+            handType = NONE;
+        }
+
+
+    }
+    
+    public static final OrderedMap<String, CreatureArchetype> KNOWN_CREATURES = OrderedMap.makeMap(
+            "lobster", new CreatureArchetype("lobster", AQUATIC, 2, CRUSHING, CLAW),
+            "sea tiger", new CreatureArchetype("sea tiger", AQUATIC, 1, RIPPING, BITE, 1, THRASHING, TAIL),
+            "frog", new CreatureArchetype("frog", AMPHIBIOUS, 1, GRABBING, TONGUE, 1, DISGUSTING, BITE),
+            "penguin", new CreatureArchetype("penguin", AMPHIBIOUS, 1, GOUGING, PECK),
+            "pelican", new CreatureArchetype("pelican", FLYING, 1, GRABBING, PECK),
+            "puffin", new CreatureArchetype("puffin", FLYING, 1, CRUSHING, PECK),
+            "golden eagle", new CreatureArchetype("golden eagle", FLYING, 1, GOUGING, PECK, 1, CRUSHING, CLAW),
+            "ostrich", new CreatureArchetype("ostrich", WALKING, 1, GOUGING, PECK, 1, CRUSHING, KICK),
+            "leopard", new CreatureArchetype("leopard", WALKING, 2, RIPPING, CLAW, 1, RIPPING, BITE),
+            "lion", new CreatureArchetype("lion", WALKING, 2, RIPPING, CLAW, 1, CRUSHING, BITE),
+            "barn cat", new CreatureArchetype("barn cat", WALKING, 2, GRABBING, CLAW, 1, RIPPING, BITE),
+            "bone devil", new CreatureArchetype("bone devil", WALKING, 4, GOUGING, SPUR, 2, RIPPING, CLAW),
+            "ice devil", new CreatureArchetype("ice devil", WALKING, 2, FREEZING, SPUR, 2, GOUGING, CLAW),
+            "fire devil", new CreatureArchetype("fire devil", WALKING, 2, BURNING, CLAW, 1, BURNING, KICK),
+            "jackal", new CreatureArchetype("jackal", WALKING, 1, GRABBING, BITE),
+            "wolf", new CreatureArchetype("wolf", WALKING, 1, CRUSHING, BITE, 1, STUNNING, BURST),
+            "hound", new CreatureArchetype("hound", WALKING, 1, CRUSHING, BITE),
+            "paper golem", new CreatureArchetype("paper golem", WALKING, 4, SLICING, BLADE),
+            "wood golem", new CreatureArchetype("wood golem", WALKING, 2, CRUSHING, SLAM, 2, SLICING, SHRAPNEL),
+            "flesh golem", new CreatureArchetype("flesh golem", WALKING, 2, THRASHING, SLAM),
+            "clay golem", new CreatureArchetype("clay golem", WALKING, 1, CRUSHING, SLAM),
+            "stone golem", new CreatureArchetype("stone golem", WALKING, 1, CRUSHING, SLAM, 1, QUAKING, BURST),
+            "iron golem", new CreatureArchetype("iron golem", WALKING, 1, CRUSHING, SLAM, 1, SLICING, BLADE),
+            "crystal golem", new CreatureArchetype("crystal golem", WALKING, 2, SLICING, BLADE, 4, SHINING, RAY),
+            "air elemental", new CreatureArchetype("air elemental", FLYING, 3, SLICING, SHRAPNEL),
+            "fire elemental", new CreatureArchetype("fire elemental", WALKING, 4, BURNING, SHRAPNEL),
+            "earth elemental", new CreatureArchetype("earth elemental", WALKING, 2, QUAKING, BURST),
+            "water elemental", new CreatureArchetype("water elemental", AMPHIBIOUS, 1, SOAKING, WAVE),
+            "eye tyrant", new CreatureArchetype("eye tyrant", FLYING, 4, ZAPPING, RAY, 1, RIPPING, BITE),
+            "giant", new CreatureArchetype("giant", WALKING, 2, HUGE_HAND),
+            "minotaur", new CreatureArchetype("minotaur", WALKING, 2, LARGE_HAND, 1, GOUGING, HORN),
+            "cyclops", new CreatureArchetype("cyclops", WALKING, 2, HUGE_HAND, 1, THRASHING, SLAM),
+            "militant orc", new CreatureArchetype("militant orc", WALKING, 2, NORMAL_HAND),
+            "orc shaman", new CreatureArchetype("orc shaman", WALKING, 2, NORMAL_HAND, 1, CURSING, BURST),
+            "soldier", new CreatureArchetype("soldier", WALKING, 2, NORMAL_HAND),
+            "captain", new CreatureArchetype("captain", WALKING, 2, NORMAL_HAND),
+            "elf", new CreatureArchetype("elf", WALKING, 2, NORMAL_HAND),
+            "troll", new CreatureArchetype("troll", WALKING, 2, LARGE_HAND, 1, THRASHING, SLAM),
+            "gnome", new CreatureArchetype("gnome", WALKING, 2, SMALL_HAND),
+            "leprechaun", new CreatureArchetype("leprechaun", WALKING, 2, SMALL_HAND, 1, ZAPPING, WAVE),
+            "dwarf", new CreatureArchetype("dwarf", WALKING, 2, NORMAL_HAND),
+            "satyr", new CreatureArchetype("satyr", WALKING, 2, NORMAL_HAND, 1, CRUSHING, KICK),
+            "forest centaur", new CreatureArchetype("forest centaur", WALKING, 2, NORMAL_HAND, 2, CRUSHING, KICK),
+            "ogre", new CreatureArchetype("ogre", WALKING, 2, LARGE_HAND, 2, THRASHING, SLAM),
+            "quantum mechanic", new CreatureArchetype("quantum mechanic", WALKING, 2, NORMAL_HAND, 1, ZAPPING, RAY),
+            "angel", new CreatureArchetype("angel", FLYING, 2, NORMAL_HAND, 1, SHINING, BURST),
+            "tengu", new CreatureArchetype("tengu", FLYING, 2, NORMAL_HAND, 1, GOUGING, PECK),
+            "djinn", new CreatureArchetype("djinn", FLYING, 2, LARGE_HAND, 2, SLICING, SHRAPNEL),
+            "goblin", new CreatureArchetype("goblin", WALKING, 2, SMALL_HAND, 1, DISGUSTING, SLAM),
+            "mind flayer", new CreatureArchetype("mind flayer", AMPHIBIOUS, 2, NORMAL_HAND, 1, STUNNING, WAVE),
+            "bugbear", new CreatureArchetype("bugbear", WALKING, 2, LARGE_HAND),
+            "yeti", new CreatureArchetype("yeti", WALKING, 2, LARGE_HAND, 1, FREEZING, BURST),
+            "medusa", new CreatureArchetype("medusa", WALKING, 2, NORMAL_HAND, 1, MORPHING, RAY),
+            "owlbear", new CreatureArchetype("owlbear", WALKING, 2, THRASHING, CLAW, 1, GOUGING, PECK),
+            "kirin", new CreatureArchetype("kirin", FLYING, 2, SHINING, KICK, 1, STUNNING, HORN),
+            "gargoyle", new CreatureArchetype("gargoyle", FLYING, 2, GOUGING, CLAW, 2, CRUSHING, KICK),
+            "kobold", new CreatureArchetype("kobold", WALKING, 2, SMALL_HAND, 1, THRASHING, BITE),
+            "ape", new CreatureArchetype("ape", WALKING, 2, CRUSHING, SLAM, 1, RIPPING, BITE),
+            "jabberwock", new CreatureArchetype("jabberwock", WALKING, 1, RIPPING, BITE, 2, GOUGING, CLAW),
+            "umber hulk", new CreatureArchetype("umber hulk", WALKING, 2, CRUSHING, CLAW, 1, STUNNING, WAVE),
+            "zruty", new CreatureArchetype("zruty", WALKING, 3, CRUSHING, BITE),
+            "giant tick", new CreatureArchetype("giant tick", WALKING, 1, GRABBING, BITE),
+            "giant beetle", new CreatureArchetype("giant beetle", WALKING, 1, SLICING, BITE),
+            "dung worm", new CreatureArchetype("dung worm", AMPHIBIOUS, 1, DISGUSTING, BITE),
+            "dragonfly", new CreatureArchetype("dragonfly", FLYING, 1, CRUSHING, BITE),
+            "killer bee", new CreatureArchetype("killer bee", FLYING, 1, PIERCING, STING),
+            "giant spider", new CreatureArchetype("giant spider", WALKING, 1, PIERCING, BITE),
+            "scorpion", new CreatureArchetype("scorpion", WALKING, 2, CRUSHING, CLAW, 1, PIERCING, STING),
+            "giant ant", new CreatureArchetype("giant ant", WALKING, 1, RIPPING, BITE),
+            "locust", new CreatureArchetype("locust", FLYING, 1, SLICING, BITE),
+            "giant slug", new CreatureArchetype("giant slug", WALKING, 1, DISGUSTING, TONGUE),
+            "giant snail", new CreatureArchetype("giant snail", WALKING, 1, DISGUSTING, TONGUE),
+            "feral hog", new CreatureArchetype("feral hog", WALKING, 1, THRASHING, BITE),
+            "bull", new CreatureArchetype("bull", WALKING, 1, THRASHING, HORN, 2, CRUSHING, KICK),
+            "camel", new CreatureArchetype("camel", WALKING, 1, CRUSHING, BITE, 2, CRUSHING, KICK),
+            "llama", new CreatureArchetype("llama", WALKING, 1, CRUSHING, BITE, 2, CRUSHING, KICK),
+            "gray goat", new CreatureArchetype("gray goat", WALKING, 1, CRUSHING, BITE, 1, PIERCING, HORN),
+            "white sheep", new CreatureArchetype("white sheep", WALKING, 1, CRUSHING, BITE, 2, CRUSHING, KICK),
+            "white unicorn", new CreatureArchetype("white unicorn", WALKING, 1, SHINING, HORN, 2, CRUSHING, KICK),
+            "brown horse", new CreatureArchetype("brown horse", WALKING, 1, THRASHING, BITE, 2, CRUSHING, KICK),
+            "deer", new CreatureArchetype("deer", WALKING, 2, THRASHING, KICK, 1, RIPPING, HORN),
+            "mastodon", new CreatureArchetype("mastodon", WALKING, 2, CRUSHING, KICK, 1, PIERCING, BITE),
+            "wumpus", new CreatureArchetype("wumpus", WALKING, 1, CRUSHING, BITE),
+            "wyvern", new CreatureArchetype("wyvern", FLYING, 1, RIPPING, BITE, 2, GRABBING, CLAW),
+            "dreadwyrm", new CreatureArchetype("dreadwyrm", FLYING, 1, CRUSHING, BITE, 1, CURSING, WAVE),
+            "glendrake", new CreatureArchetype("glendrake", WALKING, 1, RIPPING, BITE, 1, SLICING, WAVE),
+            "firedrake", new CreatureArchetype("firedrake", WALKING, 1, RIPPING, BITE, 1, BURNING, WAVE),
+            "icewyrm", new CreatureArchetype("icewyrm", FLYING, 1, CRUSHING, BITE, 1, FREEZING, BURST),
+            "sanddrake", new CreatureArchetype("sanddrake", WALKING, 1, RIPPING, BITE, 1, QUAKING, BURST),
+            "storrmwyrm", new CreatureArchetype("storrmwyrm", FLYING, 1, CRUSHING, BITE, 1, SHOCKING, WAVE),
+            "darkwyrm", new CreatureArchetype("darkwyrm", FLYING, 1, CRUSHING, BITE, 1, STUNNING, WAVE),
+            "lightwyrm", new CreatureArchetype("lightwyrm", FLYING, 1, CRUSHING, BITE, 1, SHINING, BURST),
+            "bogwyrm", new CreatureArchetype("bogwyrm", FLYING, 1, CRUSHING, BITE, 1, SOAKING, BURST),
+            "sheenwyrm", new CreatureArchetype("sheenwyrm", FLYING, 1, CRUSHING, BITE, 1, ZAPPING, WAVE),
+            "kingwyrm", new CreatureArchetype("kingwyrm", FLYING, 1, CRUSHING, BITE, 1, MORPHING, WAVE),
+            "hydra", new CreatureArchetype("hydra", AMPHIBIOUS, 3, RIPPING, BITE),
+            "python", new CreatureArchetype("python", AMPHIBIOUS, 1, GRABBING, BITE, 1, CRUSHING, SLAM),
+            "cobra", new CreatureArchetype("cobra", AMPHIBIOUS, 1, PIERCING, BITE),
+            "golden naga", new CreatureArchetype("golden naga", AMPHIBIOUS, 1, CRUSHING, SLAM, 1, ZAPPING, BURST),
+            "cockatrice", new CreatureArchetype("cockatrice", AMPHIBIOUS, 1, GOUGING, PECK, 1, MORPHING, RAY),
+            "chameleon", new CreatureArchetype("chameleon", WALKING, 1, GRABBING, TONGUE, 1, CRUSHING, BITE),
+            "crocodile", new CreatureArchetype("crocodile", AMPHIBIOUS, 1, RIPPING, BITE, 1, SOAKING, SLAM),
+            "red squirrel", new CreatureArchetype("red squirrel", WALKING, 1, CRUSHING, BITE),
+            "rabbit", new CreatureArchetype("rabbit", WALKING, 1, CRUSHING, BITE, 1, THRASHING, KICK),
+            "giant rat", new CreatureArchetype("giant rat", WALKING, 1, THRASHING, BITE),
+            "rust monster", new CreatureArchetype("rust monster", WALKING, 1, MORPHING, BITE),
+            "human zombie", new CreatureArchetype("human zombie", WALKING, 1, DISGUSTING, BITE, 1, THRASHING, SLAM),
+            "human mummy", new CreatureArchetype("human mummy", WALKING, 2, CURSING, SLAM, 1, CURSING, WAVE),
+            "skeleton", new CreatureArchetype("skeleton", WALKING, 2, NORMAL_HAND, 1, CRUSHING, BITE),
+            "lich", new CreatureArchetype("lich", WALKING, 2, NORMAL_HAND, 1, CURSING, RAY),
+            "vampire", new CreatureArchetype("vampire", WALKING, 2, NORMAL_HAND, 1, CURSING, BITE),
+            "spirit", new CreatureArchetype("spirit", FLYING, 1, CURSING, BURST),
+            "ghoul", new CreatureArchetype("ghoul", WALKING, 2, DISGUSTING, CLAW, 1, DISGUSTING, BITE)
     );
 }

@@ -425,7 +425,7 @@ public class CaveCops extends ApplicationAdapter {
         // in that region that is "on," or -1,-1 if there are no such cells. It takes an RNG object as a parameter, and
         // if you gave a seed to the RNG constructor, then the cell this chooses will be reliable for testing. If you
         // don't seed the RNG, any valid cell should be possible.
-        playerCreature = new Creature(playerAnimation, dl.floors.singleRandom(rng), Creature.WALKING);
+        playerCreature = new Creature(playerAnimation, dl.floors.singleRandom(rng), Creature.MoveType.WALKING);
         playerCreature.glow = new Radiance(1f, Visuals.getYCwCmSat(0xB0, 0x00, 0x60, 0x70), 0f, 0.9f, languageRNG.nextFloat());
         playerCreature.configureMap(creatures.dl);
         creatures.putAt(playerCreature.moth.end, playerCreature, 0);
