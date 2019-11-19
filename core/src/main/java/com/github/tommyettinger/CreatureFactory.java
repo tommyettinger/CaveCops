@@ -19,7 +19,7 @@ import static com.github.tommyettinger.HandType.*;
 public class CreatureFactory {
 
     public LinkedHashMap<String, Animation<TextureAtlas.AtlasRegion>> mapping;
-    public LinkedHashMap<Creature.MoveType, GreasedRegion> regions;
+    public LinkedHashMap<Creature.MoveType, Coord[]> regions;
     public Populace populace;
     public IRNG rng;
     
@@ -41,15 +41,17 @@ public class CreatureFactory {
                 char g = (char)grounds.next();
                 gr.or(temp.refill(populace.dl.decoDungeon, g));
             }
-            regions.put(move, gr);
+            regions.put(move, gr.asCoords());
             all.or(gr);
         }
-        regions.put(null, all);
+        regions.put(null, all.asCoords());
     }
 
-    public Creature make(String name, Creature.MoveType move){
-        Coord pt = regions.get(move).singleRandom(rng);
-        Creature cr = new Creature(mapping.get(name), pt, move);
+    public Creature make(String name){
+        CreatureArchetype arch = KNOWN_CREATURES.get(name);
+        Creature cr = new Creature(mapping.get(name),
+                rng.getRandomElement(regions.get(arch.move)),
+                arch);
         populace.place(cr);
         return cr;
     }
@@ -59,9 +61,10 @@ public class CreatureFactory {
         Creature cr;
         do {
             int idx = rng.nextSignedInt(KNOWN_CREATURES.size());
-            Creature.MoveType move = KNOWN_CREATURES.getAt(idx).move;
-            pt = regions.get(move).singleRandom(rng);
-            cr = new Creature(mapping.get(KNOWN_CREATURES.keyAt(idx)), pt, move);
+            CreatureArchetype arch = KNOWN_CREATURES.getAt(idx);
+            Creature.MoveType move = arch.move;
+            pt = rng.getRandomElement(regions.get(move));
+            cr = new Creature(mapping.get(arch.name), pt, arch);
         } while (populace.containsKey(pt));
         populace.place(cr);
         return cr;
@@ -86,7 +89,7 @@ public class CreatureFactory {
             name = creatureName;
             move = moveType;
             attacks = new ArrayList<>(4);
-            attacks.add(new Attack(1, CRUSHING, SLAM));
+            attacks.add(new Attack(1, THRASHING, SLAM));
             hands = handCount;
             this.handType = handType;
         }

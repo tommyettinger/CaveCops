@@ -19,7 +19,6 @@ import regexodus.Pattern;
 import regexodus.Replacer;
 import squidpony.FakeLanguageGen;
 import squidpony.Maker;
-import squidpony.StringKit;
 import squidpony.squidai.DijkstraMap;
 import squidpony.squidgrid.mapping.DungeonGenerator;
 import squidpony.squidgrid.mapping.FlowingCaveGenerator;
@@ -127,7 +126,7 @@ public class CaveCops extends ApplicationAdapter {
     
     private GapShuffler<String> zodiacShuffler, phraseShuffler, meaningShuffler;
     private Replacer anReplacer;
-    private String horoscope;
+    private String message;
 
     private Creature playerCreature;
     public Populace creatures;
@@ -192,7 +191,7 @@ public class CaveCops extends ApplicationAdapter {
         phraseShuffler = new GapShuffler<>(phrases, languageRNG);
         meaningShuffler = new GapShuffler<>(meanings, languageRNG);
         anReplacer = new Replacer(Pattern.compile("\\b([Aa]) (?=[AEIOUaeiou])"), "$1n ");
-        horoscope = anReplacer.replace(zodiacShuffler.next() + phraseShuffler.next() + meaningShuffler.next().replace("@", zodiacShuffler.next()));
+        //message = anReplacer.replace(zodiacShuffler.next() + phraseShuffler.next() + meaningShuffler.next().replace("@", zodiacShuffler.next()));
         ShaderProgram.pedantic = false;
         shader = new ShaderProgram(Visuals.vertexShader, Visuals.fragmentShader);
         //shader = new ShaderProgram(Visuals.vertexShader, Visuals.fragmentShaderTrue);
@@ -278,78 +277,7 @@ public class CaveCops extends ApplicationAdapter {
             decorationIndices.put(e.key, e.value.size());
         }
         
-//        spawnMapping.put('~', Maker.makeList(
-//                mapping.get("fighting fish"),
-//                mapping.get("red snapper"),
-//                mapping.get("stonefish"),
-//                mapping.get("catfish"),
-//                mapping.get("piranha"),
-//                mapping.get("lobster"),
-//                mapping.get("jellyfish"),
-//                mapping.get("man o war"),
-//                mapping.get("barracuda"),
-//                mapping.get("great white shark"),
-//                mapping.get("tiger shark"),
-//                mapping.get("beluga whale"),
-//                mapping.get("blue whale"),
-//                mapping.get("river dolphin"),
-//                mapping.get("snakefish"),
-//                mapping.get("bobbit worm"),
-//                mapping.get("eel"),
-//                mapping.get("electric eel"),
-//                mapping.get("kraken"),
-//                mapping.get("sea tiger"),
-//                mapping.get("platypus"),
-//                mapping.get("cave penguin"),
-//                mapping.get("penguin"),
-//                mapping.get("pelican"),
-//                mapping.get("duck"),
-//                mapping.get("puffin"),
-//                mapping.get("swan"),
-//                mapping.get("albatross")
-//        ));
-//        spawnMapping.put(',', Maker.makeList(
-//                mapping.get("fighting fish"),
-//                mapping.get("stonefish"),
-//                mapping.get("piranha"),
-//                mapping.get("lobster"),
-//                mapping.get("snakefish"),
-//                mapping.get("sea nymph"),
-//                mapping.get("river nymph"),
-//                mapping.get("bog nymph"),
-//                mapping.get("platypus"),
-//                mapping.get("leech"),
-//                mapping.get("frog"),
-//                mapping.get("cave penguin"),
-//                mapping.get("penguin"),
-//                mapping.get("baby pelican"),
-//                mapping.get("pelican"),
-//                mapping.get("baby duck"),
-//                mapping.get("duck"),
-//                mapping.get("baby puffin"),
-//                mapping.get("puffin"),
-//                mapping.get("baby swan"),
-//                mapping.get("swan"),
-//                mapping.get("baby albatross"),
-//                mapping.get("albatross")
-//        ));
-//        
-//        for(ArrayList<Animation<TextureAtlas.AtlasRegion>> list : spawnMapping.values())
-//        {
-//            for(Animation<TextureAtlas.AtlasRegion> animation : list)
-//            {
-//                System.out.println(animation == null ? "!!!!!!" : animation.getKeyFrame(0).name);
-//            }
-//        }
-        
-        //This uses the seeded RNG we made earlier to build a procedural dungeon using a method that takes rectangular
-        //sections of pre-drawn dungeon and drops them into place in a tiling pattern. It makes good winding dungeons
-        //with rooms by default, but in the later call to dungeonGen.generate(), you can use a TilesetType such as
-        //TilesetType.ROUND_ROOMS_DIAGONAL_CORRIDORS or TilesetType.CAVES_LIMIT_CONNECTIVITY to change the sections that
-        //this will use, or just pass in a full 2D char array produced from some other generator, such as
-        //SerpentMapGenerator, OrganicMapGenerator, or DenseRoomMapGenerator.
         dungeonGen = new DungeonGenerator(bigWidth, bigHeight, rng);
-        //uncomment this next line to randomly add water to the dungeon in pools.
         dungeonGen.addWater(18);
         dungeonGen.addGrass(12);
         FlowingCaveGenerator flowing = new FlowingCaveGenerator(bigWidth, bigHeight, TilesetType.DEFAULT_DUNGEON, rng);
@@ -390,7 +318,9 @@ public class CaveCops extends ApplicationAdapter {
         playerCreature.glow.flicker = 0f;
         playerCreature.glow.strobe = 0.9f;
         playerCreature.glow.delay = 0f;
-        
+
+        message = "Go get 'em, Officer " + playerCreature.nameTitled + "!";
+
         for (int i = 0; i < CREATURE_COUNT; i++) {
             creatureFactory.place();
         }
@@ -638,9 +568,12 @@ public class CaveCops extends ApplicationAdapter {
             awaitedMoves.clear();
             toCursor.clear();
             if(target.stats.inc(Stat.HEALTH, -1) <= 0) {
+                message = "You served harsh justice to " + target.nameTitled + ".";
                 creatures.remove(end);
                 dl.lighting.removeLight(end);
             }
+            else 
+                message = target.nameTitled + " resists your authority!";
             return;
         }
         if (onGrid(end.x, end.y) && dl.bareDungeon[end.x][end.y] != '#')
@@ -760,22 +693,13 @@ public class CaveCops extends ApplicationAdapter {
         }
 //        batch.setPackedColor(playerCreature.moth.color);
 //        batch.draw(playerCreature.moth.animate(time), playerCreature.moth.getX(), playerCreature.moth.getY(), 1f, 1f);
-        font.setColor(Color.WHITE);
+        font.setColor(Visuals.COLOR_WHITE);
         font.draw(batch, 
-                horoscope + "\nRunning at " + StringKit.padLeftStrict(Gdx.graphics.getFramesPerSecond() + " FPS???", ' ', 11),
-                        (playerCreature.moth.getX() - mainViewport.getWorldWidth() * 0.25f),
+                message
+                        //+ "\nRunning at " + StringKit.padLeftStrict(Gdx.graphics.getFramesPerSecond() + " FPS???", ' ', 11)
+                        , (playerCreature.moth.getX() - mainViewport.getWorldWidth() * 0.25f),
                 (playerCreature.moth.getY() + mainViewport.getWorldHeight() * 0.375f), mainViewport.getWorldWidth() * 0.5f,
                 Align.center, true);
-
-        //Visuals.getYCwCmSat(140, 128, 128, 0)
-        
-//        final String trogdor = "TROGDOR! TROGDOR! Trogdor was a man! Or maybe he was a... Dragon-Man!";
-//        font.getCache().clear();
-//        font.getCache().addText(trogdor, 24f, 37, 20, Align.center, true);
-//        font.getCache().setColors(Color.FOREST, 0, trogdor.length());
-//        font.getCache().draw(batch);
-//        Gdx.graphics.setTitle(horoscope);
-//        Gdx.graphics.setTitle(Gdx.graphics.getFramesPerSecond() + " FPS");
     }
 
     @Override
@@ -860,7 +784,7 @@ public class CaveCops extends ApplicationAdapter {
                     impassable.addAll(creatures.keySet());
                     playerToCursor.partialScan(gridWidth + gridHeight, impassable);
                     
-                    horoscope = anReplacer.replace(zodiacShuffler.next() + phraseShuffler.next() + meaningShuffler.next().replace("@", zodiacShuffler.next()));
+                    //message = anReplacer.replace(zodiacShuffler.next() + phraseShuffler.next() + meaningShuffler.next().replace("@", zodiacShuffler.next()));
 //                }
 
             }

@@ -3,14 +3,21 @@ package com.github.tommyettinger;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.utils.IntFloatMap;
+import squidpony.FakeLanguageGen;
 import squidpony.squidai.DijkstraMap;
 import squidpony.squidgrid.Measurement;
-import squidpony.squidmath.*;
+import squidpony.squidmath.Coord;
+import squidpony.squidmath.CrossHash;
+import squidpony.squidmath.DiverRNG;
+import squidpony.squidmath.SilkRNG;
 
 /**
  * Created by Tommy Ettinger on 9/23/2019.
  */
 public class Creature {
+    public CreatureFactory.CreatureArchetype archetype;
+    public String name;
+    public String nameTitled;
     public Moth moth;
     public MoveType moveType;
     public IntFloatMap costs;
@@ -41,19 +48,20 @@ public class Creature {
         FLYING.put('_', 1f); // pit
     }
 
-    public Creature(Animation<TextureAtlas.AtlasRegion> animation, Coord coord)
+    public Creature(Animation<TextureAtlas.AtlasRegion> animation, Coord coord,
+                    CreatureFactory.CreatureArchetype archetype)
     {
-        this(animation, coord, MoveType.WALKING);
+        this(animation, coord, archetype, null); 
     }
-    public Creature(Animation<TextureAtlas.AtlasRegion> animation, Coord coord, MoveType moveType)
-    {
-        this(animation, coord, moveType, null); 
-    }
-    public Creature(Animation<TextureAtlas.AtlasRegion> animation, Coord coord, MoveType moveType, StatHolder stats)
+    public Creature(Animation<TextureAtlas.AtlasRegion> animation, Coord coord,
+                    CreatureFactory.CreatureArchetype archetype, StatHolder stats)
     {
         moth = new Moth(animation, coord);
-        rng = new SilkRNG(CrossHash.hash64(animation.getKeyFrame(0f).name) + coord.x ^
+        this.archetype = archetype;
+        rng = new SilkRNG(CrossHash.hash64(archetype.name) + coord.x ^
                 DiverRNG.randomize(coord.hashCode()) - coord.y);
+        name = FakeLanguageGen.GOBLIN.word(rng, true, Math.min(rng.nextSignedInt(3), rng.nextSignedInt(3)) + 1);
+        nameTitled = name + " the " + archetype.name;
         glow = new Radiance(0.9f,
                 Visuals.getYCwCmSat(0xA0, 0xFF, 0x08, 0x40),
                 0f,
@@ -64,7 +72,7 @@ public class Creature {
 //                Visuals.getYCwCmSat((c & 0x3F) + 0x90, c >>> 8 & 0xFF, c >>> 16 & 0xFF, (c >>> 26) + 20),
 //                rng.nextFloat() * 0.45f + 0.3f,
 //                0f);
-        this.moveType = moveType;
+        moveType = archetype.move;
         this.costs = moveType.moves;
         this.stats = (stats == null)
                 ? new StatHolder(rng.between(4, 16), rng.between(4, 16)) 
