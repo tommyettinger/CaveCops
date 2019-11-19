@@ -574,6 +574,8 @@ public class CaveCops extends ApplicationAdapter {
             }
             else 
                 message = target.nameTitled + " resists your authority!";
+            mode = ANIMATE;
+            animationStart = TimeUtils.millis();
             return;
         }
         if (onGrid(end.x, end.y) && dl.bareDungeon[end.x][end.y] != '#')

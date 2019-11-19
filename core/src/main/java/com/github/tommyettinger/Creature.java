@@ -4,6 +4,7 @@ import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.utils.IntFloatMap;
 import squidpony.FakeLanguageGen;
+import squidpony.StringKit;
 import squidpony.squidai.DijkstraMap;
 import squidpony.squidgrid.Measurement;
 import squidpony.squidmath.Coord;
@@ -61,7 +62,7 @@ public class Creature {
         rng = new SilkRNG(CrossHash.hash64(archetype.name) + coord.x ^
                 DiverRNG.randomize(coord.hashCode()) - coord.y);
         name = FakeLanguageGen.GOBLIN.word(rng, true, Math.min(rng.nextSignedInt(3), rng.nextSignedInt(3)) + 1);
-        nameTitled = name + " the " + archetype.name;
+        nameTitled = name + " the " + StringKit.capitalize(archetype.name);
         glow = new Radiance(0.9f,
                 Visuals.getYCwCmSat(0xA0, 0xFF, 0x08, 0x40),
                 0f,
