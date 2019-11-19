@@ -74,6 +74,7 @@ public class CaveCops extends ApplicationAdapter {
     // This maps chars, such as '#', to specific images, such as a pillar.
     private IntMap<Animation<TextureAtlas.AtlasRegion>> charMapping;
     private IntMap<ArrayList<Animation<TextureAtlas.AtlasRegion>>> decorationMapping;
+    public Animation<TextureAtlas.AtlasRegion> allyMarker, neutralMarker;
     public TextureAtlas.AtlasRegion pixel;
     private IntIntMap decorationIndices;
     private BitmapFont font;
@@ -104,7 +105,7 @@ public class CaveCops extends ApplicationAdapter {
     /** The pixel height of a cell */
     private static final int cellHeight = 32;
     public long startTime = 0L, animationStart = 0L;
-    private Animation<TextureAtlas.AtlasRegion> solid, playerAnimation;
+    private Animation<TextureAtlas.AtlasRegion> solid;
 
     private InputProcessor input;
 
@@ -115,8 +116,7 @@ public class CaveCops extends ApplicationAdapter {
     private ArrayList<Coord> awaitedMoves;
 
     private Vector2 pos = new Vector2();
-
-
+    
 //    private double[][] resistance;
     private double[][] visible;
     // Here, we use a GreasedRegion to store all floors that the player can walk on, a small rim of cells just beyond
@@ -230,7 +230,8 @@ public class CaveCops extends ApplicationAdapter {
 //        spawnMapping = new IntMap<>(64);
         solid = mapping.get("day tile floor c");
         pixel = atlas.findRegion("pixel");
-        playerAnimation = mapping.get("keystone kop");
+        allyMarker = mapping.get("heart marker");
+        neutralMarker = mapping.get("peace marker");
         charMapping.put('.', solid);
         charMapping.put(',', mapping.get("brick clear pool center"      ));
         charMapping.put('~', mapping.get("brick murky pool center"      ));
@@ -382,6 +383,14 @@ public class CaveCops extends ApplicationAdapter {
         }
         creatures = new Populace(dl);
         creatureFactory = new CreatureFactory(creatures, mapping);
+
+        playerCreature = creatureFactory.place();
+        playerCreature.glow.range = 1f;
+        playerCreature.glow.color = Visuals.getYCwCmSat(0xB0, 0x00, 0x60, 0x70);
+        playerCreature.glow.flicker = 0f;
+        playerCreature.glow.strobe = 0.9f;
+        playerCreature.glow.delay = 0f;
+        
         for (int i = 0; i < CREATURE_COUNT; i++) {
             creatureFactory.place();
         }
@@ -419,18 +428,10 @@ public class CaveCops extends ApplicationAdapter {
         // being especially fast. Both of them can be seen as storing regions of points in 2D space as "on" and "off."
 
         // Here we fill a GreasedRegion so it stores the cells that contain a floor, the '.' char, as "on."
-        dl.floors.refill(dl.bareDungeon, '.');
-        //player is, here, just a Coord that stores his position. In a real game, you would probably have a class for
-        //creatures, and possibly a subclass for the player. The singleRandom() method on GreasedRegion finds one Coord
-        // in that region that is "on," or -1,-1 if there are no such cells. It takes an RNG object as a parameter, and
-        // if you gave a seed to the RNG constructor, then the cell this chooses will be reliable for testing. If you
-        // don't seed the RNG, any valid cell should be possible.
-        playerCreature = new Creature(playerAnimation, dl.floors.singleRandom(rng), Creature.MoveType.WALKING);
-        playerCreature.glow = new Radiance(1f, Visuals.getYCwCmSat(0xB0, 0x00, 0x60, 0x70), 0f, 0.9f, languageRNG.nextFloat());
-        playerCreature.configureMap(creatures.dl);
-        creatures.putAt(playerCreature.moth.end, playerCreature, 0);
-        dl.lighting.addLight(playerCreature.moth.start, playerCreature.glow);
-//        dl.lighting.calculateFOV(playerCreature.moth.start);
+        
+        ////TODO: not sure if next line is needed?
+        //dl.floors.refill(dl.bareDungeon, '.');
+        
         dl.lighting.updateAll();
         // Uses shadowcasting FOV and reuses the visible array without creating new arrays constantly.
         //FOV.reuseFOV(resistance, visible, playerCreature.moth.start.x, playerCreature.moth.start.y, 9.0, Radius.CIRCLE);//, (System.currentTimeMillis() & 0xFFFF) * 0x1p-4, 60.0);
@@ -733,7 +734,7 @@ public class CaveCops extends ApplicationAdapter {
 //        for (int i = 0; i < monsters.size(); i++) {
 //            monsters.getAt(i).draw(batch);
 //        }
-        for (int i = 0; i < creatures.size(); i++) {
+        for (int i = 0; i < 1; i++) {
             Coord pos = creatures.keyAt(i);
             if(visible[pos.x][pos.y] > 0) {
                 creature = creatures.getAt(i);
@@ -741,6 +742,20 @@ public class CaveCops extends ApplicationAdapter {
                 batch.draw(creature.moth.animate(time), creature.moth.getX(), creature.moth.getY(), 1f, 1f);
                 batch.setPackedColor(Visuals.FLOAT_HOT);
                 batch.draw(pixel, creature.moth.getX() + 0x1p-4f, creature.moth.getY() + 0x1p-4f, creature.stats.get(Stat.HEALTH) * 0x1p-4f, 0x1p-4f);
+                batch.setPackedColor(Visuals.FLOAT_NEUTRAL);
+                batch.draw(allyMarker.getKeyFrame(time * 1.3f), creature.moth.getX(), creature.moth.getY() + 0.5f, 1f, 1f);
+            }
+        }
+        for (int i = 1; i < creatures.size(); i++) {
+            Coord pos = creatures.keyAt(i);
+            if(visible[pos.x][pos.y] > 0) {
+                creature = creatures.getAt(i);
+                batch.setPackedColor(creature.moth.color);
+                batch.draw(creature.moth.animate(time), creature.moth.getX(), creature.moth.getY(), 1f, 1f);
+                batch.setPackedColor(Visuals.FLOAT_HOT);
+                batch.draw(pixel, creature.moth.getX() + 0x1p-4f, creature.moth.getY() + 0x1p-4f, creature.stats.get(Stat.HEALTH) * 0x1p-4f, 0x1p-4f);
+//                batch.setPackedColor(Visuals.FLOAT_NEUTRAL);
+//                batch.draw(neutralMarker.getKeyFrame(time), creature.moth.getX(), creature.moth.getY() + 0.5f, 1f, 1f);
             }
         }
 //        batch.setPackedColor(playerCreature.moth.color);

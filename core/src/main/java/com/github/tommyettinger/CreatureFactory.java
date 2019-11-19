@@ -86,6 +86,7 @@ public class CreatureFactory {
             name = creatureName;
             move = moveType;
             attacks = new ArrayList<>(4);
+            attacks.add(new Attack(1, CRUSHING, SLAM));
             hands = handCount;
             this.handType = handType;
         }
