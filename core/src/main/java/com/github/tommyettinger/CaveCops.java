@@ -502,9 +502,16 @@ public class CaveCops extends ApplicationAdapter {
                 if(mode != SELECT) return false;
                 pos.set(screenX, screenY);
                 mainViewport.unproject(pos);
-                if (onGrid(MathUtils.floor(pos.x), MathUtils.floor(pos.y))) {
-                    mouseMoved(screenX, screenY);
-                    awaitedMoves.addAll(toCursor);
+                int cx, cy;
+                if (onGrid(cx = MathUtils.floor(pos.x), cy = MathUtils.floor(pos.y))) {
+                    Coord c = Coord.get(cx, cy);
+                    if(c.distanceSq(playerCreature.moth.start) == 1 && creatures.containsKey(c)) {
+                        move(playerCreature.moth.start, c);
+                    }
+                    else {
+                        mouseMoved(screenX, screenY);
+                        awaitedMoves.addAll(toCursor);
+                    }
                     return true;
                 }
                 return false;
