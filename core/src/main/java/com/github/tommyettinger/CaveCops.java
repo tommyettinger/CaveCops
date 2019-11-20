@@ -770,8 +770,10 @@ public class CaveCops extends ApplicationAdapter {
             {
                 mode = NPC;
                 animationStart = TimeUtils.millis();
+                Attack atk;
                 for (int i = 1; i < creatures.size(); i++) {
-                    creatures.act(creatures.keyAt(i));
+                    if((atk = creatures.act(creatures.keyAt(i))) != null)
+                        message += "\n" + creatures.getAt(i).nameTitled + " attacks you with a " + atk.damageType + " " + atk.attackType + "!";
                 }
 
                 // this only happens if we just removed the last Coord from awaitedMoves, and it's only then that we need to

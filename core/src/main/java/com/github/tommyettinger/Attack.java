@@ -17,13 +17,24 @@ public class Attack {
         KICK,
         PECK,
         RAY,
-        SHRAPNEL,
+        SHARD,
         SLAM,
         SPUR,
         STING,
         TAIL,
         TONGUE,
-        WAVE,
+        WAVE;
+        
+        public String printName;
+
+        AttackType()
+        {
+            printName = name().toLowerCase();
+        }
+        @Override
+        public String toString() {
+            return printName;
+        }
     }
 
     /**
@@ -48,6 +59,18 @@ public class Attack {
         STUNNING,
         THRASHING,
         ZAPPING;
+
+        public String printName;
+
+        DamageType()
+        {
+            printName = name().toLowerCase();
+        }
+        @Override
+        public String toString() {
+            return printName;
+        }
+
     }
     
     public int attackCount;

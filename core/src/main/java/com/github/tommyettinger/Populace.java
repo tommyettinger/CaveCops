@@ -31,12 +31,12 @@ public class Populace extends OrderedMap<Coord, Creature> {
         return super.put(creature.moth.end, creature);
     }
 
-    public Coord act(Coord startingPosition)
+    public Attack act(Coord startingPosition)
     {
         Coord playerPosition = keyAt(0);
         Creature creature = get(startingPosition);
         if(creature == null)
-            return startingPosition;
+            return null;
 //        if(creature.rng.next(4) >= creature.activity)
 //            return startingPosition;
 //        g.refill(creature.dijkstraMap.costMap, 0.0, 10.0).remove(startingPosition);
@@ -50,19 +50,19 @@ public class Populace extends OrderedMap<Coord, Creature> {
 //        creature.dijkstraMap.setGoal(startingPosition.translate(-1, 0));
 //        creature.dijkstraMap.setGoal(startingPosition.translate(0, 1));
 //        creature.dijkstraMap.setGoal(startingPosition.translate(0, -1));
-        creature.dijkstraMap.partialScan(startingPosition, 9, keys);
+        creature.dijkstraMap.partialScan(startingPosition, 9, keySet());
         tempPath.clear();
         creature.dijkstraMap.findPathPreScanned(tempPath, startingPosition);
         putAt(playerPosition, player, 0);
         if(tempPath.size() < 2)
-            return startingPosition;
+            return null;//creature.rng.getRandomElement(creature.archetype.attacks);
         Coord goal = tempPath.get(tempPath.size() - 2);
         if(goal.equals(playerPosition))
-            return startingPosition;
+            return creature.rng.getRandomElement(creature.archetype.attacks);
         creature.moth.end = goal;
         creature.moth.alpha = 0f;
         alterCarefully(startingPosition, creature.moth.end);
         dl.lighting.moveLight(startingPosition, creature.moth.end);
-        return creature.moth.end;
+        return null;
     }
 }
