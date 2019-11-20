@@ -578,6 +578,9 @@ public class CaveCops extends ApplicationAdapter {
                 message = "You served harsh justice to " + target.nameTitled + ".";
                 creatures.remove(end);
                 dl.lighting.removeLight(end);
+                impassable.remove(end);
+                cursor = start;
+                playerToCursor.partialScan(gridWidth + gridHeight, impassable);
             }
             else 
                 message = target.nameTitled + " resists your authority!";
@@ -588,8 +591,8 @@ public class CaveCops extends ApplicationAdapter {
         if (onGrid(end.x, end.y) && dl.bareDungeon[end.x][end.y] != '#')
         {
             creatures.alterCarefully(playerCreature.moth.end, end);
-                dl.lighting.moveLight(start, end);
-                dl.lighting.calculateFOV(end);
+            dl.lighting.moveLight(start, end);
+            dl.lighting.calculateFOV(end);
             playerCreature.moth.start = start;
             playerCreature.moth.end = end;
             playerCreature.moth.alpha = 0f;
