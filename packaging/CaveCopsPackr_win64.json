@@ -1,6 +1,7 @@
 {
   "platform": "windows64",
-  "jdk": "C:/Program Files/AdoptOpenJDK/jdk-14-jpackage",
+  "jdk": "${java.home}",
+  "cachejre": "D:/PackrJREs/jdk-13.0.1_9_win64_cache",
   "executable": "CaveCops",
   "classpath": [
     "../desktop/build/libs/CaveCops-Demo.jar"
@@ -14,5 +15,5 @@
   "removelibs": [
     "CaveCops-Demo.jar"
   ],
-  "output": "out"
+  "output": "out/win64"
 }

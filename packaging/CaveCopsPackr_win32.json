@@ -1,0 +1,19 @@
+{
+  "platform": "windows32",
+  "jdk": "${java.home}",
+  "cachejre": "D:/PackrJREs/jdk-13.0.1_9_win32_cache",
+  "executable": "CaveCops",
+  "classpath": [
+    "../desktop/build/libs/CaveCops-Demo.jar"
+  ],
+  "mainclass": "com.github.tommyettinger.desktop.DesktopLauncher",
+  "vmargs": [
+    "Xmx1G"
+  ],
+  "resources": [
+  ],
+  "removelibs": [
+    "CaveCops-Demo.jar"
+  ],
+  "output": "out/win32"
+}
