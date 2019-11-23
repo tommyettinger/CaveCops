@@ -1,0 +1,19 @@
+{
+  "platform": "linux64",
+  "jdk": "/home/tommy/Code/PackrJREs/jdk_13.0.1_9_linux64_2",
+  "cachejre": "/home/tommy/Code/PackrJREs/jdk_13.0.1_9_linux64_2_cache",
+  "executable": "CaveCops",
+  "classpath": [
+    "../desktop/build/libs/CaveCops-Demo.jar"
+  ],
+  "mainclass": "com.github.tommyettinger.desktop.DesktopLauncher",
+  "vmargs": [
+    "Xmx1G"
+  ],
+  "resources": [
+  ],
+  "removelibs": [
+    "CaveCops-Demo.jar"
+  ],
+  "output": "out/linux64"
+}
