@@ -25,7 +25,7 @@ public class Attack {
         TONGUE,
         WAVE;
         
-        public String printName;
+        public final String printName;
 
         AttackType()
         {
@@ -41,29 +41,31 @@ public class Attack {
      * Created by Tommy Ettinger on 11/17/2019.
      */
     public enum DamageType {
-        BURNING,
-        CRUSHING,
-        CURSING,
-        DISGUSTING,
-        FREEZING,
-        GOUGING,
-        GRABBING,
-        MORPHING,
-        PIERCING,
-        QUAKING,
-        RIPPING,
-        SHINING,
-        SHOCKING,
-        SLICING,
-        SOAKING,
-        STUNNING,
-        THRASHING,
-        ZAPPING;
+        BURNING(true),
+        CRUSHING(false),
+        CURSING(true),
+        DISGUSTING(false),
+        FREEZING(true),
+        GOUGING(false),
+        GRABBING(false),
+        MORPHING(true),
+        PIERCING(false),
+        QUAKING(false),
+        RIPPING(false),
+        SHINING(true),
+        SHOCKING(true),
+        SLICING(false),
+        SOAKING(true),
+        STUNNING(true),
+        THRASHING(false),
+        ZAPPING(true);
 
-        public String printName;
+        public final String printName;
+        public final boolean isMagical;
 
-        DamageType()
+        DamageType(boolean magical)
         {
+            isMagical = magical;
             printName = name().toLowerCase();
         }
         @Override

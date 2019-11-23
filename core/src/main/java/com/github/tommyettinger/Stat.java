@@ -9,7 +9,7 @@ public enum Stat {
     PERSONA,
     INTELLECT,
     TOUGHNESS,
-    AGILIY,
+    AGILITY,
     ;
     public static final Stat[] all = values(); 
 }

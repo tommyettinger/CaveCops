@@ -16,6 +16,15 @@ public class StatHolder {
         values[0] = this.maxHealth = maxHealth;
         values[1] = this.maxEnergy = maxEnergy;
     }
+    public StatHolder(int maxHealth, int maxEnergy, int... statValues)
+    {
+        values = new int[Stat.all.length];
+        values[0] = this.maxHealth = maxHealth;
+        values[1] = this.maxEnergy = maxEnergy;
+        for (int i = 0, v = 2; i < statValues.length && v < values.length; i++, v++) {
+            values[v] = statValues[i];
+        }
+    }
     public int get(Stat stat)
     {
         return values[stat.ordinal()];

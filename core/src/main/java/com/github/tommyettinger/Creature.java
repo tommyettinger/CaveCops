@@ -76,7 +76,8 @@ public class Creature {
         moveType = archetype.move;
         this.costs = moveType.moves;
         this.stats = (stats == null)
-                ? new StatHolder(rng.between(4, 16), rng.between(4, 16)) 
+                ? new StatHolder(rng.between(4, 16), rng.between(4, 16),
+                rng.next(2)+1, rng.next(2)+1, rng.next(2)+1, rng.next(2)+1) 
                 : stats;
     }
 
