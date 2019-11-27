@@ -7,10 +7,7 @@ import squidpony.FakeLanguageGen;
 import squidpony.StringKit;
 import squidpony.squidai.DijkstraMap;
 import squidpony.squidgrid.Measurement;
-import squidpony.squidmath.Coord;
-import squidpony.squidmath.CrossHash;
-import squidpony.squidmath.DiverRNG;
-import squidpony.squidmath.SilkRNG;
+import squidpony.squidmath.*;
 
 /**
  * Created by Tommy Ettinger on 9/23/2019.
@@ -25,6 +22,7 @@ public class Creature {
     public int activity = 12;
     public DijkstraMap dijkstraMap;
     public SilkRNG rng;
+    public TweakRNG fortune;
     public Radiance glow;
     
     public StatHolder stats;
@@ -59,8 +57,10 @@ public class Creature {
     {
         moth = new Moth(animation, coord);
         this.archetype = archetype;
-        rng = new SilkRNG(CrossHash.hash64(archetype.name) + coord.x ^
-                DiverRNG.randomize(coord.hashCode()) - coord.y);
+        final long a = CrossHash.hash64(archetype.name) + coord.x,
+                b = DiverRNG.randomize(coord.hashCode()) - coord.y;
+        rng = new SilkRNG(a ^ b);
+        fortune = new TweakRNG(b, a, (a & b) >>> 54, -500);
         name = FakeLanguageGen.GOBLIN.word(rng, true, Math.min(rng.nextSignedInt(3), rng.nextSignedInt(3)) + 1);
         nameTitled = name + " the " + StringKit.capitalize(archetype.name);
         glow = new Radiance(0.9f,

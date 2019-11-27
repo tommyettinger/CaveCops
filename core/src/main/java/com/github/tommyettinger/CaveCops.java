@@ -320,6 +320,9 @@ public class CaveCops extends ApplicationAdapter {
         playerCreature.glow.flicker = 0f;
         playerCreature.glow.strobe = 0.9f;
         playerCreature.glow.delay = 0f;
+        playerCreature.stats.set(Stat.TOUGHNESS, 5);
+        playerCreature.stats.set(Stat.AGILITY, 4);
+        playerCreature.fortune.setFavor(20000);
 
         message = "Go get 'em, Officer " + playerCreature.nameTitled + "!";
 
@@ -580,16 +583,23 @@ public class CaveCops extends ApplicationAdapter {
         {
             awaitedMoves.clear();
             toCursor.clear();
-            if(target.stats.inc(Stat.HEALTH, -1) <= 0) {
-                message = "You served harsh justice to " + target.nameTitled + ".";
-                creatures.remove(end);
-                dl.lighting.removeLight(end);
-                impassable.remove(end);
-                cursor = start;
-                playerToCursor.partialScan(gridWidth + gridHeight, impassable);
+            Attack atk = playerCreature.rng.getRandomElement(playerCreature.archetype.attacks);
+            if(playerCreature.fortune.nextSignedInt(playerCreature.stats.get(Stat.AGILITY)) < target.fortune.nextSignedInt(target.stats.get(Stat.AGILITY)))
+                message = target.nameTitled + " resists your authority, and your attack misses!";
+            else
+            {
+                final int damage = Math.max(playerCreature.fortune.nextSignedInt(playerCreature.stats.get(Stat.TOUGHNESS)) - target.fortune.nextSignedInt(target.stats.get(Stat.TOUGHNESS)), 0);
+                message = "You hit " + target.nameTitled + " with a " + atk.damageType + " " + atk.attackType + " for " + damage + " damage!";
+                if(target.stats.inc(Stat.HEALTH, -damage) <= 0)
+                {
+                    message += "\nYou served harsh justice to " + target.nameTitled + ".";
+                    creatures.remove(end);
+                    dl.lighting.removeLight(end);
+                    impassable.remove(end);
+                    cursor = start;
+                    playerToCursor.partialScan(gridWidth + gridHeight, impassable);
+                }
             }
-            else 
-                message = target.nameTitled + " resists your authority!";
             mode = ANIMATE;
             animationStart = TimeUtils.millis();
             return;
@@ -777,9 +787,21 @@ public class CaveCops extends ApplicationAdapter {
                 mode = NPC;
                 animationStart = TimeUtils.millis();
                 Attack atk;
+                Creature attacker;
                 for (int i = 1; i < creatures.size(); i++) {
                     if((atk = creatures.act(creatures.keyAt(i))) != null)
-                        message += "\n" + creatures.getAt(i).nameTitled + " attacks you with a " + atk.damageType + " " + atk.attackType + "!";
+                    {
+                        attacker = creatures.getAt(i);
+                        if(attacker.fortune.nextSignedInt(attacker.stats.get(Stat.AGILITY)) < playerCreature.fortune.nextSignedInt(playerCreature.stats.get(Stat.AGILITY))) 
+                            message += "\n" + attacker.nameTitled + " attacks you with a " + atk.damageType + " " + atk.attackType + ", but misses.";
+                        else
+                        {
+                            final int damage = Math.max(attacker.fortune.nextSignedInt(attacker.stats.get(Stat.TOUGHNESS)) - playerCreature.fortune.nextSignedInt(playerCreature.stats.get(Stat.TOUGHNESS)), 0);                             
+                            message += "\n" + attacker.nameTitled + " hits you with a " + atk.damageType + " " + atk.attackType + " for " + damage + " damage!";
+                            if(playerCreature.stats.inc(Stat.HEALTH, -damage) <= 0)
+                                message += "\nYOU ARE DEAD.";
+                        }
+                    }
                 }
 
                 // this only happens if we just removed the last Coord from awaitedMoves, and it's only then that we need to
