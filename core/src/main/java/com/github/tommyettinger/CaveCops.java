@@ -83,7 +83,7 @@ public class CaveCops extends ApplicationAdapter {
 //    private char[][] decoDungeon, bareDungeon, lineDungeon, prunedDungeon;
 //    private float[][] backgrounds;
     
-    public ShaderProgram shader;
+    public ShaderProgram shader, trueShader;
 //    public Vector3 add, mul;
     private Texture palette, currentPalette, oldPalette, bigPalette;
     
@@ -196,6 +196,8 @@ public class CaveCops extends ApplicationAdapter {
         shader = new ShaderProgram(Visuals.vertexShader, Visuals.fragmentShader);
         //shader = new ShaderProgram(Visuals.vertexShader, Visuals.fragmentShaderTrue);
         if (!shader.isCompiled()) throw new GdxRuntimeException("Couldn't compile shader: " + shader.getLog());
+        trueShader = new ShaderProgram(Visuals.vertexShader, Visuals.fragmentShaderTrue);
+        if (!trueShader.isCompiled()) throw new GdxRuntimeException("Couldn't compile shader: " + trueShader.getLog());
         batch = new MutantBatch(8000, shader);
 //        add = new Vector3(0, 0, 0);
 //        mul = new Vector3(1, 1, 1);
@@ -461,9 +463,13 @@ public class CaveCops extends ApplicationAdapter {
                         break;
                     case P:
                         if(Gdx.input.isKeyPressed(SHIFT_LEFT))
-                            palette = bigPalette;
+                            batch.setShader(trueShader);
+                            //palette = bigPalette;
                         else 
+                        {
+                            batch.setShader(shader);
                             palette = (palette == oldPalette) ? currentPalette : oldPalette;
+                        }
                         break;
 //                    case BACKSLASH:
 //                        byte[] pixels = ScreenUtils.getFrameBufferPixels(0, 0, Gdx.graphics.getBackBufferWidth(), Gdx.graphics.getBackBufferHeight(), true);
