@@ -20,33 +20,33 @@ import squidpony.squidmath.NumberTools;
  * Created by Tommy Ettinger on 8/2/2018.
  */
 public class MutantBatch implements Batch {
-    protected static final int SPRITE_SIZE = 20;
-    
-    protected Mesh mesh;
+    private static final int SPRITE_SIZE = 20;
 
-    protected final float[] vertices;
-    protected int idx = 0;
-    protected Texture lastTexture = null;
-    protected float invTexWidth = 0, invTexHeight = 0;
+    private Mesh mesh;
 
-    protected boolean drawing = false;
+    final float[] vertices;
+    int idx = 0;
+    Texture lastTexture = null;
+    float invTexWidth = 0, invTexHeight = 0;
 
-    protected final Matrix4 transformMatrix = new Matrix4();
-    protected final Matrix4 projectionMatrix = new Matrix4();
-    protected final Matrix4 combinedMatrix = new Matrix4();
+    boolean drawing = false;
 
-    protected boolean blendingDisabled = false;
-    protected int blendSrcFunc = GL20.GL_SRC_ALPHA;
-    protected int blendDstFunc = GL20.GL_ONE_MINUS_SRC_ALPHA;
-    protected int blendSrcFuncAlpha = GL20.GL_SRC_ALPHA;
-    protected int blendDstFuncAlpha = GL20.GL_ONE_MINUS_SRC_ALPHA;
+    private final Matrix4 transformMatrix = new Matrix4();
+    private final Matrix4 projectionMatrix = new Matrix4();
+    private final Matrix4 combinedMatrix = new Matrix4();
 
-    protected final ShaderProgram shader;
-    protected ShaderProgram customShader = null;
-    protected boolean ownsShader;
+    private boolean blendingDisabled = false;
+    private int blendSrcFunc = GL20.GL_SRC_ALPHA;
+    private int blendDstFunc = GL20.GL_ONE_MINUS_SRC_ALPHA;
+    private int blendSrcFuncAlpha = GL20.GL_SRC_ALPHA;
+    private int blendDstFuncAlpha = GL20.GL_ONE_MINUS_SRC_ALPHA;
 
-    public float color = Color.WHITE.toFloatBits(); // THIS IS PUBLIC BECAUSE PACKAGE-PRIVATE GOT US INTO THIS MESS!
-    protected final Color tempColor = new Color(1, 1, 1, 1);
+    private final ShaderProgram shader;
+    private ShaderProgram customShader = null;
+    private boolean ownsShader;
+
+    private float color = Visuals.FLOAT_NEUTRAL; // THIS IS PROTECTED BECAUSE PACKAGE-PRIVATE GOT US INTO THIS MESS!
+    private final Color tempColor = new Color(0.5f, 0.5f, 0.5f, 0.5f);
 
     /** Number of render calls since the last {@link #begin()}. **/
     public int renderCalls = 0;
@@ -186,8 +186,7 @@ public class MutantBatch implements Batch {
 
     @Override
     public void setColor (float r, float g, float b, float a) {
-        color = NumberTools.intBitsToFloat(((int)(0xFFp24f * a) & 0xFE000000)
-                | ((int)(0xFFp16f * b) & 0xFF0000) | ((int)(0xFFp8f * g) & 0xFF00) | ((int)(255f * r) & 0xFF));
+        color = NumberTools.intBitsToFloat(((int)(a * 255) << 24 & 0xFE000000) | ((int)(b * 255) << 16) | ((int)(g * 255) << 8) | ((int)(r * 255)));
     }
 
     public void setColor (final float color) {

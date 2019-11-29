@@ -19,6 +19,7 @@ import regexodus.Pattern;
 import regexodus.Replacer;
 import squidpony.FakeLanguageGen;
 import squidpony.Maker;
+import squidpony.StringKit;
 import squidpony.squidai.DijkstraMap;
 import squidpony.squidgrid.mapping.DungeonGenerator;
 import squidpony.squidgrid.mapping.FlowingCaveGenerator;
@@ -724,7 +725,7 @@ public class CaveCops extends ApplicationAdapter {
         font.setColor(Visuals.COLOR_WHITE);
         font.draw(batch, 
                 message
-                        //+ "\nRunning at " + StringKit.padLeftStrict(Gdx.graphics.getFramesPerSecond() + " FPS???", ' ', 11)
+                        + '\n' + StringKit.padLeftStrict(Gdx.graphics.getFramesPerSecond() + " FPS", ' ', 11)
                         , (playerCreature.moth.getX() - mainViewport.getWorldWidth() * 0.25f),
                 (playerCreature.moth.getY() + mainViewport.getWorldHeight() * 0.375f), mainViewport.getWorldWidth() * 0.5f,
                 Align.center, true);

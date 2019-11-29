@@ -18,7 +18,8 @@ public class DesktopLauncher {
     private static LwjglApplicationConfiguration getDefaultConfiguration() {
         LwjglApplicationConfiguration configuration = new LwjglApplicationConfiguration();
         configuration.title = ("CaveCops");
-        configuration.vSyncEnabled = (true);
+        configuration.vSyncEnabled = (false);
+        configuration.foregroundFPS = 0;
         configuration.width = (40 * 32);
         configuration.height = (24 * 32);
         configuration.addIcon("libgdx128.png", Files.FileType.Internal);
