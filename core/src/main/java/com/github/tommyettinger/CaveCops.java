@@ -217,7 +217,8 @@ public class CaveCops extends ApplicationAdapter {
 
 //        palette = new Texture("AuroraLloyd_GLSL.png");
         palette = currentPalette = new Texture("Ward_GLSL.png");
-        oldPalette = new Texture("RelaxedRoll_GLSL.png");
+        oldPalette = new Texture("BW_GLSL.png");
+//        oldPalette = new Texture("RelaxedRoll_GLSL.png");
         bigPalette = new Texture("WardBonus_GLSL.png");
 //        palette = new Texture("GBGreen_GLSL.png");
 //        palette = new Texture("AuroraRelaxed_GLSL.png");
@@ -647,20 +648,20 @@ public class CaveCops extends ApplicationAdapter {
                         case '~':
                             dl.lighting.currentBackgrounds[i][j] =
                                     toCursor.contains(c)
-                                            ? NumberTools.setSelectedByte(dl.lighting.currentBackgrounds[i][j], 0, (byte)-26)
+                                            ? NumberTools.setSelectedByte(dl.lighting.currentBackgrounds[i][j], 0, (byte)230)
                                             : NumberTools.setSelectedByte(dl.lighting.currentBackgrounds[i][j], 0, (byte)(//dl.lighting.colorLighting[0][i][j] * 140
                                             110 + FastNoise.instance.getConfiguredNoise(i * 2f, j * 2f, time * 3.5f) * 60));
                             break;
                         case ',':
                             dl.lighting.currentBackgrounds[i][j] = 
                                     toCursor.contains(c)
-                                            ? NumberTools.setSelectedByte(dl.lighting.currentBackgrounds[i][j], 0, (byte)-26)
+                                            ? NumberTools.setSelectedByte(dl.lighting.currentBackgrounds[i][j], 0, (byte)230)
                                             : NumberTools.setSelectedByte(dl.lighting.currentBackgrounds[i][j], 0, (byte)(//dl.lighting.colorLighting[0][i][j] * 130
                                             140 + FastNoise.instance.getConfiguredNoise(i * 2.25f, j * 2.25f, time * 5.5f) * 50));
                                     break;
                         default:
                             if(toCursor.contains(c))
-                                dl.lighting.currentBackgrounds[i][j] = NumberTools.setSelectedByte(dl.lighting.currentBackgrounds[i][j], 0, (byte)-26);
+                                dl.lighting.currentBackgrounds[i][j] = NumberTools.setSelectedByte(dl.lighting.currentBackgrounds[i][j], 0, (byte)230);
                     }
 
             }

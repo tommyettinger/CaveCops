@@ -45,7 +45,7 @@ public class MutantBatch implements Batch {
     private ShaderProgram customShader = null;
     private boolean ownsShader;
 
-    private float color = Visuals.FLOAT_NEUTRAL; // THIS IS PROTECTED BECAUSE PACKAGE-PRIVATE GOT US INTO THIS MESS!
+    private float color = Visuals.FLOAT_NEUTRAL;
     private final Color tempColor = new Color(0.5f, 0.5f, 0.5f, 0.5f);
 
     /** Number of render calls since the last {@link #begin()}. **/
