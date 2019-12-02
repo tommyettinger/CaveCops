@@ -492,7 +492,10 @@ public class CaveCops extends ApplicationAdapter {
 //                        break;
                     case F:
                         if(Gdx.graphics.isFullscreen())
+                        {
                             Gdx.graphics.setWindowedMode(cellWidth * gridWidth, cellHeight * gridHeight);
+                            Gdx.graphics.setVSync(false);
+                        }
                         else 
                         {
                             Gdx.graphics.setFullscreenMode(Gdx.graphics.getDisplayMode());
@@ -734,7 +737,8 @@ public class CaveCops extends ApplicationAdapter {
 
     @Override
     public void render () {
-        //sync.sync(Gdx.graphics.getDisplayMode().refreshRate);
+        if(!Gdx.graphics.isFullscreen())
+            sync.sync(Gdx.graphics.getDisplayMode().refreshRate);
         // standard clear the background routine for libGDX
         Gdx.gl.glClearColor(bgColor.r, bgColor.g, bgColor.b, 1.0f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
