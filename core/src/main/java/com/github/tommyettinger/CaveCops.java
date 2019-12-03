@@ -316,7 +316,7 @@ public class CaveCops extends ApplicationAdapter {
         creatures = new Populace(dl);
         creatureFactory = new CreatureFactory(creatures, mapping);
 
-        playerCreature = creatureFactory.place();
+        playerCreature = creatureFactory.place("cop");
         playerCreature.glow.range = 1f;
         playerCreature.glow.color = Visuals.getYCwCmSat(0xB0, 0x00, 0x60, 0x70);
         playerCreature.glow.flicker = 0f;
@@ -324,12 +324,12 @@ public class CaveCops extends ApplicationAdapter {
         playerCreature.glow.delay = 0f;
         playerCreature.stats.set(Stat.TOUGHNESS, 5);
         playerCreature.stats.set(Stat.AGILITY, 4);
-        playerCreature.fortune.setFavor(20000);
+        playerCreature.fortune.setFavor(10000);
 
         message = "Go get 'em, Officer " + playerCreature.nameTitled + "!";
 
         for (int i = 0; i < CREATURE_COUNT; i++) {
-            creatureFactory.place();
+            creatureFactory.place("crook");
         }
 //        for(IntMap.Entry<ArrayList<Animation<TextureAtlas.AtlasRegion>>> e : spawnMapping.entries())
 //        {

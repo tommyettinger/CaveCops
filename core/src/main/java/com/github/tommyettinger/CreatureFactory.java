@@ -56,7 +56,7 @@ public class CreatureFactory {
         return cr;
     }
 
-    public Creature place(){
+    public Creature place(String faction){
         Coord pt;
         Creature cr;
         do {
@@ -65,6 +65,7 @@ public class CreatureFactory {
             Creature.MoveType move = arch.move;
             pt = rng.getRandomElement(regions.get(move));
             cr = new Creature(mapping.get(arch.name), pt, arch);
+            cr.faction = faction;
         } while (populace.containsKey(pt));
         populace.place(cr);
         return cr;

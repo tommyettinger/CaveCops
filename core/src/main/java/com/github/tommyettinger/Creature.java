@@ -16,6 +16,7 @@ public class Creature {
     public CreatureFactory.CreatureArchetype archetype;
     public String name;
     public String nameTitled;
+    public String faction;
     public Moth moth;
     public MoveType moveType;
     public IntFloatMap costs;
@@ -63,6 +64,7 @@ public class Creature {
         fortune = new TweakRNG(b, a, (a & b) >>> 54, -500);
         name = FakeLanguageGen.GOBLIN.word(rng, true, Math.min(rng.nextSignedInt(3), rng.nextSignedInt(3)) + 1);
         nameTitled = name + " the " + StringKit.capitalize(archetype.name);
+        faction = "crook";
         glow = new Radiance(0.9f,
                 Visuals.getYCwCmSat(0xA0, 0xFF, 0x08, 0x40),
                 0f,
