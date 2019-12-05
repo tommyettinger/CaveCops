@@ -17,6 +17,7 @@ public class Creature {
     public String name;
     public String nameTitled;
     public String faction;
+    public Coord lastTarget = null;
     public Moth moth;
     public MoveType moveType;
     public IntFloatMap costs;

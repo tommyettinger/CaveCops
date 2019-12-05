@@ -44,6 +44,7 @@ public class Populace extends OrderedMap<Coord, Creature> {
         Creature creature = get(startingPosition);
         if(creature == null)
             return null;
+        creature.lastTarget = null;
 //        if(creature.rng.next(4) >= creature.activity)
 //            return startingPosition;
 //        g.refill(creature.dijkstraMap.costMap, 0.0, 10.0).remove(startingPosition);
@@ -69,7 +70,10 @@ public class Populace extends OrderedMap<Coord, Creature> {
             return null;//creature.rng.getRandomElement(creature.archetype.attacks);
         final Coord goal = tempPath.get(tempPath.size() - 2);
         if(containsKey(goal) && !allies.contains(goal))
+        {
+            creature.lastTarget = goal;
             return creature.rng.getRandomElement(creature.archetype.attacks);
+        }
         creature.moth.end = goal;
         creature.moth.alpha = 0f;
         alterCarefully(startingPosition, goal);
@@ -94,6 +98,8 @@ public class Populace extends OrderedMap<Coord, Creature> {
         Creature creature = super.remove(k);
         if(creature != null)
             factions.get(creature.faction).remove(k);
+        dl.lighting.removeLight((Coord) k);
+        
         return creature;
     }
 }

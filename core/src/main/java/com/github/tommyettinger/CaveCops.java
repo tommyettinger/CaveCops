@@ -328,8 +328,11 @@ public class CaveCops extends ApplicationAdapter {
 
         message = "Go get 'em, Officer " + playerCreature.nameTitled + "!";
 
-        for (int i = 0; i < CREATURE_COUNT; i++) {
+        for (int i = 0; i < (CREATURE_COUNT >> 1); i++) {
             creatureFactory.place("crook");
+        }
+        for (int i = (CREATURE_COUNT >> 1); i < (CREATURE_COUNT); i++) {
+            creatureFactory.place("rogue");
         }
 //        for(IntMap.Entry<ArrayList<Animation<TextureAtlas.AtlasRegion>>> e : spawnMapping.entries())
 //        {
@@ -584,22 +587,22 @@ public class CaveCops extends ApplicationAdapter {
      */
     private void move(final Coord start, final Coord end) {
         Creature target;
+        message = "";
         if((target = creatures.get(end)) != null && target != playerCreature)
         {
             awaitedMoves.clear();
             toCursor.clear();
             Attack atk = playerCreature.rng.getRandomElement(playerCreature.archetype.attacks);
             if(playerCreature.fortune.nextSignedInt(playerCreature.stats.get(Stat.AGILITY)) < target.fortune.nextSignedInt(target.stats.get(Stat.AGILITY)))
-                message = target.nameTitled + " resists your authority, and your attack misses!";
+                message += target.nameTitled + " resists your authority, and your attack misses!";
             else
             {
                 final int damage = Math.max(playerCreature.fortune.nextSignedInt(playerCreature.stats.get(Stat.TOUGHNESS)) - target.fortune.nextSignedInt(target.stats.get(Stat.TOUGHNESS)), 0);
-                message = "You hit " + target.nameTitled + " with a " + atk.damageType + " " + atk.attackType + " for " + damage + " damage!";
+                message += "You hit " + target.nameTitled + " with a " + atk.damageType + " " + atk.attackType + " for " + damage + " damage!";
                 if(target.stats.inc(Stat.HEALTH, -damage) <= 0)
                 {
                     message += "\nYou served harsh justice to " + target.nameTitled + ".";
                     creatures.remove(end);
-                    dl.lighting.removeLight(end);
                     impassable.remove(end);
                     cursor = start;
                     playerToCursor.partialScan(gridWidth + gridHeight, impassable);
@@ -788,24 +791,28 @@ public class CaveCops extends ApplicationAdapter {
         }
         else if(mode == ANIMATE) {
             playerCreature.moth.alpha = TimeUtils.timeSinceMillis(animationStart) * 0.006f;
-            if(playerCreature.moth.alpha >= 1f)
-            {
+            if (playerCreature.moth.alpha >= 1f) {
                 mode = NPC;
                 animationStart = TimeUtils.millis();
                 Attack atk;
-                Creature attacker;
+                Creature attacker, victim;
                 for (int i = 1; i < creatures.size(); i++) {
-                    if((atk = creatures.act(creatures.keyAt(i))) != null)
-                    {
+                    if ((atk = creatures.act(creatures.keyAt(i))) != null) {
                         attacker = creatures.getAt(i);
-                        if(attacker.fortune.nextSignedInt(attacker.stats.get(Stat.AGILITY)) < playerCreature.fortune.nextSignedInt(playerCreature.stats.get(Stat.AGILITY))) 
-                            message += "\n" + attacker.nameTitled + " attacks you with a " + atk.damageType + " " + atk.attackType + ", but misses.";
-                        else
-                        {
-                            final int damage = Math.max(attacker.fortune.nextSignedInt(attacker.stats.get(Stat.TOUGHNESS)) - playerCreature.fortune.nextSignedInt(playerCreature.stats.get(Stat.TOUGHNESS)), 0);                             
-                            message += "\n" + attacker.nameTitled + " hits you with a " + atk.damageType + " " + atk.attackType + " for " + damage + " damage!";
-                            if(playerCreature.stats.inc(Stat.HEALTH, -damage) <= 0)
-                                message += "\nYOU ARE DEAD.";
+                        victim = creatures.get(attacker.lastTarget);
+                        if (attacker.fortune.nextSignedInt(attacker.stats.get(Stat.AGILITY)) < victim.fortune.nextSignedInt(victim.stats.get(Stat.AGILITY)))
+                            message += "\n" + attacker.nameTitled + " attacks " + victim.nameTitled + " with a " + atk.damageType + " " + atk.attackType + ", but misses.";
+                        else {
+                            final int damage = Math.max(attacker.fortune.nextSignedInt(attacker.stats.get(Stat.TOUGHNESS)) - victim.fortune.nextSignedInt(victim.stats.get(Stat.TOUGHNESS)), 0);
+                            message += "\n" + attacker.nameTitled + " hits " + victim.nameTitled + " with a " + atk.damageType + " " + atk.attackType + " for " + damage + " damage!";
+                            if (victim.stats.inc(Stat.HEALTH, -damage) <= 0) {
+                                if (victim.faction.equals("cop")) {
+                                    message += "\nYOU ARE DEAD.";
+                                } else {
+                                    message += "\n" + victim.nameTitled + " was killed!";
+                                    creatures.remove(attacker.lastTarget);
+                                }
+                            }
                         }
                     }
                 }
@@ -814,25 +821,24 @@ public class CaveCops extends ApplicationAdapter {
                 // re-calculate the distances from all cells to the player. We don't need to calculate this information on
                 // each part of a many-cell move (just the end), nor do we need to calculate it whenever the mouse moves.
 //                if (awaitedMoves.isEmpty()) {
-                    // the next two lines remove any lingering data needed for earlier paths
-                    playerToCursor.clearGoals();
-                    playerToCursor.resetMap();
-                    // the next line marks the player as a "goal" cell, which seems counter-intuitive, but it works because all
-                    // cells will try to find the distance between themselves and the nearest goal, and once this is found, the
-                    // distances don't change as long as the goals don't change. Since the mouse will move and new paths will be
-                    // found, but the player doesn't move until a cell is clicked, the "goal" is the non-changing cell (the
-                    // player's position), and the "target" of a pathfinding method like DijkstraMap.findPathPreScanned() is the
-                    // currently-moused-over cell, which we only need to set where the mouse is being handled.
-                    playerToCursor.setGoal(playerCreature.moth.end);
-                    // DijkstraMap.partialScan only finds the distance to get to a cell if that distance is less than some limit,
-                    // which is 13 here. It also won't try to find distances through an impassable cell, which here is the blockage
-                    // GreasedRegion that contains the cells just past the edge of the player's FOV area.
-                    impassable.clear();
-                    //impassable.addAll(blockage);
-                    impassable.addAll(creatures.keySet());
-                    playerToCursor.partialScan(gridWidth + gridHeight, impassable);
-                    
-                    //message = anReplacer.replace(zodiacShuffler.next() + phraseShuffler.next() + meaningShuffler.next().replace("@", zodiacShuffler.next()));
+                // the next two lines remove any lingering data needed for earlier paths
+                playerToCursor.clearGoals();
+                playerToCursor.resetMap();
+                // the next line marks the player as a "goal" cell, which seems counter-intuitive, but it works because all
+                // cells will try to find the distance between themselves and the nearest goal, and once this is found, the
+                // distances don't change as long as the goals don't change. Since the mouse will move and new paths will be
+                // found, but the player doesn't move until a cell is clicked, the "goal" is the non-changing cell (the
+                // player's position), and the "target" of a pathfinding method like DijkstraMap.findPathPreScanned() is the
+                // currently-moused-over cell, which we only need to set where the mouse is being handled.
+                playerToCursor.setGoal(playerCreature.moth.end);
+                // DijkstraMap.partialScan only finds the distance to get to a cell if that distance is less than some limit,
+                // which is 13 here. It also won't try to find distances through an impassable cell, which here is the blockage
+                // GreasedRegion that contains the cells just past the edge of the player's FOV area.
+                impassable.clear();
+                //impassable.addAll(blockage);
+                impassable.addAll(creatures.keySet());
+                playerToCursor.partialScan(gridWidth + gridHeight, impassable);
+                //message = anReplacer.replace(zodiacShuffler.next() + phraseShuffler.next() + meaningShuffler.next().replace("@", zodiacShuffler.next()));
 //                }
 
             }
