@@ -322,8 +322,8 @@ public class CaveCops extends ApplicationAdapter {
         playerCreature.glow.flicker = 0f;
         playerCreature.glow.strobe = 0.9f;
         playerCreature.glow.delay = 0f;
-        playerCreature.stats.set(Stat.TOUGHNESS, 5);
-        playerCreature.stats.set(Stat.AGILITY, 4);
+        playerCreature.stats.set(Stat.TOUGHNESS, 7);
+        playerCreature.stats.set(Stat.AGILITY, 6);
         playerCreature.fortune.setFavor(10000);
 
         message = "Go get 'em, Officer " + playerCreature.nameTitled + "!";
@@ -581,14 +581,13 @@ public class CaveCops extends ApplicationAdapter {
     }
     /**
      * Move the player if he isn't bumping into a wall or trying to go off the map somehow.
-     * In a fully-fledged game, this would not be organized like this, but this is a one-file demo.
      * @param start
      * @param end
      */
     private void move(final Coord start, final Coord end) {
         Creature target;
         message = "";
-        if((target = creatures.get(end)) != null && target != playerCreature)
+        if((target = creatures.get(end)) != null && !target.faction.equals("cop"))
         {
             awaitedMoves.clear();
             toCursor.clear();
@@ -733,8 +732,8 @@ public class CaveCops extends ApplicationAdapter {
         font.draw(batch, 
                 message
                         + '\n' + StringKit.padLeftStrict(Gdx.graphics.getFramesPerSecond() + " FPS", ' ', 11)
-                        , (playerCreature.moth.getX() - mainViewport.getWorldWidth() * 0.25f),
-                (playerCreature.moth.getY() + mainViewport.getWorldHeight() * 0.375f), mainViewport.getWorldWidth() * 0.5f,
+                        , (playerCreature.moth.getX() - mainViewport.getWorldWidth() * 0.375f),
+                (playerCreature.moth.getY() + mainViewport.getWorldHeight() * 0.375f), mainViewport.getWorldWidth() * 0.75f,
                 Align.center, true);
     }
 
@@ -796,8 +795,9 @@ public class CaveCops extends ApplicationAdapter {
                 animationStart = TimeUtils.millis();
                 Attack atk;
                 Creature attacker, victim;
+                Coord startPoint;
                 for (int i = 1; i < creatures.size(); i++) {
-                    if ((atk = creatures.act(creatures.keyAt(i))) != null) {
+                    if ((startPoint = creatures.keyAt(i)).distanceSq(playerCreature.moth.end) <= 144 && (atk = creatures.act(startPoint)) != null) {
                         attacker = creatures.getAt(i);
                         victim = creatures.get(attacker.lastTarget);
                         if (attacker.fortune.nextSignedInt(attacker.stats.get(Stat.AGILITY)) < victim.fortune.nextSignedInt(victim.stats.get(Stat.AGILITY)))

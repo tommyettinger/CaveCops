@@ -59,11 +59,11 @@ public class Creature {
     {
         moth = new Moth(animation, coord);
         this.archetype = archetype;
-        final long a = CrossHash.hash64(archetype.name) + coord.x,
+        final long a = CrossHash.Yolk.alpha.hash64(archetype.name) + coord.x,
                 b = DiverRNG.randomize(coord.hashCode()) - coord.y;
         rng = new SilkRNG(a ^ b);
-        fortune = new TweakRNG(b, a, (a & b) >>> 54, -500);
         name = FakeLanguageGen.GOBLIN.word(rng, true, Math.min(rng.nextSignedInt(3), rng.nextSignedInt(3)) + 1);
+        fortune = new TweakRNG(a, b, -(CrossHash.Yolk.beta.hash64(name) >>> 50), CrossHash.Yolk.gamma.hash64(name) >> 56);
         nameTitled = name + " the " + StringKit.capitalize(archetype.name);
         faction = "crook";
         glow = new Radiance(0.9f,
@@ -80,7 +80,7 @@ public class Creature {
         this.costs = moveType.moves;
         this.stats = (stats == null)
                 ? new StatHolder(rng.between(4, 16), rng.between(4, 16),
-                rng.next(2)+1, rng.next(2)+1, rng.next(2)+1, rng.next(2)+1) 
+                rng.next(3)+1, rng.next(3)+1, rng.next(3)+1, rng.next(3)+1) 
                 : stats;
     }
 
