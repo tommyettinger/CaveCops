@@ -216,8 +216,8 @@ public class CaveCops extends ApplicationAdapter {
 //        font.getData().setLineHeight(font.getLineHeight() * 2f / cellHeight);
 
 //        palette = new Texture("AuroraLloyd_GLSL.png");
-        palette = currentPalette = new Texture("Ward_GLSL.png");
-        oldPalette = new Texture("BW_GLSL.png");
+        palette = currentPalette = new Texture("DB_Big_GLSL.png");
+        oldPalette = new Texture("Ward_GLSL.png");
 //        oldPalette = new Texture("RelaxedRoll_GLSL.png");
         bigPalette = new Texture("WardBonus_GLSL.png");
 //        palette = new Texture("GBGreen_GLSL.png");

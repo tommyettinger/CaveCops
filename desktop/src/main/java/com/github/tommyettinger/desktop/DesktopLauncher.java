@@ -22,6 +22,7 @@ public class DesktopLauncher {
         configuration.foregroundFPS = 0;
         configuration.width = (40 * 32);
         configuration.height = (24 * 32);
+        configuration.forceExit = false;
         configuration.addIcon("libgdx128.png", Files.FileType.Internal);
         configuration.addIcon("libgdx64.png", Files.FileType.Internal);
         configuration.addIcon("libgdx32.png", Files.FileType.Internal);
