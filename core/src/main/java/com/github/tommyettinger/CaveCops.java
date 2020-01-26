@@ -14,6 +14,7 @@ import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.scenes.scene2d.utils.UIUtils;
 import com.badlogic.gdx.utils.*;
 import regexodus.Pattern;
 import regexodus.Replacer;
@@ -86,7 +87,7 @@ public class CaveCops extends ApplicationAdapter {
     
     public ShaderProgram shader, trueShader;
 //    public Vector3 add, mul;
-    private Texture palette, currentPalette, oldPalette, bigPalette;
+    private Texture palette, currentPalette, oldPalette;//, bigPalette;
     
 //    public IndexedAPNG png;
 
@@ -199,7 +200,8 @@ public class CaveCops extends ApplicationAdapter {
         if (!shader.isCompiled()) throw new GdxRuntimeException("Couldn't compile shader: " + shader.getLog());
         trueShader = new ShaderProgram(Visuals.vertexShader, Visuals.fragmentShaderTrue);
         if (!trueShader.isCompiled()) throw new GdxRuntimeException("Couldn't compile shader: " + trueShader.getLog());
-        batch = new MutantBatch(8000, shader);
+        batch = new MutantBatch(8000, trueShader);
+//        batch = new MutantBatch(8000, shader);
 //        add = new Vector3(0, 0, 0);
 //        mul = new Vector3(1, 1, 1);
 
@@ -217,9 +219,10 @@ public class CaveCops extends ApplicationAdapter {
 
 //        palette = new Texture("AuroraLloyd_GLSL.png");
         palette = currentPalette = new Texture("DB_Big_GLSL.png");
-        oldPalette = new Texture("Ward_GLSL.png");
+        oldPalette = new Texture("DB_Easy_GLSL.png");
+//        bigPalette = new Texture("WardBonus_GLSL.png");
+//        oldPalette = new Texture("Ward_GLSL.png");
 //        oldPalette = new Texture("RelaxedRoll_GLSL.png");
-        bigPalette = new Texture("WardBonus_GLSL.png");
 //        palette = new Texture("GBGreen_GLSL.png");
 //        palette = new Texture("AuroraRelaxed_GLSL.png");
 //        palette = new Texture("DB_Aurora_GLSL.png");
@@ -407,7 +410,8 @@ public class CaveCops extends ApplicationAdapter {
         impassable.addAll(creatures.keySet());
         playerToCursor.partialScan(gridWidth + gridHeight, impassable);
 
-        bgColor = new Color(0x100818ff); // for Ward
+        bgColor = new Color(0x080818ff); // for DB_Easy, I think also DB_Big
+//        bgColor = new Color(0x100818ff); // for Ward
 //        bgColor = new Color(0x100818FF); // for RelaxedRoll
 //        bgColor = new Color(0x132C2DFF); // for GBGreen16
 //        bgColor = new Color(0x000008FF);   // for AuroraLloyd
@@ -470,7 +474,7 @@ public class CaveCops extends ApplicationAdapter {
                         awaitedMoves.add(playerCreature.moth.start);
                         break;
                     case P:
-                        if(Gdx.input.isKeyPressed(SHIFT_LEFT))
+                        if(UIUtils.shift())
                             batch.setShader(trueShader);
                             //palette = bigPalette;
                         else 
@@ -647,27 +651,27 @@ public class CaveCops extends ApplicationAdapter {
         for (int i = 0; i < bigWidth; i++) {
             for (int j = 0; j < bigHeight; j++) {
                 c = Coord.get(i, j);
-                switch (dl.prunedDungeon[i][j])
-                    {
-                        case '"':
-                        case '~':
-                            dl.lighting.currentBackgrounds[i][j] =
-                                    toCursor.contains(c)
-                                            ? NumberTools.setSelectedByte(dl.lighting.currentBackgrounds[i][j], 0, (byte)230)
-                                            : NumberTools.setSelectedByte(dl.lighting.currentBackgrounds[i][j], 0, (byte)(//dl.lighting.colorLighting[0][i][j] * 140
-                                            110 + FastNoise.instance.getConfiguredNoise(i * 2f, j * 2f, time * 3.5f) * 60));
-                            break;
-                        case ',':
-                            dl.lighting.currentBackgrounds[i][j] = 
-                                    toCursor.contains(c)
-                                            ? NumberTools.setSelectedByte(dl.lighting.currentBackgrounds[i][j], 0, (byte)230)
-                                            : NumberTools.setSelectedByte(dl.lighting.currentBackgrounds[i][j], 0, (byte)(//dl.lighting.colorLighting[0][i][j] * 130
-                                            140 + FastNoise.instance.getConfiguredNoise(i * 2.25f, j * 2.25f, time * 5.5f) * 50));
-                                    break;
-                        default:
-                            if(toCursor.contains(c))
-                                dl.lighting.currentBackgrounds[i][j] = NumberTools.setSelectedByte(dl.lighting.currentBackgrounds[i][j], 0, (byte)230);
-                    }
+                switch (dl.prunedDungeon[i][j]) {
+                case '~':
+                    dl.lighting.currentBackgrounds[i][j] = toCursor.contains(c) ?
+                        NumberTools.setSelectedByte(dl.lighting.currentBackgrounds[i][j], 0, (byte)230) :
+                        NumberTools.setSelectedByte(dl.lighting.currentBackgrounds[i][j], 0, (byte)(//dl.lighting.colorLighting[0][i][j] * 140
+                            110 + FastNoise.instance.getConfiguredNoise(i * 2f, j * 2f, time * 4f) * 60
+                                + FoamNoise.foamNoise(i * 3.0, j * 3.0, time * 5.0, 123456789) * 5));
+                    break;
+                case '"':
+                case ',':
+                    dl.lighting.currentBackgrounds[i][j] = toCursor.contains(c) ?
+                        NumberTools.setSelectedByte(dl.lighting.currentBackgrounds[i][j], 0, (byte)230) :
+                        NumberTools.setSelectedByte(dl.lighting.currentBackgrounds[i][j], 0, (byte)(//dl.lighting.colorLighting[0][i][j] * 130
+                            125 + FastNoise.instance.getConfiguredNoise(i * 2f, j * 2f, time * 4f) * 50
+                                + FoamNoise.foamNoise(i * 3.0, j * 3.0, time * 5.0, 123456789) * 7));
+                    break;
+                default:
+                    if (toCursor.contains(c))
+                        dl.lighting.currentBackgrounds[i][j] = NumberTools
+                            .setSelectedByte(dl.lighting.currentBackgrounds[i][j], 0, (byte)230);
+                }
 
             }
         }
