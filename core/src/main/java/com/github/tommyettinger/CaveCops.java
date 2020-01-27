@@ -92,19 +92,19 @@ public class CaveCops extends ApplicationAdapter {
 //    public IndexedAPNG png;
 
     /** In number of cells */
-    private static final int gridWidth = 40;
+    public static final int gridWidth = 40;
     /** In number of cells */
-    private static final int gridHeight = 24;
+    public static final int gridHeight = 24;
 
     /** In number of cells */
-    private static final int bigWidth = gridWidth * 2;
+    public static final int bigWidth = gridWidth * 2;
     /** In number of cells */
-    private static final int bigHeight = gridHeight * 2;
+    public static final int bigHeight = gridHeight * 2;
 
     /** The pixel width of a cell */
-    private static final int cellWidth = 32;
+    public static final int cellWidth = 16;
     /** The pixel height of a cell */
-    private static final int cellHeight = 32;
+    public static final int cellHeight = 16;
     public long startTime = 0L, animationStart = 0L;
     private Animation<TextureAtlas.AtlasRegion> solid;
 
@@ -210,9 +210,9 @@ public class CaveCops extends ApplicationAdapter {
         camera = mainViewport.getCamera();
         camera.update();
         
-        atlas = new TextureAtlas("Dawnlike2.atlas");
+        atlas = new TextureAtlas("Dawnlike.atlas");
         mapping = makeMapping(atlas);
-        font = new BitmapFont(Gdx.files.internal("font2.fnt"), atlas.findRegion("font"));
+        font = new BitmapFont(Gdx.files.internal("font.fnt"), atlas.findRegion("font"));
         font.setUseIntegerPositions(false);
         font.getData().setScale(1f / cellHeight);
 //        font.getData().setLineHeight(font.getLineHeight() * 2f / cellHeight);

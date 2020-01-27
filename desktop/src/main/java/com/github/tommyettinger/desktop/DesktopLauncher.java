@@ -5,6 +5,11 @@ import com.badlogic.gdx.backends.lwjgl.LwjglApplication;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
 import com.github.tommyettinger.CaveCops;
 
+import static com.github.tommyettinger.CaveCops.cellHeight;
+import static com.github.tommyettinger.CaveCops.cellWidth;
+import static com.github.tommyettinger.CaveCops.gridHeight;
+import static com.github.tommyettinger.CaveCops.gridWidth;
+
 /** Launches the desktop (LWJGL 2) application. */
 public class DesktopLauncher {
     public static void main(String[] args) {
@@ -18,10 +23,10 @@ public class DesktopLauncher {
     private static LwjglApplicationConfiguration getDefaultConfiguration() {
         LwjglApplicationConfiguration configuration = new LwjglApplicationConfiguration();
         configuration.title = ("CaveCops");
-        configuration.vSyncEnabled = (false);
+        configuration.vSyncEnabled = true;
         configuration.foregroundFPS = 0;
-        configuration.width = (40 * 32);
-        configuration.height = (24 * 32);
+        configuration.width = gridWidth * cellWidth;
+        configuration.height = gridHeight * cellHeight;
         configuration.forceExit = false;
         configuration.addIcon("libgdx128.png", Files.FileType.Internal);
         configuration.addIcon("libgdx64.png", Files.FileType.Internal);
