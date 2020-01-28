@@ -2,6 +2,7 @@ package com.github.tommyettinger;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
+import com.github.tommyettinger.colorful.Palette;
 import squidpony.squidmath.NumberTools;
 
 /**
@@ -9,16 +10,17 @@ import squidpony.squidmath.NumberTools;
  */
 public class Visuals {
 
-    public static final Color COLOR_WHITE = new Color(1f, 0.5f, 0.5f, 0.5f);
-    public static final Color COLOR_BLACK = new Color(0f, 0.5f, 0.5f, 0f);
-    public static final Color COLOR_NEUTRAL = new Color(0.5f, 0.5f, 0.5f, 0.5f);
+    public static final Color COLOR_WHITE = Color.WHITE;
+    public static final Color COLOR_BLACK = Color.BLACK;
+    public static final Color COLOR_NEUTRAL = new Color(0.5f, 0.5f, 0.5f, 1f);
     
-    public static final float FLOAT_WHITE = getYCwCmSat(1f, 0.5f, 0.5f, 0.5f);
-    public static final float FLOAT_BLACK = getYCwCmSat(0f, 0.5f, 0.5f, 0f);
-    public static final float FLOAT_GRAY = getYCwCmSat(0.35f, 0.5f, 0.5f, 0.1f);
-    public static final float FLOAT_NEUTRAL = getYCwCmSat(0.5f, 0.5f, 0.5f, 0.5f);
-    public static final float FLOAT_HOT = getYCwCmSat(0.225f, 1.0f, 0.58f, 0.85f);
-    public static final float FLOAT_COLD = getYCwCmSat(0.3f, 0.0f, 0.45f, 0.4f);
+    public static final float FLOAT_WHITE = Palette.WHITE;
+    public static final float FLOAT_BLACK = Palette.BLACK;
+    public static final float FLOAT_GRAY = Palette.IRON;
+    public static final float FLOAT_NEUTRAL = Palette.GRAY;
+    public static final float FLOAT_HOT = Palette.RED;
+    public static final float FLOAT_COLD = Palette.AQUAMARINE;
+    public static final float FLOAT_LIGHT = Palette.PENCIL_YELLOW;
 
     /**
      * The "luma" of the given libGDX Color, which is like its lightness, in YCwCm format; ranges from 0f to 1f .

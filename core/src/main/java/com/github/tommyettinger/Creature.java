@@ -66,11 +66,11 @@ public class Creature {
         fortune = new TweakRNG(a, b, -(CrossHash.Yolk.beta.hash64(name) >>> 50), CrossHash.Yolk.gamma.hash64(name) >> 56);
         nameTitled = name + " the " + StringKit.capitalize(archetype.name);
         faction = "crook";
-        glow = new Radiance(0.9f,
-                Visuals.getYCwCmSat(0xA0, 0xFF, 0x08, 0x40),
+        glow = new Radiance(3f,
+                Visuals.FLOAT_HOT,
+                0.8f,
                 0f,
-                0.4f,
-                rng.nextFloat());
+                rng.nextFloat(), 0.35f);
 //          final int c = rng.nextInt();
 //          glow = new Radiance(rng.nextFloat() * 3f + 2f,
 //                Visuals.getYCwCmSat((c & 0x3F) + 0x90, c >>> 8 & 0xFF, c >>> 16 & 0xFF, (c >>> 26) + 20),

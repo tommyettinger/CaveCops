@@ -137,7 +137,8 @@ public class Radiance implements Serializable {
      */
     public Radiance(float range, Color color, float flicker, float strobe)
     {
-        this(range, Visuals.getYCwCmSat(Visuals.luma(color), Visuals.chromaWarm(color), Visuals.chromaMild(color), 0.5f), flicker, strobe, 0f, 0f);
+        //Visuals.getYCwCmSat(Visuals.luma(color), Visuals.chromaWarm(color), Visuals.chromaMild(color), 0.5f)
+        this(range, color.toFloatBits(), flicker, strobe, 0f, 0f);
     }
     
     /**

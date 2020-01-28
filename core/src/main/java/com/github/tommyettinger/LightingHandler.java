@@ -389,13 +389,14 @@ public class LightingHandler implements Serializable {
                             float change = (o0 - b0) * 0.5f + 0.5f,
                                     str = Math.min(1.0f, b0 + o0 * change * flare);
                             final int s = NumberTools.floatToIntBits(b1), e = NumberTools.floatToIntBits(o1),
-                                    ys = (s & 0xFF), cws = (s >>> 8) & 0xFF, cms = (s >>> 16) & 0xFF, sas = s >>> 24 & 0xFE,
-                                    ye = (e & 0xFF), cwe = (e >>> 8) & 0xFF, cme = (e >>> 16) & 0xFF, sae = e >>> 24 & 0xFE;
+                                    ys = (s & 0xFF), cws = (s >>> 8) & 0xFF, cms = (s >>> 16) & 0xFF,// sas = s >>> 24 & 0xFE,
+                                    ye = (e & 0xFF), cwe = (e >>> 8) & 0xFF, cme = (e >>> 16) & 0xFF;//, sae = e >>> 24 & 0xFE;
                             basis[0][x][y] = str;
                             basis[1][x][y] = NumberTools.intBitsToFloat(((int) (ys + change * (ye - ys)) & 0xFF)
                                     | (((int) (cws + change * (cwe - cws)) & 0xFF) << 8)
                                     | (((int) (cms + change * (cme - cms)) & 0xFF) << 16)
-                                    | (((int) (str * (sas + change * (sae - sas))) & 0xFE) << 24));
+                                    | 0xFE000000);
+//                                    | (((int) (str * (sas + change * (sae - sas))) & 0xFE) << 24));
                         } else {
                             basis[0][x][y] = baseStrength;
                         }

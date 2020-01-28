@@ -6,16 +6,22 @@ import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Colors;
 import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
-import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.scenes.scene2d.utils.UIUtils;
-import com.badlogic.gdx.utils.*;
+import com.badlogic.gdx.utils.Align;
+import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.IntIntMap;
+import com.badlogic.gdx.utils.IntMap;
+import com.badlogic.gdx.utils.Scaling;
+import com.badlogic.gdx.utils.TimeUtils;
+import com.github.tommyettinger.colorful.FloatColors;
+import com.github.tommyettinger.colorful.Shaders;
 import regexodus.Pattern;
 import regexodus.Replacer;
 import squidpony.FakeLanguageGen;
@@ -25,14 +31,41 @@ import squidpony.squidai.DijkstraMap;
 import squidpony.squidgrid.mapping.DungeonGenerator;
 import squidpony.squidgrid.mapping.FlowingCaveGenerator;
 import squidpony.squidgrid.mapping.styled.TilesetType;
+import squidpony.squidmath.Coord;
+import squidpony.squidmath.DiverRNG;
+import squidpony.squidmath.FastNoise;
+import squidpony.squidmath.FoamNoise;
+import squidpony.squidmath.GapShuffler;
+import squidpony.squidmath.Noise;
+import squidpony.squidmath.NumberTools;
 import squidpony.squidmath.OrderedMap;
-import squidpony.squidmath.*;
+import squidpony.squidmath.RNG;
+import squidpony.squidmath.SilkRNG;
+import squidpony.squidmath.XoshiroStarPhi32RNG;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 
-import static com.badlogic.gdx.Input.Keys.*;
+import static com.badlogic.gdx.Input.Keys.A;
+import static com.badlogic.gdx.Input.Keys.D;
+import static com.badlogic.gdx.Input.Keys.DOWN;
+import static com.badlogic.gdx.Input.Keys.ESCAPE;
+import static com.badlogic.gdx.Input.Keys.F;
+import static com.badlogic.gdx.Input.Keys.LEFT;
+import static com.badlogic.gdx.Input.Keys.NUMPAD_2;
+import static com.badlogic.gdx.Input.Keys.NUMPAD_4;
+import static com.badlogic.gdx.Input.Keys.NUMPAD_5;
+import static com.badlogic.gdx.Input.Keys.NUMPAD_6;
+import static com.badlogic.gdx.Input.Keys.NUMPAD_8;
+import static com.badlogic.gdx.Input.Keys.PERIOD;
+import static com.badlogic.gdx.Input.Keys.RIGHT;
+import static com.badlogic.gdx.Input.Keys.S;
+import static com.badlogic.gdx.Input.Keys.UP;
+import static com.badlogic.gdx.Input.Keys.W;
+import static com.github.tommyettinger.colorful.FloatColors.chromaMild;
+import static com.github.tommyettinger.colorful.FloatColors.chromaWarm;
+import static com.github.tommyettinger.colorful.FloatColors.luma;
 
 /**
  * This is a small, not-overly-simple demo that presents some important features of SquidLib and shows a faster,
@@ -65,7 +98,7 @@ public class CaveCops extends ApplicationAdapter {
     public int mode = SELECT;
     
     // MutantBatch is almost the same as SpriteBatch, but is a bit faster with SquidLib since it sets colors quickly
-    private MutantBatch batch;
+    private SpriteBatch batch;
     private PixelPerfectViewport mainViewport;
     private Camera camera;
 
@@ -85,9 +118,9 @@ public class CaveCops extends ApplicationAdapter {
 //    private char[][] decoDungeon, bareDungeon, lineDungeon, prunedDungeon;
 //    private float[][] backgrounds;
     
-    public ShaderProgram shader, trueShader;
+//    public ShaderProgram shader, trueShader;
 //    public Vector3 add, mul;
-    private Texture palette, currentPalette, oldPalette;//, bigPalette;
+//    private Texture palette, currentPalette, oldPalette;//, bigPalette;
     
 //    public IndexedAPNG png;
 
@@ -153,6 +186,12 @@ public class CaveCops extends ApplicationAdapter {
     public void create () {
         startTime = TimeUtils.millis();
         Coord.expandPoolTo(bigWidth, bigHeight);
+        for(Color c : Colors.getColors().values())
+        {
+            final float f = FloatColors.fromColor(c);
+            c.set(luma(f), chromaWarm(f), chromaMild(f), c.a);
+        }
+
 //        png = new IndexedAPNG(gridWidth * cellWidth * gridHeight * cellHeight * 3 >> 1);
         // gotta have a random number generator. We can seed an RNG with any long we want, or even a String.
         // if the seed is identical between two runs, any random factors will also be identical (until user input may
@@ -194,13 +233,13 @@ public class CaveCops extends ApplicationAdapter {
         meaningShuffler = new GapShuffler<>(meanings, languageRNG);
         anReplacer = new Replacer(Pattern.compile("\\b([Aa]) (?=[AEIOUaeiou])"), "$1n ");
         //message = anReplacer.replace(zodiacShuffler.next() + phraseShuffler.next() + meaningShuffler.next().replace("@", zodiacShuffler.next()));
-        ShaderProgram.pedantic = false;
-        shader = new ShaderProgram(Visuals.vertexShader, Visuals.fragmentShader);
-        //shader = new ShaderProgram(Visuals.vertexShader, Visuals.fragmentShaderTrue);
-        if (!shader.isCompiled()) throw new GdxRuntimeException("Couldn't compile shader: " + shader.getLog());
-        trueShader = new ShaderProgram(Visuals.vertexShader, Visuals.fragmentShaderTrue);
-        if (!trueShader.isCompiled()) throw new GdxRuntimeException("Couldn't compile shader: " + trueShader.getLog());
-        batch = new MutantBatch(8000, trueShader);
+//        ShaderProgram.pedantic = false;
+//        shader = new ShaderProgram(Visuals.vertexShader, Visuals.fragmentShader);
+//        //shader = new ShaderProgram(Visuals.vertexShader, Visuals.fragmentShaderTrue);
+//        if (!shader.isCompiled()) throw new GdxRuntimeException("Couldn't compile shader: " + shader.getLog());
+//        trueShader = new ShaderProgram(Visuals.vertexShader, Visuals.fragmentShaderTrue);
+//        if (!trueShader.isCompiled()) throw new GdxRuntimeException("Couldn't compile shader: " + trueShader.getLog());
+        batch = Shaders.makeBatch();
 //        batch = new MutantBatch(8000, shader);
 //        add = new Vector3(0, 0, 0);
 //        mul = new Vector3(1, 1, 1);
@@ -218,8 +257,8 @@ public class CaveCops extends ApplicationAdapter {
 //        font.getData().setLineHeight(font.getLineHeight() * 2f / cellHeight);
 
 //        palette = new Texture("AuroraLloyd_GLSL.png");
-        palette = currentPalette = new Texture("DB_Big_GLSL.png");
-        oldPalette = new Texture("DB_Easy_GLSL.png");
+//        palette = currentPalette = new Texture("DB_Big_GLSL.png");
+//        oldPalette = new Texture("DB_Easy_GLSL.png");
 //        bigPalette = new Texture("WardBonus_GLSL.png");
 //        oldPalette = new Texture("Ward_GLSL.png");
 //        oldPalette = new Texture("RelaxedRoll_GLSL.png");
@@ -320,14 +359,15 @@ public class CaveCops extends ApplicationAdapter {
         creatureFactory = new CreatureFactory(creatures, mapping);
 
         playerCreature = creatureFactory.place("cop");
-        playerCreature.glow.range = 1f;
-        playerCreature.glow.color = Visuals.getYCwCmSat(0xB0, 0x00, 0x60, 0x70);
-        playerCreature.glow.flicker = 0f;
-        playerCreature.glow.strobe = 0.9f;
+        playerCreature.glow.range = 6f;
+        playerCreature.glow.color = Visuals.FLOAT_LIGHT;
+        playerCreature.glow.flicker = 0.5f;
+        playerCreature.glow.strobe = 0f;
         playerCreature.glow.delay = 0f;
+        playerCreature.glow.flare = 0.4f;
         playerCreature.stats.set(Stat.TOUGHNESS, 7);
         playerCreature.stats.set(Stat.AGILITY, 6);
-        playerCreature.fortune.setFavor(10000);
+        playerCreature.fortune.setFavor(1000);
 
         message = "Go get 'em, Officer " + playerCreature.nameTitled + "!";
 
@@ -473,16 +513,16 @@ public class CaveCops extends ApplicationAdapter {
                         toCursor.clear();
                         awaitedMoves.add(playerCreature.moth.start);
                         break;
-                    case P:
-                        if(UIUtils.shift())
-                            batch.setShader(trueShader);
-                            //palette = bigPalette;
-                        else 
-                        {
-                            batch.setShader(shader);
-                            palette = (palette == oldPalette) ? currentPalette : oldPalette;
-                        }
-                        break;
+//                    case P:
+//                        if(UIUtils.shift())
+//                            batch.setShader(trueShader);
+//                            //palette = bigPalette;
+//                        else 
+//                        {
+//                            batch.setShader(shader);
+//                            palette = (palette == oldPalette) ? currentPalette : oldPalette;
+//                        }
+//                        break;
 //                    case BACKSLASH:
 //                        byte[] pixels = ScreenUtils.getFrameBufferPixels(0, 0, Gdx.graphics.getBackBufferWidth(), Gdx.graphics.getBackBufferHeight(), true);
 //                        // this loop makes sure the whole screenshot is opaque and looks exactly like what the user is seeing
@@ -732,7 +772,7 @@ public class CaveCops extends ApplicationAdapter {
         }
 //        batch.setPackedColor(playerCreature.moth.color);
 //        batch.draw(playerCreature.moth.animate(time), playerCreature.moth.getX(), playerCreature.moth.getY(), 1f, 1f);
-        font.setColor(Visuals.COLOR_WHITE);
+        font.setColor(Visuals.COLOR_NEUTRAL);
         font.draw(batch, 
                 message
                         + '\n' + StringKit.padLeftStrict(Gdx.graphics.getFramesPerSecond() + " FPS", ' ', 11)
@@ -755,12 +795,10 @@ public class CaveCops extends ApplicationAdapter {
 
         mainViewport.apply(false);
         batch.setProjectionMatrix(camera.combined);
-        Gdx.gl.glActiveTexture(GL20.GL_TEXTURE1);
-        palette.bind();
+//        Gdx.gl.glActiveTexture(GL20.GL_TEXTURE1);
+//        palette.bind();
         batch.begin();
-        shader.setUniformi("u_palette", 1);
-//        shader.setUniformf("u_mul", mul);
-//        shader.setUniformf("u_add", add);
+//        shader.setUniformi("u_palette", 1);
         Gdx.gl.glActiveTexture(GL20.GL_TEXTURE0);
         putMap();
         if(mode == NPC) {

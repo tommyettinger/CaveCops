@@ -4,4 +4,5 @@ sourceCompatibility = 1.8
 dependencies {
   api "com.badlogicgames.gdx:gdx:$gdxVersion"
   api "com.github.SquidPony.SquidLib:squidlib-util:$squidLibVersion"
+  api "com.github.tommyettinger:colorful-gdx:$colorfulVersion"
 }

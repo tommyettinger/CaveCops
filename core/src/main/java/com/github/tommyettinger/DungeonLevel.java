@@ -43,8 +43,9 @@ public class DungeonLevel {
                 backgrounds[x][y] = Visuals.getYCwCmSat(
                         128 + (h & 7) - (h >>> 3 & 7) + (h >>> 6 & 7) - (h >>> 9 & 7) + (h >>> 12 & 3) - (h >>> 14 & 3),
                         128 + (h >>> 16 & 7) - (h >>> 19 & 7),
-                        128 + (h >>> 22 & 7) - (h >>> 25 & 7),
-                        120 + (h >>> 28) // LSB of alpha/Sat is discarded
+                        128 + (h >>> 22 & 7) - (h >>> 25 & 7), 
+                    0xFF
+//                        120 + (h >>> 28) // LSB of alpha/Sat is discarded
                 );
             }
         }
