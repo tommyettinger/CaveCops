@@ -41,7 +41,7 @@ public class DungeonLevel {
             for (int y = 0; y < height; y++) {
                 int h = Noise.IntPointHash.hashAll(x, y, depth);
                 backgrounds[x][y] = Visuals.getYCwCmSat(
-                        128 + (h & 7) - (h >>> 3 & 7) + (h >>> 6 & 7) - (h >>> 9 & 7) + (h >>> 12 & 3) - (h >>> 14 & 3),
+                        32 + (h & 7) - (h >>> 3 & 7) + (h >>> 6 & 7) - (h >>> 9 & 7) + (h >>> 12 & 3) - (h >>> 14 & 3),
                         128 + (h >>> 16 & 7) - (h >>> 19 & 7),
                         128 + (h >>> 22 & 7) - (h >>> 25 & 7), 
                     0xFF

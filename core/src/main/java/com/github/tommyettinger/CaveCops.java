@@ -682,9 +682,8 @@ public class CaveCops extends ApplicationAdapter {
     public void putMap()
     {
         final float time = TimeUtils.timeSinceMillis(startTime) * 0.001f;
-        dl.lighting.calculateFOV(playerCreature.moth.start);
         dl.lighting.update();
-        dl.lighting.draw(dl.backgrounds);
+        dl.lighting.draw(dl.lighting.currentBackgrounds, dl.backgrounds);
         Animation<TextureAtlas.AtlasRegion> decoration;
         Creature creature;
         Coord c;
@@ -696,17 +695,17 @@ public class CaveCops extends ApplicationAdapter {
                 case '~':
                     dl.lighting.currentBackgrounds[i][j] = toCursor.contains(c) ?
                         NumberTools.setSelectedByte(dl.lighting.currentBackgrounds[i][j], 0, (byte)230) :
-                        NumberTools.setSelectedByte(dl.lighting.currentBackgrounds[i][j], 0, (byte)(//dl.lighting.colorLighting[0][i][j] * 140
-                            110 + FastNoise.instance.getConfiguredNoise(i * 2f, j * 2f, time * 4f) * 60
-                                + FoamNoise.foamNoise(i * 3.0, j * 3.0, time * 5.0, 123456789) * 5));
+                        FloatColors.lighten(dl.lighting.currentBackgrounds[i][j], (//dl.lighting.colorLighting[0][i][j] * 140
+                            0.12f + FastNoise.instance.getConfiguredNoise(i * 2f, j * 2f, time * 4f) * 0.21f
+                                + (float)FoamNoise.foamNoise(i * 3.0, j * 3.0, time * 5.0, 123456789) * 0.03f));
                     break;
                 case '"':
                 case ',':
                     dl.lighting.currentBackgrounds[i][j] = toCursor.contains(c) ?
                         NumberTools.setSelectedByte(dl.lighting.currentBackgrounds[i][j], 0, (byte)230) :
-                        NumberTools.setSelectedByte(dl.lighting.currentBackgrounds[i][j], 0, (byte)(//dl.lighting.colorLighting[0][i][j] * 130
-                            125 + FastNoise.instance.getConfiguredNoise(i * 2f, j * 2f, time * 4f) * 50
-                                + FoamNoise.foamNoise(i * 3.0, j * 3.0, time * 5.0, 123456789) * 7));
+                        FloatColors.lighten(dl.lighting.currentBackgrounds[i][j], (//dl.lighting.colorLighting[0][i][j] * 130
+                            0.15f + FastNoise.instance.getConfiguredNoise(i * 2f, j * 2f, time * 4f) * 0.2f
+                                + (float)FoamNoise.foamNoise(i * 3.0, j * 3.0, time * 5.0, 123456789) * 0.04f));
                     break;
                 default:
                     if (toCursor.contains(c))

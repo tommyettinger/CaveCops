@@ -501,11 +501,11 @@ public class LightingHandler implements Serializable {
     }
 
     /**
-     * Given a 2D array of packed float colors, fills the 2D array with different colors based on what lights are
-     * present in line of sight of the viewer and the various flicker or strobe effects that Radiance light sources can
-     * do. You should usually call {@link #update()} before each call to draw(), but you may want to make custom
+     * Given a 2D array of packed float colors, fills the field {@link #currentBackgrounds} with different colors based on what
+     * lights are present in line of sight of the viewer and the various flicker or strobe effects that Radiance light sources
+     * can do. You should usually call {@link #update()} before each call to draw(), but you may want to make custom
      * changes to the lighting in between those two calls (that is the only place those changes will be noticed).
-     * @param backgrounds a 2D float array of packed colors, here YCwCm+Sat format, which will be modified
+     * @param backgrounds a 2D float array of packed colors, here YCwCm+Sat format, which will not be modified
      */
     public void draw(float[][] backgrounds)
     {
