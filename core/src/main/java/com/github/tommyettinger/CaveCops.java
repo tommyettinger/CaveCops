@@ -346,8 +346,8 @@ public class CaveCops extends ApplicationAdapter {
 //        lineDungeon = DungeonUtility.hashesToLines(decoDungeon);
 
         //resistance = dl.lighting.resistances;
-        visible = new double[bigWidth][bigHeight];
-        dl.floors.copy().expand8way().writeDoublesInto(visible, 1.0);
+        visible = dl.lighting.fovResult;
+//        dl.floors.copy().expand8way().writeDoublesInto(visible, 1.0);
         final int floorSpace = dl.floors.size();
         decorations = new OrderedMap<>(floorSpace >>> 1, 0.25f);
         final int decoSize = dl.decorations.size();
@@ -414,10 +414,10 @@ public class CaveCops extends ApplicationAdapter {
         
         ////TODO: not sure if next line is needed?
         //dl.floors.refill(dl.bareDungeon, '.');
-        
-        dl.lighting.updateAll();
+        dl.lighting.calculateFOV(playerCreature.moth.start);
+        dl.lighting.update();
         // Uses shadowcasting FOV and reuses the visible array without creating new arrays constantly.
-        //FOV.reuseFOV(resistance, visible, playerCreature.moth.start.x, playerCreature.moth.start.y, 9.0, Radius.CIRCLE);//, (System.currentTimeMillis() & 0xFFFF) * 0x1p-4, 60.0);
+//        FOV.reuseFOV(dl.lighting.resistances, visible, playerCreature.moth.start.x, playerCreature.moth.start.y, 9.0, Radius.CIRCLE);
         
         // 0.01 is the upper bound (inclusive), so any Coord in visible that is more well-lit than 0.01 will _not_ be in
         // the blockage Collection, but anything 0.01 or less will be in it. This lets us use blockage to prevent access
@@ -682,7 +682,8 @@ public class CaveCops extends ApplicationAdapter {
     public void putMap()
     {
         final float time = TimeUtils.timeSinceMillis(startTime) * 0.001f;
-        dl.lighting.updateAll();
+        dl.lighting.calculateFOV(playerCreature.moth.start);
+        dl.lighting.update();
         dl.lighting.draw(dl.backgrounds);
         Animation<TextureAtlas.AtlasRegion> decoration;
         Creature creature;
@@ -722,7 +723,7 @@ public class CaveCops extends ApplicationAdapter {
 //                    pos.set(i * cellWidth, j * cellHeight, 0f);
 //                    batch.setPackedColor(toCursor.contains(Coord.get(i, j))
 //                            ? FLOAT_WHITE
-//                            : SColor.lerpFloatColors(FLOAT_GRAY, FLOAT_LIGHTING, (float)visible[i][j] * 0.75f + 0.25f));
+//                            : FloatColors.lerpFloatColors(FLOAT_GRAY, FLOAT_LIGHT, (float)visible[i][j] * 0.75f + 0.25f));
 //                    batch.setPackedColor(Visuals.lerpFloatColors(dl.backgrounds[i][j], batch.getPackedColor(), 0.6f));
                     batch.setPackedColor(dl.lighting.currentBackgrounds[i][j]);
                     //batch.draw(solid, pos.x, pos.y);
@@ -786,7 +787,7 @@ public class CaveCops extends ApplicationAdapter {
         if(!Gdx.graphics.isFullscreen())
             sync.sync(Gdx.graphics.getDisplayMode().refreshRate);
         // standard clear the background routine for libGDX
-        Gdx.gl.glClearColor(bgColor.r, bgColor.g, bgColor.b, 1.0f);
+        Gdx.gl.glClearColor(0.13f, 0.14f, 0.17f, 1.0f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         camera.position.x = playerCreature.moth.getX();
