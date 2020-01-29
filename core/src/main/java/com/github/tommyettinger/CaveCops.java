@@ -10,8 +10,8 @@ import com.badlogic.gdx.graphics.Colors;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Align;
@@ -20,9 +20,9 @@ import com.badlogic.gdx.utils.IntIntMap;
 import com.badlogic.gdx.utils.IntMap;
 import com.badlogic.gdx.utils.Scaling;
 import com.badlogic.gdx.utils.TimeUtils;
+import com.github.tommyettinger.colorful.ColorfulBatch;
 import com.github.tommyettinger.colorful.FloatColors;
 import com.github.tommyettinger.colorful.Palette;
-import com.github.tommyettinger.colorful.Shaders;
 import regexodus.Pattern;
 import regexodus.Replacer;
 import squidpony.FakeLanguageGen;
@@ -100,7 +100,8 @@ public class CaveCops extends ApplicationAdapter {
     public int mode = SELECT;
     
     // MutantBatch is almost the same as SpriteBatch, but is a bit faster with SquidLib since it sets colors quickly
-    private SpriteBatch batch;
+    private ColorfulBatch batch;
+//    private SpriteBatch batch;
     private PixelPerfectViewport mainViewport;
     private Camera camera;
 
@@ -108,10 +109,10 @@ public class CaveCops extends ApplicationAdapter {
 
     private TextureAtlas atlas;
     // This maps chars, such as '#', to specific images, such as a pillar.
-    private IntMap<Animation<TextureAtlas.AtlasRegion>> charMapping;
-    private IntMap<ArrayList<Animation<TextureAtlas.AtlasRegion>>> decorationMapping;
-    public Animation<TextureAtlas.AtlasRegion> allyMarker, neutralMarker;
-    public TextureAtlas.AtlasRegion pixel;
+    private IntMap<Animation<TextureRegion>> charMapping;
+    private IntMap<ArrayList<Animation<TextureRegion>>> decorationMapping;
+    public Animation<TextureRegion> allyMarker, neutralMarker;
+    public TextureRegion pixel;
     private IntIntMap decorationIndices;
     private BitmapFont font;
     
@@ -141,11 +142,12 @@ public class CaveCops extends ApplicationAdapter {
     /** The pixel height of a cell */
     public static final int cellHeight = 16;
     public long startTime = 0L, animationStart = 0L;
-    private Animation<TextureAtlas.AtlasRegion> solid;
+    private Animation<TextureRegion> solid;
 
     private InputProcessor input;
 
     private Color bgColor;
+    public static final Color COLOR_NEUTRAL = new Color(0.5f, 0.5f, 0.5f, 1f);
     private DijkstraMap playerToCursor;
     private Coord cursor;
     private ArrayList<Coord> toCursor;
@@ -168,14 +170,14 @@ public class CaveCops extends ApplicationAdapter {
     private Creature playerCreature;
     public Populace creatures;
     public CreatureFactory creatureFactory;
-    public LinkedHashMap<String, Animation<TextureAtlas.AtlasRegion>> mapping;
-    private OrderedMap<Coord, Animation<TextureAtlas.AtlasRegion>> decorations;
+    public LinkedHashMap<String, Animation<TextureRegion>> mapping;
+    private OrderedMap<Coord, Animation<TextureRegion>> decorations;
     
 
-    public static LinkedHashMap<String, Animation<TextureAtlas.AtlasRegion>> makeMapping(final TextureAtlas atlas){
+    public static LinkedHashMap<String, Animation<TextureRegion>> makeMapping(final TextureAtlas atlas){
         final Array<TextureAtlas.AtlasRegion> regions = atlas.getRegions();
         TextureAtlas.AtlasRegion item;
-        final LinkedHashMap<String, Animation<TextureAtlas.AtlasRegion>> lhm = new LinkedHashMap<>(regions.size, 0.5f);
+        final LinkedHashMap<String, Animation<TextureRegion>> lhm = new LinkedHashMap<>(regions.size, 0.5f);
         for (int i = 0; i < regions.size; i++) {
             if(!lhm.containsKey((item = regions.get(i)).name))
                 lhm.put(item.name, new Animation<>(0.375f, atlas.findRegions(item.name), Animation.PlayMode.LOOP));
@@ -241,7 +243,8 @@ public class CaveCops extends ApplicationAdapter {
 //        if (!shader.isCompiled()) throw new GdxRuntimeException("Couldn't compile shader: " + shader.getLog());
 //        trueShader = new ShaderProgram(Visuals.vertexShader, Visuals.fragmentShaderTrue);
 //        if (!trueShader.isCompiled()) throw new GdxRuntimeException("Couldn't compile shader: " + trueShader.getLog());
-        batch = Shaders.makeBatch();
+//        batch = Shaders.makeBatch();
+        batch = new ColorfulBatch();
 //        batch = new MutantBatch(8000, shader);
 //        add = new Vector3(0, 0, 0);
 //        mul = new Vector3(1, 1, 1);
@@ -320,7 +323,7 @@ public class CaveCops extends ApplicationAdapter {
                 mapping.get("gray rocks")
         ));
         
-        for (IntMap.Entry<ArrayList<Animation<TextureAtlas.AtlasRegion>>> e : decorationMapping.entries())
+        for (IntMap.Entry<ArrayList<Animation<TextureRegion>>> e : decorationMapping.entries())
         {
             decorationIndices.put(e.key, e.value.size());
         }
@@ -362,7 +365,7 @@ public class CaveCops extends ApplicationAdapter {
 
         playerCreature = creatureFactory.place("cop");
         playerCreature.glow.range = 6f;
-        playerCreature.glow.color = Visuals.FLOAT_LIGHT;
+        playerCreature.glow.color = Palette.PENCIL_YELLOW;
         playerCreature.glow.flicker = 0.5f;
         playerCreature.glow.strobe = 0f;
         playerCreature.glow.delay = 0f;
@@ -379,7 +382,7 @@ public class CaveCops extends ApplicationAdapter {
         for (int i = (CREATURE_COUNT >> 1); i < (CREATURE_COUNT); i++) {
             creatureFactory.place("rogue");
         }
-//        for(IntMap.Entry<ArrayList<Animation<TextureAtlas.AtlasRegion>>> e : spawnMapping.entries())
+//        for(IntMap.Entry<ArrayList<Animation<TextureRegion>>> e : spawnMapping.entries())
 //        {
 //            floors.refill(decoDungeon, (char)e.key);
 //            floors.mixedRandomRegion(0.1, floors.size() * 48 / floorSpace, rng.nextLong());
@@ -654,7 +657,7 @@ public class CaveCops extends ApplicationAdapter {
             dl.lighting.calculateFOV(end);
             playerCreature.moth.start = start;
             playerCreature.moth.end = end;
-            playerCreature.moth.alpha = 0f;
+            playerCreature.moth.change = 0f;
             mode = ANIMATE;
             animationStart = TimeUtils.millis();
             // This is just like the constructor used earlier, but affects an existing GreasedRegion without making
@@ -674,7 +677,7 @@ public class CaveCops extends ApplicationAdapter {
         final float time = TimeUtils.timeSinceMillis(startTime) * 0.001f;
         dl.lighting.update();
         dl.lighting.draw(dl.lighting.currentBackgrounds, dl.backgrounds);
-        Animation<TextureAtlas.AtlasRegion> decoration;
+        Animation<TextureRegion> decoration;
         Creature creature;
         Coord c;
         
@@ -740,11 +743,12 @@ public class CaveCops extends ApplicationAdapter {
             Coord pos = creatures.keyAt(i);
             if(visible[pos.x][pos.y] > 0) {
                 creature = creatures.getAt(i);
-                batch.setPackedColor(creature.moth.color);
-                batch.draw(creature.moth.animate(time), creature.moth.getX(), creature.moth.getY(), 1f, 1f);
-                batch.setPackedColor(Visuals.FLOAT_HOT);
+                batch.setPackedColor(Palette.GRAY);
+                creature.moth.animate(time).draw(batch);
+//                batch.draw(creature.moth.animate(time), creature.moth.getX(), creature.moth.getY(), 1f, 1f);
+                batch.setPackedColor(Palette.LURID_RED);
                 batch.draw(pixel, creature.moth.getX() + 0x1p-4f, creature.moth.getY() + 0x1p-4f, creature.stats.get(Stat.HEALTH) * 0x1p-4f, 0x1p-4f);
-                batch.setPackedColor(Visuals.FLOAT_NEUTRAL);
+                batch.setPackedColor(Palette.GRAY);
                 batch.draw(allyMarker.getKeyFrame(time * 1.3f), creature.moth.getX(), creature.moth.getY() + 0.5f, 1f, 1f);
             }
         }
@@ -752,17 +756,18 @@ public class CaveCops extends ApplicationAdapter {
             Coord pos = creatures.keyAt(i);
             if(visible[pos.x][pos.y] > 0) {
                 creature = creatures.getAt(i);
-                batch.setPackedColor(creature.moth.color);
-                batch.draw(creature.moth.animate(time), creature.moth.getX(), creature.moth.getY(), 1f, 1f);
-                batch.setPackedColor(Visuals.FLOAT_HOT);
+                batch.setPackedColor(Palette.GRAY);
+                //batch.draw(creature.moth.animate(time), creature.moth.getX(), creature.moth.getY(), 1f, 1f);
+                creature.moth.animate(time).draw(batch);
+                batch.setPackedColor(Palette.LURID_RED);
                 batch.draw(pixel, creature.moth.getX() + 0x1p-4f, creature.moth.getY() + 0x1p-4f, creature.stats.get(Stat.HEALTH) * 0x1p-4f, 0x1p-4f);
-//                batch.setPackedColor(Visuals.FLOAT_NEUTRAL);
+//                batch.setPackedColor(Palette.GRAY);
 //                batch.draw(neutralMarker.getKeyFrame(time), creature.moth.getX(), creature.moth.getY() + 0.5f, 1f, 1f);
             }
         }
 //        batch.setPackedColor(playerCreature.moth.color);
 //        batch.draw(playerCreature.moth.animate(time), playerCreature.moth.getX(), playerCreature.moth.getY(), 1f, 1f);
-        font.setColor(Visuals.COLOR_NEUTRAL);
+        font.setColor(COLOR_NEUTRAL);
         font.draw(batch, 
                 message
                         + '\n' + StringKit.padLeftStrict(Gdx.graphics.getFramesPerSecond() + " FPS", ' ', 11)
@@ -794,7 +799,7 @@ public class CaveCops extends ApplicationAdapter {
         if(mode == NPC) {
             float t = TimeUtils.timeSinceMillis(animationStart) * 0.006f;
             for (int i = 1; i < creatures.size(); i++) {
-                creatures.getAt(i).moth.alpha = t;
+                creatures.getAt(i).moth.change = t;
             }
             if(t >= 1f)
             {
@@ -821,8 +826,8 @@ public class CaveCops extends ApplicationAdapter {
             move(playerCreature.moth.start, m);
         }
         else if(mode == ANIMATE) {
-            playerCreature.moth.alpha = TimeUtils.timeSinceMillis(animationStart) * 0.006f;
-            if (playerCreature.moth.alpha >= 1f) {
+            playerCreature.moth.change = TimeUtils.timeSinceMillis(animationStart) * 0.006f;
+            if (playerCreature.moth.change >= 1f) {
                 mode = NPC;
                 animationStart = TimeUtils.millis();
                 Attack atk;

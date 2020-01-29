@@ -2,6 +2,8 @@ package com.github.tommyettinger;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.MathUtils;
+import com.github.tommyettinger.colorful.FloatColors;
+import com.github.tommyettinger.colorful.Palette;
 import squidpony.ArrayTools;
 import squidpony.squidgrid.FOV;
 import squidpony.squidgrid.Radius;
@@ -12,7 +14,7 @@ import squidpony.squidmath.OrderedMap;
 
 import java.io.Serializable;
 
-import static com.github.tommyettinger.Visuals.FLOAT_NEUTRAL;
+import static com.github.tommyettinger.colorful.Palette.GRAY;
 
 /**
  * A convenience class that makes dealing with multiple colored light sources easier.
@@ -82,7 +84,7 @@ public class LightingHandler implements Serializable {
     public int height;
     /**
      * The packed float color to mix background cells with when a cell has lighting and is within line-of-sight, but has
-     * no background color to start with (its color is {@link Visuals#FLOAT_BLACK}).
+     * no background color to start with (its color is {@link Palette#BLACK}).
      */
     public float backgroundColor;
     /**
@@ -115,7 +117,7 @@ public class LightingHandler implements Serializable {
      */
     public LightingHandler()
     {
-        this(new double[20][20], Visuals.FLOAT_BLACK, Radius.CIRCLE, 4.0);
+        this(new double[20][20], Palette.BLACK, Radius.CIRCLE, 4.0);
     }
 
     /**
@@ -128,7 +130,7 @@ public class LightingHandler implements Serializable {
      */
     public LightingHandler(double[][] resistance)
     {
-        this(resistance, Visuals.FLOAT_BLACK, Radius.CIRCLE, 4.0);
+        this(resistance, Palette.BLACK, Radius.CIRCLE, 4.0);
     }
     /**
      * Given a resistance array as produced by {@link squidpony.squidgrid.mapping.DungeonUtility#generateResistances(char[][])}
@@ -311,11 +313,11 @@ public class LightingHandler implements Serializable {
                         continue;
                     b0 = basis[0][x][y];
                     b1 = basis[1][x][y];
-                    if (b1 == FLOAT_NEUTRAL) {
+                    if (b1 == GRAY) {
                         basis[1][x][y] = o1;
                         basis[0][x][y] = Math.min(1.0f, b0 + o0 * flare);
                     } else {
-                        if (o1 != FLOAT_NEUTRAL) {
+                        if (o1 != GRAY) {
                             float change = (o0 - b0) * 0.5f + 0.5f;
                             final int s = NumberTools.floatToIntBits(b1), e = NumberTools.floatToIntBits(o1),
                                     ys = (s & 0xFF), cws = (s >>> 8) & 0xFF, cms = (s >>> 16) & 0xFF, sas = s >>> 24 & 0xFE,
@@ -381,11 +383,11 @@ public class LightingHandler implements Serializable {
                     b0 = basis[0][x][y];
                     b1 = basis[1][x][y];
                     final float baseStrength = Math.min(1.0f, b0 + o0 * flare);
-                    if (b1 == FLOAT_NEUTRAL) {
+                    if (b1 == GRAY) {
                         basis[1][x][y] = o1;
                         basis[0][x][y] = baseStrength;
                     } else {
-                        if (o1 != FLOAT_NEUTRAL) {
+                        if (o1 != GRAY) {
                             float change = (o0 - b0) * 0.5f + 0.5f,
                                     str = Math.min(1.0f, b0 + o0 * change * flare);
                             final int s = NumberTools.floatToIntBits(b1), e = NumberTools.floatToIntBits(o1),
@@ -528,7 +530,7 @@ public class LightingHandler implements Serializable {
                     current = stableBackgrounds[x][y];
                     if(current == 0f)
                         current = backgroundColor;
-                    editingBackgrounds[x][y] = Visuals.lerpFloatColors(current,
+                    editingBackgrounds[x][y] = FloatColors.lerpFloatColors(current,
                             colorLighting[1][x][y], colorLighting[0][x][y]);
                 }
             }
@@ -640,7 +642,7 @@ public class LightingHandler implements Serializable {
         return new float[][][]
                 {
                         new float[width][height],
-                        ArrayTools.fill(FLOAT_NEUTRAL, width, height)
+                        ArrayTools.fill(GRAY, width, height)
                 };
     }
 
@@ -655,7 +657,7 @@ public class LightingHandler implements Serializable {
      */
     public static float[][][] eraseColoredLighting(float[][][] original) {
         ArrayTools.fill(original[0], 0f);
-        ArrayTools.fill(original[1], FLOAT_NEUTRAL);
+        ArrayTools.fill(original[1], GRAY);
         return original;
     }
 
@@ -666,7 +668,7 @@ public class LightingHandler implements Serializable {
      * lights that is greater than 0, or defaulting to white if the cell is unlit).
      *
      * @param lights a 2D double array that should probably come from FOV
-     * @param color  a packed float as produced by {@link Visuals#getYCwCmSat(float, float, float, float)}
+     * @param color  a packed float as produced by {@link FloatColors#floatColor(float, float, float, float)}
      * @return a 3D float array containing two 2D sub-arrays, the first holding brightness and the second holding color
      */
     public static float[][][] colorLighting(double[][] lights, float color) {
@@ -684,7 +686,7 @@ public class LightingHandler implements Serializable {
      * @param reuse  a 3D float array of the exact format produced by {@link #colorLighting(double[][], float)}; must
      *               have length 2; will be modified!
      * @param lights a 2D double array that should probably come from FOV
-     * @param color  a packed float as produced by {@link Visuals#getYCwCmSat(float, float, float, float)}
+     * @param color  a packed float as produced by {@link FloatColors#floatColor(float, float, float, float)}
      * @return reuse after modification
      */
     public static float[][][] colorLightingInto(float[][][] reuse, double[][] lights, float color) {
@@ -692,7 +694,7 @@ public class LightingHandler implements Serializable {
             for (int y = 0; y < lights[0].length; y++) {
                 reuse[1][x][y] = ((reuse[0][x][y] = (float) lights[x][y]) > 0f)
                         ? color
-                        : FLOAT_NEUTRAL;
+                        : GRAY;
             }
         }
         return reuse;

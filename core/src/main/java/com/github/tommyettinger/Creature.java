@@ -1,13 +1,18 @@
 package com.github.tommyettinger;
 
 import com.badlogic.gdx.graphics.g2d.Animation;
-import com.badlogic.gdx.graphics.g2d.TextureAtlas;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.utils.IntFloatMap;
+import com.github.tommyettinger.colorful.Palette;
 import squidpony.FakeLanguageGen;
 import squidpony.StringKit;
 import squidpony.squidai.DijkstraMap;
 import squidpony.squidgrid.Measurement;
-import squidpony.squidmath.*;
+import squidpony.squidmath.Coord;
+import squidpony.squidmath.CrossHash;
+import squidpony.squidmath.DiverRNG;
+import squidpony.squidmath.SilkRNG;
+import squidpony.squidmath.TweakRNG;
 
 /**
  * Created by Tommy Ettinger on 9/23/2019.
@@ -49,12 +54,12 @@ public class Creature {
         FLYING.put('_', 1f); // pit
     }
 
-    public Creature(Animation<TextureAtlas.AtlasRegion> animation, Coord coord,
+    public Creature(Animation<TextureRegion> animation, Coord coord,
                     CreatureFactory.CreatureArchetype archetype)
     {
         this(animation, coord, archetype, null); 
     }
-    public Creature(Animation<TextureAtlas.AtlasRegion> animation, Coord coord,
+    public Creature(Animation<TextureRegion> animation, Coord coord,
                     CreatureFactory.CreatureArchetype archetype, StatHolder stats)
     {
         moth = new Moth(animation, coord);
@@ -66,11 +71,11 @@ public class Creature {
         fortune = new TweakRNG(a, b, -(CrossHash.Yolk.beta.hash64(name) >>> 50), CrossHash.Yolk.gamma.hash64(name) >> 56);
         nameTitled = name + " the " + StringKit.capitalize(archetype.name);
         faction = "crook";
-        glow = new Radiance(3f,
-                Visuals.FLOAT_HOT,
-                0.8f,
-                0f,
-                rng.nextFloat(), 0.35f);
+        glow = new Radiance(3f, 
+            Palette.RED,
+            0.8f,
+            0f,
+            rng.nextFloat(), 0.35f);
 //          final int c = rng.nextInt();
 //          glow = new Radiance(rng.nextFloat() * 3f + 2f,
 //                Visuals.getYCwCmSat((c & 0x3F) + 0x90, c >>> 8 & 0xFF, c >>> 16 & 0xFF, (c >>> 26) + 20),
@@ -154,7 +159,7 @@ public class Creature {
 
     @Override
     public String toString() {
-        return moth.animation.getKeyFrame(0).name + moth.start + " to " + moth.end;
+        return moth.animation.getKeyFrame(0).toString() + moth.start + " to " + moth.end;
     }
 
     public enum MoveType {

@@ -1,51 +1,52 @@
 package com.github.tommyettinger;
 
 import com.badlogic.gdx.graphics.g2d.Animation;
-import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.MathUtils;
+import com.github.tommyettinger.colorful.ColorfulSprite;
+import com.github.tommyettinger.colorful.Palette;
 import squidpony.squidmath.Coord;
 
 /**
  * Like a {@link com.badlogic.gdx.graphics.g2d.Sprite}, but lighter-weight and customized to the conventions of this
- * game. Supports a packed float color that should be interpreted as a YCwCmSat value.
+ * demo. Has a start and end position that it is expected to move between as its {@link #change} field changes.
+ * Supports a packed float color.
  * <br>
- * Created by Tommy Ettinger on 9/16/2019.
+ * Created by Tommy Ettinger on 12/20/2019.
  */
-public class Moth extends TextureRegion {
-    public Animation<TextureAtlas.AtlasRegion> animation;
-    public float alpha;
+public class Moth extends ColorfulSprite {
+    public Animation<TextureRegion> animation;
+    public float change;
     public Coord start = Coord.get(0, 0);
     public Coord end = Coord.get(0, 0);
-    public float color;
 
-    private Moth()
+    private Moth ()
     {
         super();
-        animation = new Animation<TextureAtlas.AtlasRegion>(0.375f);
-        this.color = Visuals.FLOAT_NEUTRAL;
+        setColor(Palette.GRAY);
     }
-    public Moth(Animation<TextureAtlas.AtlasRegion> animation) {
+    public Moth (Animation<TextureRegion> animation) {
         super();
         this.animation = animation;
         setRegion(animation.getKeyFrame(0f));
-        this.color = Visuals.FLOAT_NEUTRAL;
+        setColor(Palette.GRAY);
     }
 
-    public Moth(Animation<TextureAtlas.AtlasRegion> animation, Coord coord) {
+    public Moth (Animation<TextureRegion> animation, Coord coord) {
         this(animation, coord, coord);
     }
 
-    public Moth(Animation<TextureAtlas.AtlasRegion> animation, Coord start, Coord end) {
+    public Moth (Animation<TextureRegion> animation, Coord start, Coord end) {
         super();
         this.animation = animation;
+        setSize(1, 1);
         setRegion(animation.getKeyFrame(0f));
-        this.color = Visuals.FLOAT_NEUTRAL;
+        setColor(Palette.GRAY);
         this.start = start;
         this.end = end;
     }
-    
-    public TextureRegion animate(final float stateTime)
+
+    public Moth animate(final float stateTime)
     {
         setRegion(animation.getKeyFrame(stateTime));
         return this;
@@ -53,15 +54,24 @@ public class Moth extends TextureRegion {
     
     public float getX()
     {
-        if(alpha >= 1f)
-            return (start = end).x;
-        return MathUtils.lerp(start.x, end.x, alpha);
+        return MathUtils.lerp(start.x, end.x, change);
     }
 
     public float getY()
     {
-        if(alpha >= 1f)
-            return (start = end).y;
-        return MathUtils.lerp(start.y, end.y, alpha);
+        return MathUtils.lerp(start.y, end.y, change);
+    }
+
+    @Override
+    public float[] getVertices() {
+        if(change >= 1f)
+        {
+            start = end;
+            super.setPosition(start.x, start.y);
+        }
+        else {
+            super.setPosition(MathUtils.lerp(start.x, end.x, change), MathUtils.lerp(start.y, end.y, change));
+        }
+        return super.getVertices();
     }
 }

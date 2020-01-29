@@ -1,6 +1,7 @@
 package com.github.tommyettinger;
 
 import com.badlogic.gdx.utils.IntIntMap;
+import com.github.tommyettinger.colorful.FloatColors;
 import com.github.tommyettinger.colorful.Palette;
 import squidpony.ArrayTools;
 import squidpony.squidgrid.Radius;
@@ -41,7 +42,7 @@ public class DungeonLevel {
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
                 int h = Noise.IntPointHash.hashAll(x, y, depth);
-                backgrounds[x][y] = Visuals.getYCwCmSat(
+                backgrounds[x][y] = FloatColors.floatColor(
                         32 + (h & 7) - (h >>> 3 & 7) + (h >>> 6 & 7) - (h >>> 9 & 7) + (h >>> 12 & 3) - (h >>> 14 & 3),
                         128 + (h >>> 16 & 7) - (h >>> 19 & 7),
                         128 + (h >>> 22 & 7) - (h >>> 25 & 7), 
@@ -53,7 +54,7 @@ public class DungeonLevel {
         floors = new GreasedRegion(bareDungeon, '.');
         final int floorSpace = floors.size();
         decorations = new OrderedMap<>(floorSpace >>> 1, 0.25f);
-//        for(IntMap.Entry<ArrayList<Animation<TextureAtlas.AtlasRegion>>> e : decorationMapping.entries())
+//        for(IntMap.Entry<ArrayList<Animation<TextureRegion>>> e : decorationMapping.entries())
         for(IntIntMap.Entry e : decorationIndices.entries())
         {
             floors.refill(decoDungeon, (char)e.key).mixedRandomRegion(0.375, -1, dg.rng.nextLong());

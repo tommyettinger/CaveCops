@@ -9,11 +9,6 @@ import squidpony.squidmath.NumberTools;
  * Created by Tommy Ettinger on 9/12/2019.
  */
 public class Visuals {
-
-    public static final Color COLOR_WHITE = Color.WHITE;
-    public static final Color COLOR_BLACK = Color.BLACK;
-    public static final Color COLOR_NEUTRAL = new Color(0.5f, 0.5f, 0.5f, 1f);
-    
     public static final float FLOAT_WHITE = Palette.WHITE;
     public static final float FLOAT_BLACK = Palette.BLACK;
     public static final float FLOAT_GRAY = Palette.IRON;

@@ -75,7 +75,7 @@ public class Populace extends OrderedMap<Coord, Creature> {
             return creature.rng.getRandomElement(creature.archetype.attacks);
         }
         creature.moth.end = goal;
-        creature.moth.alpha = 0f;
+        creature.moth.change = 0f;
         alterCarefully(startingPosition, goal);
         dl.lighting.moveLight(startingPosition, goal);
         return null;

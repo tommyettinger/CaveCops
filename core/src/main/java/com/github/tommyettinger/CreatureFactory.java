@@ -1,24 +1,67 @@
 package com.github.tommyettinger;
 
 import com.badlogic.gdx.graphics.g2d.Animation;
-import com.badlogic.gdx.graphics.g2d.TextureAtlas;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.utils.IntFloatMap;
-import squidpony.squidmath.*;
+import squidpony.squidmath.Coord;
+import squidpony.squidmath.CrossHash;
+import squidpony.squidmath.GreasedRegion;
+import squidpony.squidmath.IRNG;
+import squidpony.squidmath.OrderedMap;
+import squidpony.squidmath.SilkRNG;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
-import static com.github.tommyettinger.Attack.AttackType.*;
-import static com.github.tommyettinger.Attack.DamageType.*;
-import static com.github.tommyettinger.Creature.MoveType.*;
-import static com.github.tommyettinger.HandType.*;
+import static com.github.tommyettinger.Attack.AttackType.BITE;
+import static com.github.tommyettinger.Attack.AttackType.BLADE;
+import static com.github.tommyettinger.Attack.AttackType.BURST;
+import static com.github.tommyettinger.Attack.AttackType.CLAW;
+import static com.github.tommyettinger.Attack.AttackType.HORN;
+import static com.github.tommyettinger.Attack.AttackType.KICK;
+import static com.github.tommyettinger.Attack.AttackType.PECK;
+import static com.github.tommyettinger.Attack.AttackType.RAY;
+import static com.github.tommyettinger.Attack.AttackType.SHARD;
+import static com.github.tommyettinger.Attack.AttackType.SLAM;
+import static com.github.tommyettinger.Attack.AttackType.SPUR;
+import static com.github.tommyettinger.Attack.AttackType.STING;
+import static com.github.tommyettinger.Attack.AttackType.TAIL;
+import static com.github.tommyettinger.Attack.AttackType.TONGUE;
+import static com.github.tommyettinger.Attack.AttackType.WAVE;
+import static com.github.tommyettinger.Attack.DamageType.BURNING;
+import static com.github.tommyettinger.Attack.DamageType.CRUSHING;
+import static com.github.tommyettinger.Attack.DamageType.CURSING;
+import static com.github.tommyettinger.Attack.DamageType.DISGUSTING;
+import static com.github.tommyettinger.Attack.DamageType.FREEZING;
+import static com.github.tommyettinger.Attack.DamageType.GOUGING;
+import static com.github.tommyettinger.Attack.DamageType.GRABBING;
+import static com.github.tommyettinger.Attack.DamageType.MORPHING;
+import static com.github.tommyettinger.Attack.DamageType.PIERCING;
+import static com.github.tommyettinger.Attack.DamageType.QUAKING;
+import static com.github.tommyettinger.Attack.DamageType.RIPPING;
+import static com.github.tommyettinger.Attack.DamageType.SHINING;
+import static com.github.tommyettinger.Attack.DamageType.SHOCKING;
+import static com.github.tommyettinger.Attack.DamageType.SLICING;
+import static com.github.tommyettinger.Attack.DamageType.SOAKING;
+import static com.github.tommyettinger.Attack.DamageType.STUNNING;
+import static com.github.tommyettinger.Attack.DamageType.THRASHING;
+import static com.github.tommyettinger.Attack.DamageType.ZAPPING;
+import static com.github.tommyettinger.Creature.MoveType.AMPHIBIOUS;
+import static com.github.tommyettinger.Creature.MoveType.AQUATIC;
+import static com.github.tommyettinger.Creature.MoveType.FLYING;
+import static com.github.tommyettinger.Creature.MoveType.WALKING;
+import static com.github.tommyettinger.HandType.HUGE_HAND;
+import static com.github.tommyettinger.HandType.LARGE_HAND;
+import static com.github.tommyettinger.HandType.NONE;
+import static com.github.tommyettinger.HandType.NORMAL_HAND;
+import static com.github.tommyettinger.HandType.SMALL_HAND;
 
 /**
  * Created by Tommy Ettinger on 9/27/2019.
  */
 public class CreatureFactory {
 
-    public LinkedHashMap<String, Animation<TextureAtlas.AtlasRegion>> mapping;
+    public LinkedHashMap<String, Animation<TextureRegion>> mapping;
     public LinkedHashMap<Creature.MoveType, Coord[]> regions;
     public Populace populace;
     public IRNG rng;
@@ -26,7 +69,7 @@ public class CreatureFactory {
     private CreatureFactory(){}
     public CreatureFactory(
             Populace populace,
-            LinkedHashMap<String, Animation<TextureAtlas.AtlasRegion>> mapping){
+            LinkedHashMap<String, Animation<TextureRegion>> mapping){
         this.populace = populace;
         rng = new SilkRNG(CrossHash.hash64(populace.dl.lineDungeon));
         this.mapping = mapping;
