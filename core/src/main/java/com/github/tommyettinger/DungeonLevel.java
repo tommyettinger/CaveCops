@@ -1,6 +1,7 @@
 package com.github.tommyettinger;
 
 import com.badlogic.gdx.utils.IntIntMap;
+import com.github.tommyettinger.colorful.Palette;
 import squidpony.ArrayTools;
 import squidpony.squidgrid.Radius;
 import squidpony.squidgrid.mapping.DungeonGenerator;
@@ -66,7 +67,7 @@ public class DungeonLevel {
             }
         }
         floors.refill(bareDungeon, '.');
-        lighting = new LightingHandler(DungeonUtility.generateResistances(decoDungeon), Visuals.FLOAT_BLACK, Radius.CIRCLE, 3.0);
+        lighting = new LightingHandler(DungeonUtility.generateResistances(decoDungeon), Palette.LEAD, Radius.CIRCLE, 3.0);
     }
     
     public void prune(final GreasedRegion seen)

@@ -21,6 +21,7 @@ import com.badlogic.gdx.utils.IntMap;
 import com.badlogic.gdx.utils.Scaling;
 import com.badlogic.gdx.utils.TimeUtils;
 import com.github.tommyettinger.colorful.FloatColors;
+import com.github.tommyettinger.colorful.Palette;
 import com.github.tommyettinger.colorful.Shaders;
 import regexodus.Pattern;
 import regexodus.Replacer;
@@ -36,6 +37,7 @@ import squidpony.squidmath.DiverRNG;
 import squidpony.squidmath.FastNoise;
 import squidpony.squidmath.FoamNoise;
 import squidpony.squidmath.GapShuffler;
+import squidpony.squidmath.GreasedRegion;
 import squidpony.squidmath.Noise;
 import squidpony.squidmath.NumberTools;
 import squidpony.squidmath.OrderedMap;
@@ -156,7 +158,7 @@ public class CaveCops extends ApplicationAdapter {
     // Here, we use a GreasedRegion to store all floors that the player can walk on, a small rim of cells just beyond
     // the player's vision that blocks pathfinding to areas we can't see a path to, and we also store all cells that we
     // have seen in the past in a GreasedRegion (in most roguelikes, there would be one of these per dungeon floor).
-    //private GreasedRegion blockage, seen, currentlySeen;
+    private GreasedRegion blockage, seen, currentlySeen;
     private LinkedHashSet<Coord> impassable;
     
     private GapShuffler<String> zodiacShuffler, phraseShuffler, meaningShuffler;
@@ -416,24 +418,14 @@ public class CaveCops extends ApplicationAdapter {
         //dl.floors.refill(dl.bareDungeon, '.');
         dl.lighting.calculateFOV(playerCreature.moth.start);
         dl.lighting.update();
-        // Uses shadowcasting FOV and reuses the visible array without creating new arrays constantly.
-//        FOV.reuseFOV(dl.lighting.resistances, visible, playerCreature.moth.start.x, playerCreature.moth.start.y, 9.0, Radius.CIRCLE);
         
-        // 0.01 is the upper bound (inclusive), so any Coord in visible that is more well-lit than 0.01 will _not_ be in
-        // the blockage Collection, but anything 0.01 or less will be in it. This lets us use blockage to prevent access
-        // to cells we can't see from the start of the move.
-        //blockage = new GreasedRegion(visible, 0.0);
-        //seen = blockage.not().copy();
-        //currentlySeen = seen.copy();
-        //blockage.fringe8way();
         impassable = new LinkedHashSet<>(creatures.size(), 0.25f);
-        // prunedDungeon starts with the full lineDungeon, which includes features like water and grass but also stores
-        // all walls as box-drawing characters. The issue with using lineDungeon as-is is that a character like '┬' may
-        // be used because there are walls to the east, west, and south of it, even when the player is to the north of
-        // that cell and so has never seen the southern connecting wall, and would have no reason to know it is there.
-        // By calling LineKit.pruneLines(), we adjust prunedDungeon to hold a variant on lineDungeon that removes any
-        // line segments that haven't ever been visible. This is called again whenever seen changes. 
-        //dl.prune(seen);
+
+        blockage = new GreasedRegion(visible, 0.0);
+        seen = blockage.not().copy();
+        currentlySeen = seen.copy();
+        blockage.fringe8way();
+        dl.prune(seen);
 
         //This is used to allow clicks or taps to take the player to the desired area.
         toCursor = new ArrayList<>(200);
@@ -446,7 +438,7 @@ public class CaveCops extends ApplicationAdapter {
         // directions, but will prefer orthogonal moves unless diagonal ones are clearly closer "as the crow flies."
         playerToCursor = playerCreature.dijkstraMap;//new DijkstraMap(decoDungeon, Measurement.MANHATTAN);
         playerToCursor.setGoal(playerCreature.moth.start);
-        //impassable.addAll(blockage);
+        impassable.addAll(blockage);
         impassable.addAll(creatures.keySet());
         playerToCursor.partialScan(gridWidth + gridHeight, impassable);
 
@@ -667,12 +659,10 @@ public class CaveCops extends ApplicationAdapter {
             animationStart = TimeUtils.millis();
             // This is just like the constructor used earlier, but affects an existing GreasedRegion without making
             // a new one just for this movement.
-            //blockage.refill(visible, 0.0);
-            //seen.or(currentlySeen.remake(blockage.not()));
-            //blockage.fringe8way();
-            // By calling LineKit.pruneLines(), we adjust prunedDungeon to hold a variant on lineDungeon that removes any
-            // line segments that haven't ever been visible. This is called again whenever seen changes.
-            //dl.prune(seen);
+            blockage.refill(visible, 0.0);
+            seen.or(currentlySeen.remake(blockage.not()));
+            blockage.fringe8way();
+            dl.prune(seen);
         }
     }
 
@@ -733,14 +723,14 @@ public class CaveCops extends ApplicationAdapter {
                         batch.draw(decoration.getKeyFrame(time), i, j, 1f, 1f);
                     }
                 }
-//                else if(seen.contains(i, j)) {
-//                    batch.setPackedColor(Visuals.FLOAT_GRAY);
-//                    batch.draw(charMapping.get(dl.prunedDungeon[i][j], solid).getKeyFrame(time), i, j, 1f, 1f);
-//                    if((decoration = decorations.get(Coord.get(i, j))) != null)
-//                    {
-//                        batch.draw(decoration.getKeyFrame(time), i, j, 1f, 1f);
-//                    }
-//                }
+                else if(seen.contains(i, j)) {
+                    batch.setPackedColor(Palette.BLACK);
+                    batch.draw(charMapping.get(dl.prunedDungeon[i][j], solid).getKeyFrame(time), i, j, 1f, 1f);
+                    if((decoration = decorations.get(Coord.get(i, j))) != null)
+                    {
+                        batch.draw(decoration.getKeyFrame(time), i, j, 1f, 1f);
+                    }
+                }
             }
         }
 //        for (int i = 0; i < monsters.size(); i++) {
@@ -877,7 +867,7 @@ public class CaveCops extends ApplicationAdapter {
                 // which is 13 here. It also won't try to find distances through an impassable cell, which here is the blockage
                 // GreasedRegion that contains the cells just past the edge of the player's FOV area.
                 impassable.clear();
-                //impassable.addAll(blockage);
+                impassable.addAll(blockage);
                 impassable.addAll(creatures.keySet());
                 playerToCursor.partialScan(gridWidth + gridHeight, impassable);
                 //message = anReplacer.replace(zodiacShuffler.next() + phraseShuffler.next() + meaningShuffler.next().replace("@", zodiacShuffler.next()));
