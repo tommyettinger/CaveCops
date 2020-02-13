@@ -365,7 +365,7 @@ public class CaveCops extends ApplicationAdapter {
 
         playerCreature = creatureFactory.place("cop");
         playerCreature.glow.range = 6f;
-        playerCreature.glow.color = Palette.PENCIL_YELLOW;
+        playerCreature.glow.color = FloatColors.lessenChange(Palette.PENCIL_YELLOW, 0.65f);
         playerCreature.glow.flicker = 0.5f;
         playerCreature.glow.strobe = 0f;
         playerCreature.glow.delay = 0f;
@@ -420,7 +420,21 @@ public class CaveCops extends ApplicationAdapter {
         ////TODO: not sure if next line is needed?
         //dl.floors.refill(dl.bareDungeon, '.');
         dl.lighting.calculateFOV(playerCreature.moth.start);
+//        double sum = 0.0;
+//        for (int x = 0; x < bigWidth; x++) {
+//            for (int y = 0; y < bigHeight; y++) {
+//                sum += visible[x][y];
+//            }
+//        }
+//        System.out.println(sum);
         dl.lighting.update();
+//        sum = 0.0;
+//        for (int x = 0; x < bigWidth; x++) {
+//            for (int y = 0; y < bigHeight; y++) {
+//                sum += visible[x][y];
+//            }
+//        }
+//        System.out.println(sum);
         
         impassable = new LinkedHashSet<>(creatures.size(), 0.25f);
 
@@ -717,7 +731,7 @@ public class CaveCops extends ApplicationAdapter {
 //                            ? FLOAT_WHITE
 //                            : FloatColors.lerpFloatColors(FLOAT_GRAY, FLOAT_LIGHT, (float)visible[i][j] * 0.75f + 0.25f));
 //                    batch.setPackedColor(Visuals.lerpFloatColors(dl.backgrounds[i][j], batch.getPackedColor(), 0.6f));
-                    batch.setPackedColor(dl.lighting.currentBackgrounds[i][j]);
+                    batch.setPackedColor(FloatColors.lighten(dl.lighting.currentBackgrounds[i][j], 0.125f));
                     //batch.draw(solid, pos.x, pos.y);
 //                    batch.setPackedColor(SColor.lerpFloatColors(colors[i][j], FLOAT_LIGHTING, (float)visible[i][j] * 0.75f + 0.25f));
                     batch.draw(charMapping.get(dl.prunedDungeon[i][j], solid).getKeyFrame(time), i, j, 1f, 1f);

@@ -4,6 +4,7 @@ import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.MathUtils;
 import com.github.tommyettinger.colorful.ColorfulSprite;
+import com.github.tommyettinger.colorful.FloatColors;
 import com.github.tommyettinger.colorful.Palette;
 import squidpony.squidmath.Coord;
 
@@ -17,19 +18,18 @@ import squidpony.squidmath.Coord;
 public class Moth extends ColorfulSprite {
     public Animation<TextureRegion> animation;
     public float change;
-    public Coord start = Coord.get(0, 0);
-    public Coord end = Coord.get(0, 0);
+    public Coord start;
+    public Coord end;
 
     private Moth ()
     {
         super();
         setColor(Palette.GRAY);
+        start = Coord.get(1, 1);
+        end = Coord.get(1, 1);
     }
     public Moth (Animation<TextureRegion> animation) {
-        super();
-        this.animation = animation;
-        setRegion(animation.getKeyFrame(0f));
-        setColor(Palette.GRAY);
+        this(animation, Coord.get(1, 1));
     }
 
     public Moth (Animation<TextureRegion> animation, Coord coord) {
@@ -41,7 +41,7 @@ public class Moth extends ColorfulSprite {
         this.animation = animation;
         setSize(1, 1);
         setRegion(animation.getKeyFrame(0f));
-        setColor(Palette.GRAY);
+        setTweakedColor(Palette.GRAY, FloatColors.floatColor(0.5f, 0.6f, 0.6f, 0.7f));
         this.start = start;
         this.end = end;
     }

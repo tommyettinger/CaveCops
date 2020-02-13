@@ -622,7 +622,7 @@ public class LightingHandler implements Serializable {
         for (int x = Math.max(0, minX); x < maxX && x < width; x++) {
             for (int y = Math.max(0, minY); y < maxY && y < height; y++) {
                 if (losResult[x][y] > 0.0) {
-                    fovResult[x][y] = MathUtils.clamp(fovResult[x][y] + colorLighting[0][x][y], 0, 1);
+                    fovResult[x][y] = MathUtils.clamp(fovResult[x][y] + colorLighting[0][x][y], 0.0, 1.0);
                 }
             }
         }
