@@ -722,6 +722,7 @@ public class CaveCops extends ApplicationAdapter {
 
             }
         }
+        batch.setTweak(0.45f, 0.35f, 0.35f, 0.3f);
         for (int i = 0; i < bigWidth; i++) {
             for (int j = 0; j < bigHeight; j++) {
                 if(visible[i][j] > 0.0) {
@@ -741,7 +742,7 @@ public class CaveCops extends ApplicationAdapter {
                     }
                 }
                 else if(seen.contains(i, j)) {
-                    batch.setPackedColor(Palette.BLACK);
+                    batch.setPackedColor(Palette.GRAPHITE);
                     batch.draw(charMapping.get(dl.prunedDungeon[i][j], solid).getKeyFrame(time), i, j, 1f, 1f);
                     if((decoration = decorations.get(Coord.get(i, j))) != null)
                     {
@@ -782,6 +783,8 @@ public class CaveCops extends ApplicationAdapter {
 //        batch.setPackedColor(playerCreature.moth.color);
 //        batch.draw(playerCreature.moth.animate(time), playerCreature.moth.getX(), playerCreature.moth.getY(), 1f, 1f);
         font.setColor(COLOR_NEUTRAL);
+        batch.setPackedColor(Palette.GRAY);
+        batch.setTweak(0.75f, 0.5f, 0.5f, 0.75f);
         font.draw(batch, 
                 message
                         + '\n' + StringKit.padLeftStrict(Gdx.graphics.getFramesPerSecond() + " FPS", ' ', 11)

@@ -41,7 +41,7 @@ public class Moth extends ColorfulSprite {
         this.animation = animation;
         setSize(1, 1);
         setRegion(animation.getKeyFrame(0f));
-        setTweakedColor(Palette.GRAY, FloatColors.floatColor(0.5f, 0.6f, 0.6f, 0.7f));
+        setTweakedColor(Palette.GRAY, FloatColors.floatColor(0.5f, 0.5f, 0.5f, 0.8f));
         this.start = start;
         this.end = end;
     }
