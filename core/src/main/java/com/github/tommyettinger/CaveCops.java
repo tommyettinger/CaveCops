@@ -249,7 +249,7 @@ public class CaveCops extends ApplicationAdapter {
 //        add = new Vector3(0, 0, 0);
 //        mul = new Vector3(1, 1, 1);
 
-        mainViewport = new PixelPerfectViewport(Scaling.fill, gridWidth, gridHeight);
+        mainViewport = new PixelPerfectViewport(Scaling.fill, gridWidth, gridHeight, cellWidth);
         mainViewport.setScreenBounds(0, 0, gridWidth * cellWidth, gridHeight * cellHeight);
         camera = mainViewport.getCamera();
         camera.update();
@@ -789,7 +789,8 @@ public class CaveCops extends ApplicationAdapter {
                 message
                         + '\n' + StringKit.padLeftStrict(Gdx.graphics.getFramesPerSecond() + " FPS", ' ', 11)
                         , (playerCreature.moth.getX() - mainViewport.getWorldWidth() * 0.375f),
-                (playerCreature.moth.getY() + mainViewport.getWorldHeight() * 0.375f), mainViewport.getWorldWidth() * 0.75f,
+                (playerCreature.moth.getY() + mainViewport.getWorldHeight() * mainViewport.getCurrentScale() * 0.375f),
+            mainViewport.getWorldWidth() * 0.75f,
                 Align.center, true);
     }
 
@@ -905,7 +906,7 @@ public class CaveCops extends ApplicationAdapter {
         super.resize(width, height);
 
         mainViewport.update(width, height, false);
-        mainViewport.setScreenBounds(0, 0, width, height);
+        //mainViewport.setScreenBounds(0, 0, width, height);
     }
 
     private boolean onGrid(int gridX, int gridY)
