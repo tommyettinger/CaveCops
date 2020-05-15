@@ -5,10 +5,7 @@ import com.badlogic.gdx.backends.lwjgl.LwjglApplication;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
 import com.github.tommyettinger.CaveCops;
 
-import static com.github.tommyettinger.CaveCops.cellHeight;
-import static com.github.tommyettinger.CaveCops.cellWidth;
-import static com.github.tommyettinger.CaveCops.gridHeight;
-import static com.github.tommyettinger.CaveCops.gridWidth;
+import static com.github.tommyettinger.CaveCops.*;
 
 /** Launches the desktop (LWJGL 2) application. */
 public class DesktopLauncher {

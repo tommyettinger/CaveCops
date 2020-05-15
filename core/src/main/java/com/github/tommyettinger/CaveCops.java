@@ -14,17 +14,10 @@ import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.utils.Align;
-import com.badlogic.gdx.utils.Array;
-import com.badlogic.gdx.utils.IntIntMap;
-import com.badlogic.gdx.utils.IntMap;
-import com.badlogic.gdx.utils.Scaling;
-import com.badlogic.gdx.utils.TimeUtils;
+import com.badlogic.gdx.utils.*;
 import com.github.tommyettinger.colorful.ColorfulBatch;
 import com.github.tommyettinger.colorful.FloatColors;
 import com.github.tommyettinger.colorful.Palette;
-import regexodus.Pattern;
-import regexodus.Replacer;
 import squidpony.FakeLanguageGen;
 import squidpony.Maker;
 import squidpony.StringKit;
@@ -32,42 +25,15 @@ import squidpony.squidai.DijkstraMap;
 import squidpony.squidgrid.mapping.DungeonGenerator;
 import squidpony.squidgrid.mapping.FlowingCaveGenerator;
 import squidpony.squidgrid.mapping.styled.TilesetType;
-import squidpony.squidmath.Coord;
-import squidpony.squidmath.DiverRNG;
-import squidpony.squidmath.FastNoise;
-import squidpony.squidmath.FoamNoise;
-import squidpony.squidmath.GapShuffler;
-import squidpony.squidmath.GreasedRegion;
-import squidpony.squidmath.Noise;
-import squidpony.squidmath.NumberTools;
 import squidpony.squidmath.OrderedMap;
-import squidpony.squidmath.RNG;
-import squidpony.squidmath.SilkRNG;
-import squidpony.squidmath.XoshiroStarPhi32RNG;
+import squidpony.squidmath.*;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 
-import static com.badlogic.gdx.Input.Keys.A;
-import static com.badlogic.gdx.Input.Keys.D;
-import static com.badlogic.gdx.Input.Keys.DOWN;
-import static com.badlogic.gdx.Input.Keys.ESCAPE;
-import static com.badlogic.gdx.Input.Keys.F;
-import static com.badlogic.gdx.Input.Keys.LEFT;
-import static com.badlogic.gdx.Input.Keys.NUMPAD_2;
-import static com.badlogic.gdx.Input.Keys.NUMPAD_4;
-import static com.badlogic.gdx.Input.Keys.NUMPAD_5;
-import static com.badlogic.gdx.Input.Keys.NUMPAD_6;
-import static com.badlogic.gdx.Input.Keys.NUMPAD_8;
-import static com.badlogic.gdx.Input.Keys.PERIOD;
-import static com.badlogic.gdx.Input.Keys.RIGHT;
-import static com.badlogic.gdx.Input.Keys.S;
-import static com.badlogic.gdx.Input.Keys.UP;
-import static com.badlogic.gdx.Input.Keys.W;
-import static com.github.tommyettinger.colorful.FloatColors.chromaMild;
-import static com.github.tommyettinger.colorful.FloatColors.chromaWarm;
-import static com.github.tommyettinger.colorful.FloatColors.luma;
+import static com.badlogic.gdx.Input.Keys.*;
+import static com.github.tommyettinger.colorful.FloatColors.*;
 
 /**
  * This is a small, not-overly-simple demo that presents some important features of SquidLib and shows a faster,
@@ -164,7 +130,6 @@ public class CaveCops extends ApplicationAdapter {
     private LinkedHashSet<Coord> impassable;
     
     private GapShuffler<String> zodiacShuffler, phraseShuffler, meaningShuffler;
-    private Replacer anReplacer;
     private String message;
 
     private Creature playerCreature;
@@ -235,8 +200,7 @@ public class CaveCops extends ApplicationAdapter {
         zodiacShuffler = new GapShuffler<>(zodiac, languageRNG);
         phraseShuffler = new GapShuffler<>(phrases, languageRNG);
         meaningShuffler = new GapShuffler<>(meanings, languageRNG);
-        anReplacer = new Replacer(Pattern.compile("\\b([Aa]) (?=[AEIOUaeiou])"), "$1n ");
-        //message = anReplacer.replace(zodiacShuffler.next() + phraseShuffler.next() + meaningShuffler.next().replace("@", zodiacShuffler.next()));
+        message =StringKit.correctABeforeVowel(zodiacShuffler.next() + phraseShuffler.next() + meaningShuffler.next().replace("@", zodiacShuffler.next()));
 //        ShaderProgram.pedantic = false;
 //        shader = new ShaderProgram(Visuals.vertexShader, Visuals.fragmentShader);
 //        //shader = new ShaderProgram(Visuals.vertexShader, Visuals.fragmentShaderTrue);
@@ -365,7 +329,7 @@ public class CaveCops extends ApplicationAdapter {
 
         playerCreature = creatureFactory.place("cop");
         playerCreature.glow.range = 6f;
-        playerCreature.glow.color = FloatColors.lessenChange(Palette.PENCIL_YELLOW, 0.65f);
+        playerCreature.glow.color = FloatColors.lerpFloatColors(Palette.PENCIL_YELLOW, Palette.SILVER, 0.3f);//Palette.PENCIL_YELLOW;//FloatColors.fade(Palette.PENCIL_YELLOW, 0.65f);
         playerCreature.glow.flicker = 0.5f;
         playerCreature.glow.strobe = 0f;
         playerCreature.glow.delay = 0f;
@@ -617,7 +581,7 @@ public class CaveCops extends ApplicationAdapter {
                     toCursor.clear();
                     final int a = playerCreature.rng.stateA, b = playerCreature.rng.stateB;
                     playerCreature.rng.stateA = playerCreature.moth.start.hashCode();
-                    playerCreature.rng.stateB = Noise.IntPointHash.hashAll(screenX, screenY, ~playerCreature.rng.stateA);
+                    playerCreature.rng.stateB = IntPointHash.hashAll(screenX, screenY, ~playerCreature.rng.stateA);
                     playerToCursor.findPathPreScanned(toCursor, cursor);
                     playerCreature.rng.setState(a, b);
 //                    // findPathPreScanned includes the current cell (goal) by default, which is helpful when

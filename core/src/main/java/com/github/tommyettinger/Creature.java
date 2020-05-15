@@ -9,11 +9,7 @@ import squidpony.FakeLanguageGen;
 import squidpony.StringKit;
 import squidpony.squidai.DijkstraMap;
 import squidpony.squidgrid.Measurement;
-import squidpony.squidmath.Coord;
-import squidpony.squidmath.CrossHash;
-import squidpony.squidmath.DiverRNG;
-import squidpony.squidmath.SilkRNG;
-import squidpony.squidmath.TweakRNG;
+import squidpony.squidmath.*;
 
 /**
  * Created by Tommy Ettinger on 9/23/2019.
@@ -72,7 +68,7 @@ public class Creature {
         fortune = new TweakRNG(a, b, -(CrossHash.Yolk.beta.hash64(name) >>> 50), CrossHash.Yolk.gamma.hash64(name) >> 56);
         nameTitled = name + " the " + StringKit.capitalize(archetype.name);
         faction = "crook";
-        glow = new Radiance(3f, FloatColors.lessenChange(Palette.RED, 0.7f),
+        glow = new Radiance(3f, FloatColors.lerpFloatColors(Palette.RED, Palette.GRAY, 0.35f),//Palette.RED,//FloatColors.fade(Palette.RED, 0.7f),
             0.8f,
             0f,
             rng.nextFloat(), 0.35f);
