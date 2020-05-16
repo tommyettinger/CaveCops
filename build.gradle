@@ -11,6 +11,11 @@ buildscript {
 	}
 }
 
+allprojects {
+	apply plugin: 'eclipse'
+	apply plugin: 'idea'
+}
+
 configure(subprojects) {
 	apply plugin: 'java-library'
 	sourceCompatibility = 1.8
