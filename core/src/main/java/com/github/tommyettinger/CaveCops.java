@@ -172,8 +172,8 @@ public class CaveCops extends ApplicationAdapter {
         // In this program we'll use SilkRNG, which will behave better on the HTML target than other generators.
         rng = new SilkRNG(Long.parseLong("CAVECOPS", 36));
         
-        String[] zodiac = new String[12];
-        RNG languageRNG = new RNG(new XoshiroStarPhi32RNG(DiverRNG.determine(startTime)));
+        var zodiac = new String[12];
+        var languageRNG = new RNG(new XoshiroStarPhi32RNG(DiverRNG.determine(startTime)));
         FakeLanguageGen lang = FakeLanguageGen.randomLanguage(languageRNG).mix(FakeLanguageGen.ANCIENT_EGYPTIAN, 0.6);
         lang.modifiers.add(FakeLanguageGen.Modifier.REDUCE_ACCENTS);
         for (int i = 0; i < zodiac.length; i++) {

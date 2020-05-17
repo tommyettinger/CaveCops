@@ -2,7 +2,7 @@ apply plugin: 'application'
 
 sourceSets.main.resources.srcDirs += [ rootProject.file('assets').path ]
 mainClassName = 'com.github.tommyettinger.desktop.DesktopLauncher'
-sourceCompatibility = 1.8
+sourceCompatibility = 11
 
 dependencies {
   api project(':core')

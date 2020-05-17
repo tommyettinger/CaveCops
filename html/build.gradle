@@ -23,6 +23,7 @@ gwt {
 
 	compiler.strict = true
 	compiler.disableCastChecking = true
+	sourceLevel = 11
 }
 
 dependencies {
@@ -106,7 +107,7 @@ task addSource {
 tasks.compileGwt.dependsOn(addSource)
 tasks.draftCompileGwt.dependsOn(addSource)
 
-sourceCompatibility = 8.0
+sourceCompatibility = 11
 sourceSets.main.java.srcDirs = [ "src/main/java/" ]
 
 eclipse.project.name = appName + "-html"
