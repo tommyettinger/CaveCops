@@ -1,0 +1,120 @@
+name	move	attacks:s[,]	jobs:s[,]
+piranha	AQUATIC	1 RIPPING BITE	Sea Skirmisher,Pack Hunter,Jungle Stalker
+lobster	AQUATIC	2 CRUSHING CLAW	Wave Knight,Bug Trooper,Deep Thinker
+great white shark	AQUATIC	1 GRABBING BITE	Sea Skirmisher,Primeval Lord,Wild Seeker
+blue whale	AQUATIC	1 CRUSHING SLAM	Wave Knight,Herd Protector,Deep Thinker
+electric eel	AQUATIC	1 SHOCKING BURST,1 RIPPING BITE	Sea Skirmisher,Thunder Chief,Flowing Form
+kraken	AQUATIC	8 GRABBING SLAM,1 GOUGING PECK	Deep Thinker,Moist Mangler,Wave Knight
+sea tiger	AQUATIC	1 RIPPING BITE,2 THRASHING WRAP	Wave Knight,Feline Hunter,Sea Skirmisher
+platypus	AMPHIBIOUS	1 CRUSHING PECK,1 PIERCING SPUR	Deadly Venom,Moist Mangler,Brain Bender
+frog	AMPHIBIOUS	1 GRABBING TONGUE,1 DISGUSTING BITE	Nasty Bandit,Moist Mangler,Great Grappler
+penguin	AMPHIBIOUS	1 GOUGING PECK	Sea Skirmisher,Avian Overlord,Ice Shaman
+pelican	FLYING	1 GRABBING PECK	Wave Knight,Avian Overlord,Sky Soldier
+puffin	FLYING	1 CRUSHING PECK	Sky Soldier,Winged Wrath,Ice Shaman
+golden eagle	FLYING	1 GOUGING PECK,1 CRUSHING CLAW	Sky Soldier,Avian Overlord,Winged Wrath
+ostrich	WALKING	1 GOUGING PECK,1 CRUSHING KICK	Ground Pounder,Avian Overlord,Plains Champ
+leopard	WALKING	2 RIPPING CLAW,1 RIPPING BITE	Jungle Stalker,Feline Hunter,Plains Champ
+lion	WALKING	2 RIPPING CLAW,1 CRUSHING BITE	Barbaric Roar,Pack Hunter,Plains Champ
+barn cat	WALKING	2 GRABBING CLAW,1 RIPPING BITE	Feline Hunter,Wild Seeker,Tough Fluff
+bone devil	WALKING	4 PIERCING SPUR,2 RIPPING CLAW	Fierce Frenzy,Fiendish Fury,Hard Body
+ice devil	WALKING	2 FREEZING SPUR,2 GOUGING CLAW	Fierce Frenzy,Fiendish Fury,Ice Shaman
+vrock	FLYING	1 GOUGING PECK,2 DISGUSTING CLAW	Winged Wrath,Fiendish Fury,Decay Deacon
+jackal	WALKING	1 GRABBING BITE	Desert Raider,Bad Dog,Wild Seeker
+wolf	WALKING	1 CRUSHING BITE,1 STUNNING BURST	Pack Hunter,Bad Dog,Ice Shaman
+hound	WALKING	1 CRUSHING BITE	Pack Hunter,Bad Dog,Wild Seeker
+paper golem	WALKING	4 SLICING BLADE	Blade Disciple,Fierce Frenzy,Runic Warden
+wood golem	WALKING	2 CRUSHING SLAM,2 SLICING SHARD	Forest Druid,Hard Body,Runic Warden
+flesh golem	WALKING	2 THRASHING SLAM	Blood Sucker,Great Grappler,Flowing Form
+clay golem	WALKING	1 CRUSHING SLAM	Flowing Form,Hard Body,Runic Warden
+stone golem	WALKING	1 CRUSHING SLAM,1 QUAKING BURST	Ground Pounder,Hard Body,Runic Warden
+iron golem	WALKING	1 CRUSHING SLAM,1 SLICING BLADE	Blade Disciple,Hard Body,Runic Warden
+crystal golem	WALKING	2 SLICING BLADE,4 SHINING RAY	Blade Disciple,Glowing Guard,Runic Warden
+air elemental	FLYING	3 SLICING SHARD	Fierce Frenzy,Flowing Form,Sky Soldier
+fire elemental	WALKING	4 BURNING BURST	Fierce Frenzy,Flowing Form,Raging Inferno
+earth elemental	WALKING	2 QUAKING BURST	Ground Pounder,Hard Body,Mountain King
+water elemental	AMPHIBIOUS	1 SOAKING WAVE	Wave Knight,Flowing Form,Sea Skirmisher
+eye tyrant	FLYING	4 ZAPPING RAY,1 RIPPING BITE	Hypnotic Gaze,Elite Arcanist,Brain Bender
+giant	WALKING	2 HUGE HAND	Barbaric Roar,Great Grappler,Mountain King
+minotaur	WALKING	2 LARGE HAND,1 PIERCING HORN	Barbaric Roar,Ground Pounder,Wild Seeker
+cyclops	WALKING	2 HUGE HAND,1 THRASHING SLAM	Hypnotic Gaze,Great Grappler,Deep Thinker
+militant orc	WALKING	2 NORMAL HAND	Barbaric Roar,Pack Hunter,Desert Raider
+orc shaman	WALKING	2 NORMAL HAND,1 CURSING BURST	Decay Deacon,Pack Hunter,Barbaric Roar
+soldier	WALKING	2 NORMAL HAND	Bold Crusader,Pack Hunter,Herd Protector
+captain	WALKING	2 NORMAL HAND	Mountain King,Pack Hunter,Herd Protector
+elf	WALKING	2 NORMAL HAND	Forest Druid,Elite Arcanist,Wild Seeker
+troll	WALKING	2 LARGE HAND,1 DISGUSTING SLAM	Nasty Bandit,Fierce Frenzy,Great Grappler
+gnome	WALKING	2 SMALL HAND	Forest Druid,Herd Protector,Mischief Maker
+leprechaun	WALKING	2 SMALL HAND,1 ZAPPING WAVE	Forest Druid,Elite Arcanist,Mischief Maker
+dwarf	WALKING	2 NORMAL HAND	Mountain King,Herd Protector,Hard Body
+satyr	WALKING	2 NORMAL HAND,1 CRUSHING KICK	Ground Pounder,Forest Druid,Tough Fluff
+forest centaur	WALKING	2 NORMAL HAND,2 CRUSHING KICK	Ground Pounder,Herd Protector,Wild Seeker
+ogre	WALKING	2 LARGE HAND,2 THRASHING SLAM	Fierce Frenzy,Great Grappler,Barbaric Roar
+quantum mechanic	WALKING	2 NORMAL HAND,1 ZAPPING RAY	Brain Bender,Elite Arcanist,Runic Warden
+angel	FLYING	2 NORMAL HAND,1 SHINING BURST	Avian Overlord,Glowing Guard,Bold Crusader
+tengu	FLYING	2 NORMAL HAND,1 GOUGING PECK	Winged Wrath,Avian Overlord,Mischief Maker
+djinn	FLYING	2 LARGE HAND,2 SLICING SHARD	Sky Soldier,Elite Arcanist,Runic Warden
+goblin	WALKING	2 SMALL HAND,1 DISGUSTING SLAM	Nasty Bandit,Pack Hunter,Jungle Stalker
+mind flayer	AMPHIBIOUS	2 NORMAL HAND,1 STUNNING WAVE	Moist Mangler,Deep Thinker,Brain Bender
+bugbear	WALKING	2 LARGE HAND	Nasty Bandit,Pack Hunter,Great Grappler
+yeti	WALKING	2 LARGE HAND,1 FREEZING BURST	Mountain King,Barbaric Roar,Ice Shaman
+medusa	WALKING	2 NORMAL HAND,1 MORPHING RAY	Shadow Sultan,Deadly Venom,Hypnotic Gaze
+owlbear	WALKING	2 THRASHING CLAW,1 GOUGING PECK	Fierce Frenzy,Great Grappler,Forest Druid
+kirin	FLYING	2 SHINING KICK,1 STUNNING HORN	Ground Pounder,Glowing Guard,Bold Crusader
+gargoyle	FLYING	2 GOUGING CLAW,2 CRUSHING KICK	Sky Soldier,Fierce Frenzy,Runic Warden
+kobold	WALKING	2 SMALL HAND,1 THRASHING BITE	Nasty Bandit,Fierce Frenzy,Mischief Maker
+ape	WALKING	2 CRUSHING SLAM,1 RIPPING BITE	Jungle Stalker,Herd Protector,Fierce Frenzy
+jabberwock	WALKING	1 RIPPING BITE,2 GOUGING CLAW	Fierce Frenzy,Draconic Brute,Brain Bender
+umber hulk	WALKING	2 CRUSHING CLAW,1 STUNNING WAVE	Deep Thinker,Bug Trooper,Hypnotic Gaze
+zruty	WALKING	3 CRUSHING BITE	Fierce Frenzy,Great Grappler,Runic Warden
+giant tick	WALKING	1 GRABBING BITE	Blood Sucker,Bug Trooper,Great Grappler
+giant beetle	WALKING	1 SLICING BITE	Nasty Bandit,Bug Trooper,Hard Body
+dung worm	AMPHIBIOUS	1 DISGUSTING BITE	Nasty Bandit,Moist Mangler,Flowing Form
+dragonfly	FLYING	1 CRUSHING BITE	Sky Soldier,Bug Trooper,Winged Wrath
+killer bee	FLYING	1 PIERCING STING	Sky Soldier,Bug Trooper,Deadly Venom
+giant spider	WALKING	1 PIERCING BITE,1 GRABBING WRAP	Deadly Venom,Bug Trooper,Great Grappler
+scorpion	WALKING	2 CRUSHING CLAW,1 PIERCING STING	Deadly Venom,Bug Trooper,Desert Raider
+giant ant	WALKING	1 RIPPING BITE	Great Grappler,Bug Trooper,Desert Raider
+locust	FLYING	1 SLICING BITE	Sky Soldier,Bug Trooper,Herd Protector
+giant slug	WALKING	1 DISGUSTING TONGUE	Decay Deacon,Moist Mangler,Great Grappler
+giant snail	WALKING	1 DISGUSTING TONGUE	Decay Deacon,Moist Mangler,Runic Warden
+feral hog	WALKING	1 THRASHING BITE	Ground Pounder,Forest Druid,Plains Champ
+bull	WALKING	1 THRASHING HORN,2 CRUSHING KICK	Ground Pounder,Herd Protector,Plains Champ
+camel	WALKING	1 CRUSHING BITE,2 CRUSHING KICK	Ground Pounder,Herd Protector,Desert Raider
+llama	WALKING	1 CRUSHING BITE,2 CRUSHING KICK	Ground Pounder,Herd Protector,Mountain King
+gray goat	WALKING	1 CRUSHING BITE,1 PIERCING HORN	Herd Protector,Mischief Maker,Mountain King
+white sheep	WALKING	1 CRUSHING BITE,2 CRUSHING KICK	Ground Pounder,Herd Protector,Tough Fluff
+white unicorn	WALKING	1 SHINING HORN,2 CRUSHING KICK	Ground Pounder,Glowing Guard,Forest Druid
+brown horse	WALKING	1 THRASHING BITE,2 CRUSHING KICK	Ground Pounder,Plains Champ,Herd Protector
+deer	WALKING	2 THRASHING KICK,1 RIPPING HORN	Ground Pounder,Forest Druid,Herd Protector
+mastodon	WALKING	2 CRUSHING KICK,1 PIERCING BITE	Ground Pounder,Tough Fluff,Ice Shaman
+wumpus	WALKING	1 CRUSHING BITE,2 STUNNING KICK	Primeval Lord,Ground Pounder,Mischief Maker
+wyvern	FLYING	1 RIPPING BITE,2 GRABBING CLAW	Draconic Brute,Sky Soldier,Winged Wrath
+dreadwyrm	FLYING	1 CRUSHING BITE,1 CURSING WAVE	Draconic Brute,Master Dragon,Decay Deacon
+glendrake	WALKING	1 RIPPING BITE,1 SLICING WAVE	Master Dragon,Jungle Stalker,Forest Druid
+firedrake	WALKING	1 RIPPING BITE,1 BURNING WAVE	Draconic Brute,Master Dragon,Raging Inferno
+icewyrm	FLYING	1 CRUSHING BITE,1 FREEZING BURST	Draconic Brute,Master Dragon,Ice Shaman
+sanddrake	WALKING	1 RIPPING BITE,1 QUAKING BURST	Draconic Brute,Ground Pounder,Desert Raider
+storrmwyrm	FLYING	1 CRUSHING BITE,1 SHOCKING WAVE	Master Dragon,Thunder Chief,Sky Soldier
+darkwyrm	FLYING	1 CRUSHING BITE,1 STUNNING WAVE	Master Dragon,Shadow Sultan,Winged Wrath
+lightwyrm	FLYING	1 CRUSHING BITE,1 SHINING BURST	Master Dragon,Glowing Guard,Bold Crusader
+bogwyrm	FLYING	1 CRUSHING BITE,1 SOAKING BURST	Draconic Brute,Deadly Venom,Deep Thinker
+sheenwyrm	FLYING	1 CRUSHING BITE,1 ZAPPING WAVE	Master Dragon,Elite Arcanist,Runic Warden
+kingwyrm	FLYING	1 CRUSHING BITE,1 MORPHING WAVE	Master Dragon,Barbaric Roar,Mountain King
+hydra	AMPHIBIOUS	3 RIPPING BITE	Draconic Brute,Fierce Frenzy,Wave Knight
+python	AMPHIBIOUS	1 GRABBING BITE,1 CRUSHING WRAP	Great Grappler,Primeval Lord,Flowing Form
+cobra	AMPHIBIOUS	1 PIERCING BITE	Deadly Venom,Primeval Lord,Hypnotic Gaze
+golden naga	AMPHIBIOUS	1 CRUSHING WRAP,1 ZAPPING BURST	Flowing Form,Primeval Lord,Hypnotic Gaze
+cockatrice	AMPHIBIOUS	1 GOUGING PECK,1 MORPHING RAY	Brain Bender,Avian Overlord,Hypnotic Gaze
+chameleon	WALKING	1 GRABBING TONGUE,1 CRUSHING BITE	Brain Bender,Primeval Lord,Great Grappler
+crocodile	AMPHIBIOUS	1 RIPPING BITE,1 SOAKING SLAM	Wave Knight,Primeval Lord,Great Grappler
+red squirrel	WALKING	1 CRUSHING BITE	Forest Druid,Mischief Maker,Wild Seeker
+rabbit	WALKING	1 CRUSHING BITE,1 THRASHING KICK	Plains Champ,Mischief Maker,Herd Protector
+giant rat	WALKING	1 DISGUSTING BITE	Nasty Bandit,Pack Hunter,Mischief Maker
+rust monster	WALKING	2 MORPHING TONGUE	Decay Deacon,Bug Trooper,Brain Bender
+human zombie	WALKING	1 DISGUSTING BITE,1 THRASHING SLAM	Decay Deacon,Great Grappler,Blood Sucker
+human mummy	WALKING	2 CURSING SLAM,1 CURSING WRAP	Decay Deacon,Elite Arcanist,Shadow Sultan
+skeleton	WALKING	2 NORMAL HAND,1 CRUSHING BITE	Runic Warden,Pack Hunter,Hard Body
+lich	WALKING	2 NORMAL HAND,1 CURSING RAY	Runic Warden,Elite Arcanist,Shadow Sultan
+vampire	WALKING	2 NORMAL HAND,1 CURSING BITE	Blood Sucker,Shadow Sultan,Hypnotic Gaze
+spirit	FLYING	1 CURSING BURST	Elite Arcanist,Shadow Sultan,Hypnotic Gaze
+ghoul	WALKING	2 DISGUSTING CLAW,1 DISGUSTING BITE	Decay Deacon,Pack Hunter,Blood Sucker

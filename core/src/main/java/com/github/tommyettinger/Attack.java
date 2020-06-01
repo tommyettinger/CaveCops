@@ -23,7 +23,8 @@ public class Attack {
         STING,
         TAIL,
         TONGUE,
-        WAVE;
+        WAVE,
+        WRAP;
         
         public final String printName;
 

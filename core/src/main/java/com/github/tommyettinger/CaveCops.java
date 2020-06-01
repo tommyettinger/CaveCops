@@ -329,8 +329,8 @@ public class CaveCops extends ApplicationAdapter {
 
         playerCreature = creatureFactory.place("cop");
         playerCreature.glow.range = 6f;
-        playerCreature.glow.color = FloatColors.lerpFloatColors(Palette.PENCIL_YELLOW, Palette.SILVER, 0.3f);//Palette.PENCIL_YELLOW;//FloatColors.fade(Palette.PENCIL_YELLOW, 0.65f);
-        playerCreature.glow.flicker = 0.5f;
+        playerCreature.glow.color = FloatColors.lessenChange(Palette.PENCIL_YELLOW, 0.625f);//Palette.PENCIL_YELLOW;//FloatColors.fade(Palette.PENCIL_YELLOW, 0.65f);
+        playerCreature.glow.flicker = 0f;//0.5f;
         playerCreature.glow.strobe = 0f;
         playerCreature.glow.delay = 0f;
         playerCreature.glow.flare = 0.4f;
@@ -666,17 +666,23 @@ public class CaveCops extends ApplicationAdapter {
                 case '~':
                     dl.lighting.currentBackgrounds[i][j] = toCursor.contains(c) ?
                         NumberTools.setSelectedByte(dl.lighting.currentBackgrounds[i][j], 0, (byte)230) :
-                        FloatColors.lighten(dl.lighting.currentBackgrounds[i][j], (//dl.lighting.colorLighting[0][i][j] * 140
-                            0.12f + FastNoise.instance.getConfiguredNoise(i * 2f, j * 2f, time * 4f) * 0.21f
-                                + (float)FoamNoise.foamNoise(i * 3.0, j * 3.0, time * 5.0, 123456789) * 0.03f));
+                        FloatColors.lighten(dl.lighting.currentBackgrounds[i][j], (
+                                MathUtils.clamp(0.03f + FastNoise.instance.getConfiguredNoise(i * 20f, j * 20f, time * 25f) * 0.15f
+                                                + FastNoise.instance.getFoam(i * 25f, j * 25f, time * 30f) * 0.2f
+                                        , 0f, 1f)
+//                                + (float)FoamNoise.foamNoise(i * 3.0, j * 3.0, time * 5.0, 123456789) * 0.03f
+                        ));
                     break;
                 case '"':
                 case ',':
                     dl.lighting.currentBackgrounds[i][j] = toCursor.contains(c) ?
                         NumberTools.setSelectedByte(dl.lighting.currentBackgrounds[i][j], 0, (byte)230) :
                         FloatColors.lighten(dl.lighting.currentBackgrounds[i][j], (//dl.lighting.colorLighting[0][i][j] * 130
-                            0.15f + FastNoise.instance.getConfiguredNoise(i * 2f, j * 2f, time * 4f) * 0.2f
-                                + (float)FoamNoise.foamNoise(i * 3.0, j * 3.0, time * 5.0, 123456789) * 0.04f));
+                                MathUtils.clamp(0.05f + FastNoise.instance.getConfiguredNoise(i * 20f, j * 20f, time * 25f) * 0.14f
+                                    + FastNoise.instance.getFoam(i * 25f, j * 25f, time * 30f) * 0.17f
+                                        , 0f, 1f)
+//                                + (float)FoamNoise.foamNoise(i * 3.0, j * 3.0, time * 5.0, 123456789) * 0.04f
+                        ));
                     break;
                 default:
                     if (toCursor.contains(c))
