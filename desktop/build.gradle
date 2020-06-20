@@ -24,7 +24,8 @@ run {
 jar {
 	archiveFileName = "${appName}-Demo.jar"
 //	from files(sourceSets.main.output.classesDirs)
-	from { configurations.compileClasspath.collect { it.isDirectory() ? it : zipTree(it) } } 
+	dependsOn configurations.runtimeClasspath
+	from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } } 
 	manifest {
 		attributes 'Main-Class': project.mainClassName
 	}
