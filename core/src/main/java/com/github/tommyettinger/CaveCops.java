@@ -49,15 +49,8 @@ import static com.github.tommyettinger.colorful.FloatColors.*;
  * use out of the assets directory when you produce a release JAR, APK, or GWT build.
  */
 public class CaveCops extends ApplicationAdapter {
-    public ISync sync;
     public CaveCops()
     {
-        sync = new ISync.EmptySync();
-    }
-    
-    public CaveCops(ISync iSync)
-    {
-        sync = iSync;
     }
     
     public static final int SELECT = 0, ANIMATE = 1, NPC = 2;
@@ -766,8 +759,6 @@ public class CaveCops extends ApplicationAdapter {
 
     @Override
     public void render () {
-        if(!Gdx.graphics.isFullscreen())
-            sync.sync(Gdx.graphics.getDisplayMode().refreshRate);
         // standard clear the background routine for libGDX
         Gdx.gl.glClearColor(0.13f, 0.14f, 0.17f, 1.0f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
