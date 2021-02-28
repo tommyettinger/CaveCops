@@ -12,7 +12,7 @@ import static com.github.tommyettinger.colorful.oklab.ColorTools.oklab;
 /**
  * Like a {@link com.badlogic.gdx.graphics.g2d.Sprite}, but lighter-weight and customized to the conventions of this
  * demo. Has a start and end position that it is expected to move between as its {@link #change} field changes.
- * Supports a packed float color.
+ * Supports a packed float color and a tweak color, as per {@link ColorfulSprite}.
  * <br>
  * Created by Tommy Ettinger on 12/20/2019.
  */

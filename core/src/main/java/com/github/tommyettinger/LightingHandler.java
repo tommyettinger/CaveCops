@@ -299,7 +299,7 @@ public class LightingHandler implements Serializable {
                             }
                         }
                         if (x > 0 && losResult[x - 1][y] > 0 && other[0][x - 1][y] > 0 && resistances[x - 1][y] < 1) {
-                            o0 = (float) other[0][x][y];
+                            o0 = other[0][x][y];
                         }
                         if (x < width - 1 && losResult[x + 1][y] > 0 && other[0][x + 1][y] > 0 && resistances[x + 1][y] < 1) {
                             o0 = other[0][x][y];
