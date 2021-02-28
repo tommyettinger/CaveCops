@@ -4,7 +4,6 @@ import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.MathUtils;
 import com.github.tommyettinger.colorful.oklab.ColorfulSprite;
-import com.github.tommyettinger.colorful.FloatColors;
 import com.github.tommyettinger.colorful.oklab.Palette;
 import squidpony.squidmath.Coord;
 

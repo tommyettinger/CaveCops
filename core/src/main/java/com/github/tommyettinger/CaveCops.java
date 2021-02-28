@@ -17,7 +17,6 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.*;
 import com.github.tommyettinger.colorful.oklab.ColorTools;
 import com.github.tommyettinger.colorful.oklab.ColorfulBatch;
-import com.github.tommyettinger.colorful.FloatColors;
 import com.github.tommyettinger.colorful.oklab.Palette;
 import squidpony.FakeLanguageGen;
 import squidpony.Maker;
@@ -323,7 +322,7 @@ public class CaveCops extends ApplicationAdapter {
 
         playerCreature = creatureFactory.place("cop");
         playerCreature.glow.range = 6f;
-        playerCreature.glow.color = ColorTools.lessenChange(Palette.PENCIL_YELLOW, 0.625f);//Palette.PENCIL_YELLOW;//FloatColors.fade(Palette.PENCIL_YELLOW, 0.65f);
+        playerCreature.glow.color = ColorTools.lessenChange(Palette.ANGEL_WING, 0.625f);//Palette.PENCIL_YELLOW;//FloatColors.fade(Palette.PENCIL_YELLOW, 0.65f);
         playerCreature.glow.flicker = 0f;//0.5f;
         playerCreature.glow.strobe = 0f;
         playerCreature.glow.delay = 0f;

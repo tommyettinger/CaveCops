@@ -1,7 +1,6 @@
 package com.github.tommyettinger;
 
 import com.badlogic.gdx.utils.IntIntMap;
-import com.github.tommyettinger.colorful.FloatColors;
 import com.github.tommyettinger.colorful.oklab.ColorTools;
 import com.github.tommyettinger.colorful.oklab.Palette;
 import squidpony.ArrayTools;
