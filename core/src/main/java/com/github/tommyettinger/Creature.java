@@ -4,7 +4,8 @@ import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.utils.IntFloatMap;
 import com.github.tommyettinger.colorful.FloatColors;
-import com.github.tommyettinger.colorful.Palette;
+import com.github.tommyettinger.colorful.oklab.ColorTools;
+import com.github.tommyettinger.colorful.oklab.Palette;
 import squidpony.FakeLanguageGen;
 import squidpony.StringKit;
 import squidpony.squidai.DijkstraMap;
@@ -68,7 +69,7 @@ public class Creature {
         fortune = new TweakRNG(a, b, -(CrossHash.Yolk.beta.hash64(name) >>> 50), CrossHash.Yolk.gamma.hash64(name) >> 56);
         nameTitled = name + " the " + StringKit.capitalize(archetype.name);
         faction = "crook";
-        glow = new Radiance(3f, FloatColors.lessenChange(Palette.RED, 0.625f),//Palette.RED,//FloatColors.fade(Palette.RED, 0.7f),
+        glow = new Radiance(3f, ColorTools.lessenChange(Palette.RED, 0.625f),//Palette.RED,//FloatColors.fade(Palette.RED, 0.7f),
             0f,//0.8f,
             0f,
             rng.nextFloat(), 0.35f);

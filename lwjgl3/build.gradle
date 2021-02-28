@@ -15,7 +15,7 @@ def osName = System.getProperty('os.name').toLowerCase(Locale.ROOT)
 
 sourceSets.main.resources.srcDirs += [ rootProject.file('assets').path ]
 mainClassName = 'com.github.tommyettinger.lwjgl3.Lwjgl3Launcher'
-sourceCompatibility = 11
+sourceCompatibility = 8
 
 dependencies {
   api project(':core')
@@ -43,8 +43,6 @@ jar {
 		attributes 'Main-Class': project.mainClassName
 	}
 }
-
-//jpackageImage.dependsOn jar
 
 task proguard(type: proguard.gradle.ProGuardTask) {
 	outputs.upToDateWhen { false }

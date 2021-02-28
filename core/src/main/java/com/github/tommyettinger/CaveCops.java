@@ -15,9 +15,10 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.*;
-import com.github.tommyettinger.colorful.ColorfulBatch;
+import com.github.tommyettinger.colorful.oklab.ColorTools;
+import com.github.tommyettinger.colorful.oklab.ColorfulBatch;
 import com.github.tommyettinger.colorful.FloatColors;
-import com.github.tommyettinger.colorful.Palette;
+import com.github.tommyettinger.colorful.oklab.Palette;
 import squidpony.FakeLanguageGen;
 import squidpony.Maker;
 import squidpony.StringKit;
@@ -33,7 +34,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 
 import static com.badlogic.gdx.Input.Keys.*;
-import static com.github.tommyettinger.colorful.FloatColors.*;
+import static com.github.tommyettinger.colorful.oklab.ColorTools.*;
 
 /**
  * This is a small, not-overly-simple demo that presents some important features of SquidLib and shows a faster,
@@ -150,8 +151,8 @@ public class CaveCops extends ApplicationAdapter {
         Coord.expandPoolTo(bigWidth, bigHeight);
         for(Color c : Colors.getColors().values())
         {
-            final float f = FloatColors.fromColor(c);
-            c.set(luma(f), chromaWarm(f), chromaMild(f), c.a);
+            final float f = ColorTools.fromColor(c);
+            c.set(channelL(f), channelA(f), channelB(f), c.a);
         }
 
 //        png = new IndexedAPNG(gridWidth * cellWidth * gridHeight * cellHeight * 3 >> 1);
@@ -165,8 +166,8 @@ public class CaveCops extends ApplicationAdapter {
         // In this program we'll use SilkRNG, which will behave better on the HTML target than other generators.
         rng = new SilkRNG(Long.parseLong("CAVECOPS", 36));
         
-        var zodiac = new String[12];
-        var languageRNG = new RNG(new XoshiroStarPhi32RNG(DiverRNG.determine(startTime)));
+        String[] zodiac = new String[12];
+        RNG languageRNG = new RNG(new XoshiroStarPhi32RNG(DiverRNG.determine(startTime)));
         FakeLanguageGen lang = FakeLanguageGen.randomLanguage(languageRNG).mix(FakeLanguageGen.ANCIENT_EGYPTIAN, 0.6);
         lang.modifiers.add(FakeLanguageGen.Modifier.REDUCE_ACCENTS);
         for (int i = 0; i < zodiac.length; i++) {
@@ -193,7 +194,7 @@ public class CaveCops extends ApplicationAdapter {
         zodiacShuffler = new GapShuffler<>(zodiac, languageRNG);
         phraseShuffler = new GapShuffler<>(phrases, languageRNG);
         meaningShuffler = new GapShuffler<>(meanings, languageRNG);
-        message =StringKit.correctABeforeVowel(zodiacShuffler.next() + phraseShuffler.next() + meaningShuffler.next().replace("@", zodiacShuffler.next()));
+        message = StringKit.correctABeforeVowel(zodiacShuffler.next() + phraseShuffler.next() + meaningShuffler.next().replace("@", zodiacShuffler.next()));
 //        ShaderProgram.pedantic = false;
 //        shader = new ShaderProgram(Visuals.vertexShader, Visuals.fragmentShader);
 //        //shader = new ShaderProgram(Visuals.vertexShader, Visuals.fragmentShaderTrue);
@@ -322,7 +323,7 @@ public class CaveCops extends ApplicationAdapter {
 
         playerCreature = creatureFactory.place("cop");
         playerCreature.glow.range = 6f;
-        playerCreature.glow.color = FloatColors.lessenChange(Palette.PENCIL_YELLOW, 0.625f);//Palette.PENCIL_YELLOW;//FloatColors.fade(Palette.PENCIL_YELLOW, 0.65f);
+        playerCreature.glow.color = ColorTools.lessenChange(Palette.PENCIL_YELLOW, 0.625f);//Palette.PENCIL_YELLOW;//FloatColors.fade(Palette.PENCIL_YELLOW, 0.65f);
         playerCreature.glow.flicker = 0f;//0.5f;
         playerCreature.glow.strobe = 0f;
         playerCreature.glow.delay = 0f;
@@ -659,7 +660,7 @@ public class CaveCops extends ApplicationAdapter {
                 case '~':
                     dl.lighting.currentBackgrounds[i][j] = toCursor.contains(c) ?
                         NumberTools.setSelectedByte(dl.lighting.currentBackgrounds[i][j], 0, (byte)230) :
-                        FloatColors.lighten(dl.lighting.currentBackgrounds[i][j], (
+                        lighten(dl.lighting.currentBackgrounds[i][j], (
                                 MathUtils.clamp(0.03f + FastNoise.instance.getConfiguredNoise(i * 20f, j * 20f, time * 25f) * 0.15f
                                                 + FastNoise.instance.getFoam(i * 25f, j * 25f, time * 30f) * 0.2f
                                         , 0f, 1f)
@@ -670,7 +671,7 @@ public class CaveCops extends ApplicationAdapter {
                 case ',':
                     dl.lighting.currentBackgrounds[i][j] = toCursor.contains(c) ?
                         NumberTools.setSelectedByte(dl.lighting.currentBackgrounds[i][j], 0, (byte)230) :
-                        FloatColors.lighten(dl.lighting.currentBackgrounds[i][j], (//dl.lighting.colorLighting[0][i][j] * 130
+                        lighten(dl.lighting.currentBackgrounds[i][j], (//dl.lighting.colorLighting[0][i][j] * 130
                                 MathUtils.clamp(0.05f + FastNoise.instance.getConfiguredNoise(i * 20f, j * 20f, time * 25f) * 0.14f
                                     + FastNoise.instance.getFoam(i * 25f, j * 25f, time * 30f) * 0.17f
                                         , 0f, 1f)
@@ -695,7 +696,7 @@ public class CaveCops extends ApplicationAdapter {
 //                            ? FLOAT_WHITE
 //                            : FloatColors.lerpFloatColors(FLOAT_GRAY, FLOAT_LIGHT, (float)visible[i][j] * 0.75f + 0.25f));
 //                    batch.setPackedColor(Visuals.lerpFloatColors(dl.backgrounds[i][j], batch.getPackedColor(), 0.6f));
-                    batch.setPackedColor(FloatColors.lighten(dl.lighting.currentBackgrounds[i][j], 0.125f));
+                    batch.setPackedColor(lighten(dl.lighting.currentBackgrounds[i][j], 0.125f));
                     //batch.draw(solid, pos.x, pos.y);
 //                    batch.setPackedColor(SColor.lerpFloatColors(colors[i][j], FLOAT_LIGHTING, (float)visible[i][j] * 0.75f + 0.25f));
                     batch.draw(charMapping.get(dl.prunedDungeon[i][j], solid).getKeyFrame(time), i, j, 1f, 1f);

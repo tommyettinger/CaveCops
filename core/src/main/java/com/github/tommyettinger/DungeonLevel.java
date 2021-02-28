@@ -2,7 +2,8 @@ package com.github.tommyettinger;
 
 import com.badlogic.gdx.utils.IntIntMap;
 import com.github.tommyettinger.colorful.FloatColors;
-import com.github.tommyettinger.colorful.Palette;
+import com.github.tommyettinger.colorful.oklab.ColorTools;
+import com.github.tommyettinger.colorful.oklab.Palette;
 import squidpony.ArrayTools;
 import squidpony.squidgrid.Radius;
 import squidpony.squidgrid.mapping.DungeonGenerator;
@@ -42,7 +43,7 @@ public class DungeonLevel {
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
                 int h = IntPointHash.hashAll(x, y, depth);
-                backgrounds[x][y] = FloatColors.floatColor(
+                backgrounds[x][y] = ColorTools.oklab(
                     (32 + (h & 7) - (h >>> 3 & 7) + (h >>> 6 & 7) - (h >>> 9 & 7) + (h >>> 12 & 3) - (h >>> 14 & 3)) * 0x1p-8f,
                     (128 + (h >>> 16 & 7) - (h >>> 19 & 7)) * 0x1p-8f,
                     (128 + (h >>> 22 & 7) - (h >>> 25 & 7)) * 0x1p-8f, 

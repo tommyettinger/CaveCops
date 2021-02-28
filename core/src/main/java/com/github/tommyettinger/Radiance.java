@@ -3,7 +3,8 @@ package com.github.tommyettinger;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.utils.TimeUtils;
 import com.github.tommyettinger.colorful.FloatColors;
-import com.github.tommyettinger.colorful.Palette;
+import com.github.tommyettinger.colorful.oklab.ColorTools;
+import com.github.tommyettinger.colorful.oklab.Palette;
 import squidpony.StringKit;
 import squidpony.squidmath.NumberTools;
 
@@ -95,7 +96,7 @@ public class Radiance implements Serializable {
     /**
      * Makes an unchanging light with the given color (as a packed float) and the specified range in cells.
      * @param range possibly-non-integer radius to light, in cells
-     * @param color packed float color, as produced by {@link FloatColors#floatColor(float, float, float, float)} 
+     * @param color packed float color, as produced by {@link ColorTools#oklab(float, float, float, float)} 
      */
     public Radiance(float range, float color)
     {
@@ -106,7 +107,7 @@ public class Radiance implements Serializable {
      * Makes a flickering light with the given color (as a packed float) and the specified range in cells; the flicker
      * parameter affects the rate at which this will randomly reduce its range and return to normal.
      * @param range possibly-non-integer radius to light, in cells
-     * @param color packed float color, as produced by {@link FloatColors#floatColor(float, float, float, float)} 
+     * @param color packed float color, as produced by {@link ColorTools#oklab(float, float, float, float)} 
      * @param flicker the rate at which to flicker, as a non-negative float
      */
     public Radiance(float range, float color, float flicker)
@@ -119,7 +120,7 @@ public class Radiance implements Serializable {
      * parameter affects the rate at which this will steadily reduce its range and return to normal. Usually one of
      * flicker or strobe is 0; if both are non-0, the radius will be smaller than normal.
      * @param range possibly-non-integer radius to light, in cells
-     * @param color packed float color, as produced by {@link FloatColors#floatColor(float, float, float, float)} 
+     * @param color packed float color, as produced by {@link ColorTools#oklab(float, float, float, float)} 
      * @param flicker the rate at which to flicker, as a non-negative float
      * @param strobe the rate at which to strobe or pulse, as a non-negative float
      */
@@ -151,7 +152,7 @@ public class Radiance implements Serializable {
      * from 0f to 1f, and is almost always 0f unless this is part of a group of related Radiance objects; it affects
      * when strobe and flicker hit "high points" and "low points", and should usually be used with strobe.
      * @param range possibly-non-integer radius to light, in cells
-     * @param color packed float color, as produced by {@link FloatColors#floatColor(float, float, float, float)} 
+     * @param color packed float color, as produced by {@link ColorTools#oklab(float, float, float, float)} 
      * @param flicker the rate at which to flicker, as a non-negative float
      * @param strobe the rate at which to strobe or pulse, as a non-negative float
      * @param delay a delay applied to the "high points" and "low points" of strobe and flicker, from 0f to 1f
@@ -171,7 +172,7 @@ public class Radiance implements Serializable {
      * makes the most sense to set when an event should brighten a Radiance, not in the constructor. Valid values for
      * flare are usually between 0f and 1f.
      * @param range possibly-non-integer radius to light, in cells
-     * @param color packed float color, as produced by {@link FloatColors#floatColor(float, float, float, float)}
+     * @param color packed float color, as produced by {@link ColorTools#oklab(float, float, float, float)}
      * @param flicker the rate at which to flicker, as a non-negative float
      * @param strobe the rate at which to strobe or pulse, as a non-negative float
      * @param delay a delay applied to the "high points" and "low points" of strobe and flicker, from 0f to 1f
@@ -192,7 +193,7 @@ public class Radiance implements Serializable {
      * makes the most sense to set when an event should brighten a Radiance, not in the constructor. Valid values for
      * flare are usually between 0f and 1f. This allows specifying a seed, but you hardly ever would need this feature.
      * @param range possibly-non-integer radius to light, in cells
-     * @param color packed float color, as produced by {@link FloatColors#floatColor(float, float, float, float)}
+     * @param color packed float color, as produced by {@link ColorTools#oklab(float, float, float, float)}
      * @param flicker the rate at which to flicker, as a non-negative float
      * @param strobe the rate at which to strobe or pulse, as a non-negative float
      * @param delay a delay applied to the "high points" and "low points" of strobe and flicker, from 0f to 1f

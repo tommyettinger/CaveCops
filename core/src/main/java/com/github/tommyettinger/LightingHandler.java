@@ -3,7 +3,8 @@ package com.github.tommyettinger;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.MathUtils;
 import com.github.tommyettinger.colorful.FloatColors;
-import com.github.tommyettinger.colorful.Palette;
+import com.github.tommyettinger.colorful.oklab.ColorTools;
+import com.github.tommyettinger.colorful.oklab.Palette;
 import squidpony.ArrayTools;
 import squidpony.squidgrid.FOV;
 import squidpony.squidgrid.Radius;
@@ -14,7 +15,7 @@ import squidpony.squidmath.OrderedMap;
 
 import java.io.Serializable;
 
-import static com.github.tommyettinger.colorful.Palette.GRAY;
+import static com.github.tommyettinger.colorful.oklab.Palette.GRAY;
 
 /**
  * A convenience class that makes dealing with multiple colored light sources easier.
@@ -668,7 +669,7 @@ public class LightingHandler implements Serializable {
      * lights that is greater than 0, or defaulting to white if the cell is unlit).
      *
      * @param lights a 2D double array that should probably come from FOV
-     * @param color  a packed float as produced by {@link FloatColors#floatColor(float, float, float, float)}
+     * @param color  a packed float as produced by {@link ColorTools#oklab(float, float, float, float)}
      * @return a 3D float array containing two 2D sub-arrays, the first holding brightness and the second holding color
      */
     public static float[][][] colorLighting(double[][] lights, float color) {
@@ -686,7 +687,7 @@ public class LightingHandler implements Serializable {
      * @param reuse  a 3D float array of the exact format produced by {@link #colorLighting(double[][], float)}; must
      *               have length 2; will be modified!
      * @param lights a 2D double array that should probably come from FOV
-     * @param color  a packed float as produced by {@link FloatColors#floatColor(float, float, float, float)}
+     * @param color  a packed float as produced by {@link ColorTools#oklab(float, float, float, float)}
      * @return reuse after modification
      */
     public static float[][][] colorLightingInto(float[][][] reuse, double[][] lights, float color) {
