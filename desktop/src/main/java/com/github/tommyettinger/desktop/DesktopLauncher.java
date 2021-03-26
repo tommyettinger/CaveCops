@@ -1,8 +1,10 @@
 package com.github.tommyettinger.desktop;
 
 import com.badlogic.gdx.Files;
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplication;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
+import com.badlogic.gdx.backends.lwjgl.LwjglGraphics;
 import com.github.tommyettinger.CaveCops;
 
 import static com.github.tommyettinger.CaveCops.*;

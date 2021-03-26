@@ -4,11 +4,11 @@ buildscript {
 		mavenCentral()
 		google()
 		maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' }
-		jcenter()
+		gradlePluginPortal()
 	}
 	dependencies {
 		classpath "org.wisepersist:gwt-gradle-plugin:$gwtPluginVersion"
-		classpath 'com.guardsquare:proguard-gradle:7.0.0'
+		classpath 'com.guardsquare:proguard-gradle:7.1.0-beta1'
 	}
 }
 
@@ -26,7 +26,7 @@ configure(subprojects) {
 }
 
 subprojects {
-	version = '0.0.1-SNAPSHOT'
+	version = '0.0.1'
 	ext.appName = 'CaveCops'
 	repositories {
 		mavenCentral()

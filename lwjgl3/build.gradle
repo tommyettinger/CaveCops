@@ -5,7 +5,7 @@ buildscript {
 		}
 	}
 	dependencies {
-		classpath "org.beryx:badass-runtime-plugin:1.8.5" // plugin dependencies
+		classpath "org.beryx:badass-runtime-plugin:1.12.2" // plugin dependencies
 	}
 }
 apply plugin: 'org.beryx.runtime'
@@ -82,7 +82,7 @@ runtime {
 		} else if (osName.contains('linux')) {
 			imageOptions = ["--icon", "../logo.png"]
 		} else if (osName.contains('mac')) {
-			imageOptions = ["--icon", "../logo.icns"]
+			imageOptions = ["--icon", "../logo.icns", " --java-options", "\"XstartOnFirstThread\""]
 		}
 	}
 }
