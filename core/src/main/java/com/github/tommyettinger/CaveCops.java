@@ -167,7 +167,7 @@ public class CaveCops extends ApplicationAdapter {
         
         String[] zodiac = new String[12];
         RNG languageRNG = new RNG(new XoshiroStarPhi32RNG(DiverRNG.determine(startTime)));
-        FakeLanguageGen lang = FakeLanguageGen.randomLanguage(languageRNG).mix(FakeLanguageGen.ANCIENT_EGYPTIAN, 0.6);
+        FakeLanguageGen lang = FakeLanguageGen.randomLanguage(languageRNG).mix(FakeLanguageGen.ANCIENT_EGYPTIAN, 0.7);
         lang.modifiers.add(FakeLanguageGen.Modifier.REDUCE_ACCENTS);
         for (int i = 0; i < zodiac.length; i++) {
             zodiac[i] = lang.word(languageRNG, true, languageRNG.maxIntOf(4, 2) + 1);
@@ -331,7 +331,7 @@ public class CaveCops extends ApplicationAdapter {
         playerCreature.stats.set(Stat.AGILITY, 6);
         playerCreature.fortune.setFavor(1000);
 
-        message = "Go get 'em, Officer " + playerCreature.nameTitled + "!";
+        message += "\nGo get 'em, Officer " + playerCreature.nameTitled + "!";
 
         for (int i = 0; i < (CREATURE_COUNT >> 1); i++) {
             creatureFactory.place("crook");
@@ -503,6 +503,9 @@ public class CaveCops extends ApplicationAdapter {
 //                        }
 //                        pixmap.dispose();
 //                        break;
+                    case H:
+                        System.out.println(message = StringKit.correctABeforeVowel(zodiacShuffler.next() + phraseShuffler.next() + meaningShuffler.next().replace("@", zodiacShuffler.next())));
+                        break;
                     case F:
                         if(Gdx.graphics.isFullscreen())
                         {

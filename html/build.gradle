@@ -1,15 +1,8 @@
-
-buildscript {
-	repositories {
-		jcenter()
-	}
-	dependencies {
-		classpath 'org.gretty:gretty:3.0.2'
-	}
+plugins {
+	id 'gwt'
+	id 'war'
+	id "org.gretty" version "3.0.4"
 }
-apply plugin: "gwt"
-apply plugin: "war"
-apply plugin: "org.gretty"
 
 gwt {
 	gwtVersion = "$gwtFrameworkVersion" // Should match the version used for building the GWT backend. See gradle.properties.
