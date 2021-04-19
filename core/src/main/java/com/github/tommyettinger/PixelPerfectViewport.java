@@ -18,9 +18,9 @@ package com.github.tommyettinger;
 
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.utils.ObjectMap;
 import com.badlogic.gdx.utils.Scaling;
 import com.badlogic.gdx.utils.viewport.Viewport;
-import squidpony.squidmath.OrderedMap;
 
 /**
  * A viewport that scales the world using {@link Scaling}, but limits the scaling to integer multiples or simple halving
@@ -44,19 +44,48 @@ import squidpony.squidmath.OrderedMap;
  */
 public class PixelPerfectViewport extends Viewport {
 
-    private Scaling scaling;
-    private int conversionX, conversionY;
+    private final Scaling scaling;
+    private final int conversionX, conversionY;
     private float currentScale = 1;
+
     /**
      * Creates a new viewport using a new {@link OrthographicCamera}.
+     * The {@code conversionX} and {@code conversionY} parameters control the size in pixels of a world unit.
+     * For a 16x24 pixel world unit, you would use 16 for conversionX and 24 for conversionY.
+     * @param scaling which one of the predefined objects in {@link Scaling}; {@link Scaling#fill} is good
+     * @param worldWidth the width of the world in world units
+     * @param worldHeight the height of the world in world units
+     * @param conversionX the width of a world unit in pixels, without any scaling
+     * @param conversionY the height of a world unit in pixels, without any scaling
      */
     public PixelPerfectViewport(Scaling scaling, float worldWidth, float worldHeight, int conversionX, int conversionY) {
         this(scaling, worldWidth, worldHeight, conversionX, conversionY, new OrthographicCamera());
     }
+
+    /**
+     * Creates a new viewport using a new {@link OrthographicCamera}.
+     * The {@code conversion} parameter controls the size in pixels of a world unit, which is always square
+     * with this constructor. For a 16x16 pixel world unit, you would use 16 for conversion.
+     * @param scaling which one of the predefined objects in {@link Scaling}; {@link Scaling#fill} is good
+     * @param worldWidth the width of the world in world units
+     * @param worldHeight the height of the world in world units
+     * @param conversion the (identical) width and height of a world unit in pixels, without any scaling
+     */
     public PixelPerfectViewport(Scaling scaling, float worldWidth, float worldHeight, int conversion) {
         this(scaling, worldWidth, worldHeight, conversion, conversion, new OrthographicCamera());
     }
 
+    /**
+     * Creates a new viewport using the given {@code camera}.
+     * The {@code conversionX} and {@code conversionY} parameters control the size in pixels of a world unit.
+     * For a 16x24 pixel world unit, you would use 16 for conversionX and 24 for conversionY.
+     * @param scaling which one of the predefined objects in {@link Scaling}; {@link Scaling#fill} is good
+     * @param worldWidth the width of the world in world units
+     * @param worldHeight the height of the world in world units
+     * @param conversionX the width of a world unit in pixels, without any scaling
+     * @param conversionY the height of a world unit in pixels, without any scaling
+     * @param camera an existing Camera to reuse here
+     */
     public PixelPerfectViewport(Scaling scaling, float worldWidth, float worldHeight, int conversionX, int conversionY, Camera camera) {
         this.scaling = scaling;
         this.conversionX = conversionX;
@@ -65,10 +94,20 @@ public class PixelPerfectViewport extends Viewport {
         setCamera(camera);
     }
 
-    private static OrderedMap<Scaling, String> scalingMap = OrderedMap.makeMap(
-            Scaling.fit, "fit", Scaling.fill, "fill", Scaling.stretch, "stretch",
-            Scaling.none, "none", Scaling.fillX, "fillX", Scaling.fillY, "fillY",
-            Scaling.stretchX, "stretchX", Scaling.stretchY, "stretchY");
+    /**
+     * Scaling isn't an enum anymore, so if code still expects an enum... we use this.
+     */
+    private static final ObjectMap<Scaling, String> scalingMap = new ObjectMap<>(8);
+    static {
+        scalingMap.put(Scaling.fit, "fit");
+        scalingMap.put(Scaling.fill, "fill");
+        scalingMap.put(Scaling.stretch, "stretch");
+        scalingMap.put(Scaling.none, "none");
+        scalingMap.put(Scaling.fillX, "fillX");
+        scalingMap.put(Scaling.fillY, "fillY");
+        scalingMap.put(Scaling.stretchX, "stretchX");
+        scalingMap.put(Scaling.stretchY, "stretchY");
+    }
 
     @Override
     public void update(int screenWidth, int screenHeight, boolean centerCamera) {
@@ -88,14 +127,9 @@ public class PixelPerfectViewport extends Viewport {
                 this.currentScale = 1f / scale;
                 break;
             }
-            case "fill": {
-                float screenRatio = screenHeight / (float)screenWidth;
-                float worldRatio = worldHeight / worldWidth;
-                float scale = (int) Math.ceil(screenRatio < worldRatio ? screenWidth / (worldWidth * conversionX) : screenHeight / (worldHeight * conversionY));
-                if (scale < 1) scale = 0.5f;
-                viewportWidth = Math.round(worldWidth * scale);
-                viewportHeight = Math.round(worldHeight * scale);
-                this.currentScale = 1f / scale;
+            case "none": {
+                viewportWidth = (int) worldWidth;
+                viewportHeight = (int) worldHeight;
                 break;
             }
             case "fillX": {
@@ -126,10 +160,17 @@ public class PixelPerfectViewport extends Viewport {
                 viewportWidth = (int) worldWidth;
                 viewportHeight = screenHeight;
                 break;
-            default:
-                viewportWidth = (int) worldWidth;
-                viewportHeight = (int) worldHeight;
+                //case "fill":
+            default: {
+                float screenRatio = screenHeight / (float) screenWidth;
+                float worldRatio = worldHeight / worldWidth;
+                float scale = (int) Math.ceil(screenRatio < worldRatio ? screenWidth / (worldWidth * conversionX) : screenHeight / (worldHeight * conversionY));
+                if (scale < 1) scale = 0.5f;
+                viewportWidth = Math.round(worldWidth * scale);
+                viewportHeight = Math.round(worldHeight * scale);
+                this.currentScale = 1f / scale;
                 break;
+            }
         }
         // Center.
         setScreenBounds((screenWidth - viewportWidth * conversionX) / 2, (screenHeight - viewportHeight * conversionY) / 2, viewportWidth * conversionX, viewportHeight * conversionX);
@@ -137,14 +178,6 @@ public class PixelPerfectViewport extends Viewport {
         apply(centerCamera);
     }
 
-    public Scaling getScaling() {
-        return scaling;
-    }
-    
-    public void setScaling(Scaling scaling) {
-        this.scaling = scaling;
-    }
-    
     public float getCurrentScale() {
         return currentScale;
     }
