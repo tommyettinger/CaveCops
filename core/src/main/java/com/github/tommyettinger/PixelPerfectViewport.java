@@ -20,6 +20,7 @@ import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.utils.Scaling;
 import com.badlogic.gdx.utils.viewport.Viewport;
+import squidpony.squidmath.OrderedMap;
 
 /**
  * A viewport that scales the world using {@link Scaling}, but limits the scaling to integer multiples or simple halving
@@ -64,6 +65,11 @@ public class PixelPerfectViewport extends Viewport {
         setCamera(camera);
     }
 
+    private static OrderedMap<Scaling, String> scalingMap = OrderedMap.makeMap(
+            Scaling.fit, "fit", Scaling.fill, "fill", Scaling.stretch, "stretch",
+            Scaling.none, "none", Scaling.fillX, "fillX", Scaling.fillY, "fillY",
+            Scaling.stretchX, "stretchX", Scaling.stretchY, "stretchY");
+
     @Override
     public void update(int screenWidth, int screenHeight, boolean centerCamera) {
         //Vector2 scaled = scaling.apply(getWorldWidth(), getWorldHeight(), screenWidth, screenHeight);
@@ -71,9 +77,8 @@ public class PixelPerfectViewport extends Viewport {
 
         int viewportWidth = 0;
         int viewportHeight = 0;
-
-        switch (scaling) {
-            case fit: {
+        switch (scalingMap.get(scaling)) {
+            case "fit": {
                 float screenRatio = screenHeight / (float)screenWidth;
                 float worldRatio = worldHeight / worldWidth;
                 float scale = (int) (screenRatio > worldRatio ? screenWidth / (worldWidth * conversionX) : screenHeight / (worldHeight * conversionY));
@@ -83,7 +88,7 @@ public class PixelPerfectViewport extends Viewport {
                 this.currentScale = 1f / scale;
                 break;
             }
-            case fill: {
+            case "fill": {
                 float screenRatio = screenHeight / (float)screenWidth;
                 float worldRatio = worldHeight / worldWidth;
                 float scale = (int) Math.ceil(screenRatio < worldRatio ? screenWidth / (worldWidth * conversionX) : screenHeight / (worldHeight * conversionY));
@@ -93,7 +98,7 @@ public class PixelPerfectViewport extends Viewport {
                 this.currentScale = 1f / scale;
                 break;
             }
-            case fillX: {
+            case "fillX": {
                 float scale = (int) Math.ceil(screenWidth / (worldWidth * conversionX));
                 if (scale < 1) scale = 0.5f;
                 viewportWidth = Math.round(worldWidth * scale);
@@ -101,7 +106,7 @@ public class PixelPerfectViewport extends Viewport {
                 this.currentScale = 1f / scale;
                 break;
             }
-            case fillY: {
+            case "fillY": {
                 float scale = (int) Math.ceil(screenHeight / (worldHeight * conversionY));
                 if (scale < 1) scale = 0.5f;
                 viewportWidth = Math.round(worldWidth * scale);
@@ -109,19 +114,18 @@ public class PixelPerfectViewport extends Viewport {
                 this.currentScale = 1f / scale;
                 break;
             }
-            case stretch:
+            case "stretch":
                 viewportWidth = screenWidth;
                 viewportHeight = screenHeight;
                 break;
-            case stretchX:
+            case "stretchX":
                 viewportWidth = screenWidth;
                 viewportHeight = (int) worldHeight;
                 break;
-            case stretchY:
+            case "stretchY":
                 viewportWidth = (int) worldWidth;
                 viewportHeight = screenHeight;
                 break;
-            case none:
             default:
                 viewportWidth = (int) worldWidth;
                 viewportHeight = (int) worldHeight;

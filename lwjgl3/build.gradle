@@ -35,6 +35,7 @@ run {
 }
 jar {
 	archiveFileName = "${appName}-Demo.jar"
+	duplicatesStrategy(DuplicatesStrategy.INCLUDE)
 	destinationDirectory = file("$project.buildDir/lib")
 	dependsOn configurations.runtimeClasspath
 	from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
