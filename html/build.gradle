@@ -1,8 +1,15 @@
-plugins {
-	id 'gwt'
-	id 'war'
-	id "org.gretty" version "3.0.4"
+buildscript {
+	repositories {
+		mavenCentral()
+		maven { url 'https://jitpack.io' }
+	}
+	dependencies {
+		classpath "com.github.tommyettinger.gretty:gretty:3.0.4.2"
+	}
 }
+apply plugin: "gwt"
+apply plugin: "war"
+apply plugin: "org.gretty"
 
 gwt {
 	gwtVersion = "$gwtFrameworkVersion" // Should match the version used for building the GWT backend. See gradle.properties.
