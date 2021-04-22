@@ -18,6 +18,7 @@ package com.github.tommyettinger;
 
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.ObjectMap;
 import com.badlogic.gdx.utils.Scaling;
 import com.badlogic.gdx.utils.viewport.Viewport;
@@ -181,4 +182,19 @@ public class PixelPerfectViewport extends Viewport {
     public float getCurrentScale() {
         return currentScale;
     }
+
+    public static final Scaling contain = new Scaling() {
+        @Override
+        public Vector2 apply(float sourceWidth, float sourceHeight, float targetWidth, float targetHeight) {
+            float targetRatio = targetHeight / targetWidth;
+            float sourceRatio = sourceHeight / sourceWidth;
+            float scale = Math.min(targetRatio > sourceRatio
+                    ? targetWidth / sourceWidth
+                    : targetHeight / sourceHeight,
+                    1);
+            temp.x = sourceWidth * scale;
+            temp.y = sourceHeight * scale;
+            return temp;
+        }
+    };
 }
