@@ -4,7 +4,7 @@ buildscript {
 		maven { url 'https://jitpack.io' }
 	}
 	dependencies {
-		classpath "com.github.tommyettinger.gretty:gretty:3.0.4.2"
+		classpath "com.github.tommyettinger.gretty:gretty:3.0.4.5"
 	}
 }
 apply plugin: "gwt"
