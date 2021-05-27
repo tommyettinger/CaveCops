@@ -1,26 +1,22 @@
 buildscript {
 	repositories {
-		maven {
-			url "https://plugins.gradle.org/m2/"
-		}
+		gradlePluginPortal()
 	}
 	dependencies {
-		classpath "org.beryx:badass-runtime-plugin:1.12.2" // plugin dependencies
+		classpath "org.beryx:badass-runtime-plugin:1.12.4" // plugin dependencies
 	}
 }
 apply plugin: 'org.beryx.runtime'
 apply plugin: 'application'
-
-def osName = System.getProperty('os.name').toLowerCase(Locale.ROOT)
 
 sourceSets.main.resources.srcDirs += [ rootProject.file('assets').path ]
 mainClassName = 'com.github.tommyettinger.lwjgl3.Lwjgl3Launcher'
 sourceCompatibility = 8
 
 dependencies {
-  api project(':core')
-  api "com.badlogicgames.gdx:gdx-backend-lwjgl3:$gdxVersion"
-  api "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
+  implementation project(':core')
+  implementation "com.badlogicgames.gdx:gdx-backend-lwjgl3:$gdxVersion"
+  implementation "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
 }
 
 import org.gradle.internal.os.OperatingSystem
@@ -35,7 +31,7 @@ run {
 }
 jar {
 	archiveFileName = "${appName}-Demo.jar"
-	duplicatesStrategy(DuplicatesStrategy.INCLUDE)
+	duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
 	destinationDirectory = file("$project.buildDir/lib")
 	dependsOn configurations.runtimeClasspath
 	from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
@@ -55,10 +51,11 @@ task proguard(type: proguard.gradle.ProGuardTask) {
 	if (System.getProperty('java.version').startsWith('1.')) {
 		libraryjars "${System.getProperty('java.home')}/lib/rt.jar"
 	} else {
+//		libraryjars "C:/d/jvm/jdk16-hotspot/jmods/java.base.jmod", jarfilter: '!**.jar', filter: '!module-info.class'
 		libraryjars "${System.getProperty('java.home')}/jmods/java.base.jmod", jarfilter: '!**.jar', filter: '!module-info.class'
 	}
 	injars "build/lib/${appName}-Demo.jar"
-	outjars "build/lib/protected.jar"
+	outjars "build/lib/${appName}.jar"
 }
 
 proguard.dependsOn jar
@@ -72,20 +69,19 @@ runtime {
 				 '--no-man-pages',
 				 '--strip-native-commands',
 				 '--vm', 'server'])
-	modules.set(['java.base',
-				 'java.desktop',
+	modules.set(['java.desktop',
 				 'jdk.unsupported'])
 	distDir.set(file(buildDir))
 	jpackage {
 		imageName = 'CaveCops'
 		skipInstaller = true
 		jpackageHome = javaHome.getOrElse("")
-		mainJar = 'protected.jar'// jar.archiveFileName.get()
-		if (osName.contains('windows')) {
+		mainJar = "${appName}.jar"// jar.archiveFileName.get()
+		if (OperatingSystem.current() == OperatingSystem.WINDOWS) {
 			imageOptions = ["--icon", "../logo.ico"]
-		} else if (osName.contains('linux')) {
+		} else if (OperatingSystem.current() == OperatingSystem.LINUX) {
 			imageOptions = ["--icon", "../logo.png"]
-		} else if (osName.contains('mac')) {
+		} else if (OperatingSystem.current() == OperatingSystem.MAC_OS) {
 			imageOptions = ["--icon", "../logo.icns", " --java-options", "\"XstartOnFirstThread\""]
 		}
 	}
