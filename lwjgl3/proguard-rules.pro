@@ -37,10 +37,13 @@
 # FIELD ISSUE NPE
 -optimizations !field/propagation/value
 
+# ColorTools fix
+-optimizations !code/simplification/string
+
 # LAMBDA FIX
 -keepclassmembernames class * {
     private static synthetic *** lambda$*(...);
 }
--dontoptimize
+
 ###### PROGUARD ANNOTATIONS END #####
 -optimizationpasses 5

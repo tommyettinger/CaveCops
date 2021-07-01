@@ -22,6 +22,7 @@ configure(subprojects) {
 	sourceCompatibility = 8
 	compileJava {
 		options.incremental = true
+		options.fork = true
 	}
 }
 
