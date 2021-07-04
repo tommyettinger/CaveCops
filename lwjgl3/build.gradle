@@ -3,7 +3,7 @@ buildscript {
 		gradlePluginPortal()
 	}
 	dependencies {
-		classpath "org.beryx:badass-runtime-plugin:1.12.4" // plugin dependencies
+		classpath "org.beryx:badass-runtime-plugin:1.12.4"
 	}
 }
 apply plugin: 'org.beryx.runtime'
@@ -19,16 +19,17 @@ dependencies {
   implementation "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
 }
 
-import org.gradle.internal.os.OperatingSystem
+def os = System.properties['os.name'].toLowerCase()
 
 run {
 	workingDir = rootProject.file('assets').path
 	setIgnoreExitValue(true)
-	if (OperatingSystem.current() == OperatingSystem.MAC_OS) {
+	if (os.contains('mac')) {
 		// Required to run LWJGL3 Java apps on MacOS
 		jvmArgs += "-XstartOnFirstThread"
 	}
 }
+
 jar {
 	archiveFileName = "${appName}-Demo.jar"
 	duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
@@ -77,11 +78,11 @@ runtime {
 		skipInstaller = true
 		jpackageHome = javaHome.getOrElse("")
 		mainJar = "${appName}.jar"// jar.archiveFileName.get()
-		if (OperatingSystem.current() == OperatingSystem.WINDOWS) {
+		if (os.contains('win')) {
 			imageOptions = ["--icon", "../logo.ico"]
-		} else if (OperatingSystem.current() == OperatingSystem.LINUX) {
+		} else if (os.contains('nix' || os.contains('nux') || os.contains('bsd'))) {
 			imageOptions = ["--icon", "../logo.png"]
-		} else if (OperatingSystem.current() == OperatingSystem.MAC_OS) {
+		} else if (os.contains('mac')) {
 			imageOptions = ["--icon", "../logo.icns", " --java-options", "\"XstartOnFirstThread\""]
 		}
 	}
