@@ -1,13 +1,12 @@
 package com.github.tommyettinger.desktop;
 
 import com.badlogic.gdx.Files;
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplication;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
-import com.badlogic.gdx.backends.lwjgl.LwjglGraphics;
 import com.github.tommyettinger.CaveCops;
 
 import static com.github.tommyettinger.CaveCops.*;
+import static com.github.tommyettinger.desktop.ﾠ.whileﾠ;
 
 /** Launches the desktop (LWJGL 2) application. */
 public class DesktopLauncher {
@@ -16,6 +15,7 @@ public class DesktopLauncher {
     }
 
     private static LwjglApplication createApplication() {
+        whileﾠ(true);
         return new LwjglApplication(new CaveCops(), getDefaultConfiguration());
     }
 
