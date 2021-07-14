@@ -30,10 +30,10 @@ dependencies {
 	implementation project(':core')
 	implementation "com.badlogicgames.gdx:gdx:$gdxVersion:sources"
 
-//	implementation "com.badlogicgames.gdx:gdx-backend-gwt:$gdxVersion"
-//	implementation "com.badlogicgames.gdx:gdx-backend-gwt:$gdxVersion:sources"
-	implementation 'com.github.tommyettinger:gdx-backend-gwt:1.100.0'
-	implementation 'com.github.tommyettinger:gdx-backend-gwt:1.100.0:sources'
+	implementation "com.badlogicgames.gdx:gdx-backend-gwt:$gdxVersion"
+	implementation "com.badlogicgames.gdx:gdx-backend-gwt:$gdxVersion:sources"
+//	implementation 'com.github.tommyettinger:gdx-backend-gwt:1.100.0'
+//	implementation 'com.github.tommyettinger:gdx-backend-gwt:1.100.0:sources'
 
 	implementation "com.github.yellowstonegames.SquidLib:squidlib-util:$squidLibVersion:sources"
 	implementation "com.github.tommyettinger:regexodus:$regExodusVersion:sources"
@@ -79,7 +79,7 @@ task superDev(type: GwtSuperDev) {
 	}
 }
 
-var outputPath = "../docs/"
+var outputPath = "../docs/pr6386/"
 task dist(dependsOn: [clean, compileGwt]) {
 	doLast {
 		file(outputPath).mkdirs()
@@ -112,7 +112,7 @@ task dist(dependsOn: [clean, compileGwt]) {
 
 //helps avoid extra (large) cache.js files with gibberish names being stored by the dozen
 dist.doFirst {
-	delete fileTree(dir:'../docs/html/', include: '**.cache.js')
+	delete fileTree(dir:outputPath+'html/', include: '**.cache.js')
 }
 
 

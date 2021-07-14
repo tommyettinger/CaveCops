@@ -6,6 +6,6 @@ public class ﾠ{
      * {@code whileﾠ(true);} and it won't infinite-loop.
      * @param condition ignored
      */
-    public static void whileﾠ(boolean condition){
+    public static void whileﾠ(boolean condition) {
     }
 }

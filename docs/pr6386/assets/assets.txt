@@ -1,0 +1,12 @@
+d:assets:assets:0:application/unknown:1
+t:Dawnlike.atlas:Dawnlike-82fd582c9a2e802234606f046610a53e.atlas:220428:application/unknown:1
+i:Dawnlike.png:Dawnlike-6d35d6582def10876c722c3b7c85d897.png:442906:image/png:1
+t:font.fnt:font-f7c6d1c88f1774ac3d1327643a01bd82.fnt:19067:application/unknown:1
+t:com/badlogic/gdx/graphics/g3d/particles/particles.fragment.glsl:particles.fragment-d92f94d5f66599e11673e44ccca98b44.glsl:859:application/unknown:1
+t:com/badlogic/gdx/graphics/g3d/particles/particles.vertex.glsl:particles.vertex-a38b281f267993ca2e5ed5a27f09c53b.glsl:2996:application/unknown:1
+t:com/badlogic/gdx/graphics/g3d/shaders/default.fragment.glsl:default.fragment-281df7c8df150bfa8f69ca34d71a1863.glsl:6084:application/unknown:1
+t:com/badlogic/gdx/graphics/g3d/shaders/default.vertex.glsl:default.vertex-6d5d9f41212555e494094e2c349a39ee.glsl:9441:application/unknown:1
+t:com/badlogic/gdx/graphics/g3d/shaders/depth.fragment.glsl:depth.fragment-323c2cc0d3e4fbd9044289d6f390ac54.glsl:904:application/unknown:1
+t:com/badlogic/gdx/graphics/g3d/shaders/depth.vertex.glsl:depth.vertex-339ba67a2fcb6ac603bc0e5aa961876f.glsl:3056:application/unknown:1
+t:com/badlogic/gdx/utils/arial-15.fnt:arial-15-de712246b57ebc33dd87592e7d03af58.fnt:21743:application/unknown:1
+i:com/badlogic/gdx/utils/arial-15.png:arial-15-bc7179c1b449823bfa67d42e1a3ae1f8.png:21814:image/png:1
