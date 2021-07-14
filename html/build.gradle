@@ -79,7 +79,7 @@ task superDev(type: GwtSuperDev) {
 	}
 }
 
-var outputPath = "../docs/pr6386/"
+var outputPath = "../docs/"
 task dist(dependsOn: [clean, compileGwt]) {
 	doLast {
 		file(outputPath).mkdirs()
