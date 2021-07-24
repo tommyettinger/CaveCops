@@ -7,7 +7,6 @@ import squidpony.StringKit;
 import squidpony.squidmath.*;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 
 import static com.github.tommyettinger.HandType.NONE;
 
@@ -16,19 +15,19 @@ import static com.github.tommyettinger.HandType.NONE;
  */
 public class CreatureFactory {
 
-    public LinkedHashMap<String, Animation<TextureRegion>> mapping;
-    public LinkedHashMap<Creature.MoveType, Coord[]> regions;
+    public OrderedMap<String, Animation<TextureRegion>> mapping;
+    public OrderedMap<Creature.MoveType, Coord[]> regions;
     public Populace populace;
     public IRNG rng;
     
     private CreatureFactory(){}
     public CreatureFactory(
             Populace populace,
-            LinkedHashMap<String, Animation<TextureRegion>> mapping){
+            OrderedMap<String, Animation<TextureRegion>> mapping){
         this.populace = populace;
         rng = new SilkRNG(CrossHash.hash64(populace.dl.lineDungeon));
         this.mapping = mapping;
-        regions = new LinkedHashMap<>(8, 0.25f);
+        regions = new OrderedMap<>(8, 0.25f);
         GreasedRegion all = new GreasedRegion(populace.dl.width, populace.dl.height);
         for(Creature.MoveType move : Creature.MoveType.ALL)
         {

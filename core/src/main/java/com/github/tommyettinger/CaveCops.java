@@ -26,11 +26,10 @@ import squidpony.squidgrid.mapping.DungeonGenerator;
 import squidpony.squidgrid.mapping.FlowingCaveGenerator;
 import squidpony.squidgrid.mapping.styled.TilesetType;
 import squidpony.squidmath.OrderedMap;
+import squidpony.squidmath.OrderedSet;
 import squidpony.squidmath.*;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 
 import static com.badlogic.gdx.Input.Keys.*;
 import static com.github.tommyettinger.colorful.oklab.ColorTools.*;
@@ -120,7 +119,7 @@ public class CaveCops extends ApplicationAdapter {
     // the player's vision that blocks pathfinding to areas we can't see a path to, and we also store all cells that we
     // have seen in the past in a GreasedRegion (in most roguelikes, there would be one of these per dungeon floor).
     private GreasedRegion blockage, seen, currentlySeen;
-    private LinkedHashSet<Coord> impassable;
+    private OrderedSet<Coord> impassable;
     
     private GapShuffler<String> zodiacShuffler, phraseShuffler, meaningShuffler;
     private String message;
@@ -128,14 +127,14 @@ public class CaveCops extends ApplicationAdapter {
     private Creature playerCreature;
     public Populace creatures;
     public CreatureFactory creatureFactory;
-    public LinkedHashMap<String, Animation<TextureRegion>> mapping;
+    public OrderedMap<String, Animation<TextureRegion>> mapping;
     private OrderedMap<Coord, Animation<TextureRegion>> decorations;
     
 
-    public static LinkedHashMap<String, Animation<TextureRegion>> makeMapping(final TextureAtlas atlas){
+    public static OrderedMap<String, Animation<TextureRegion>> makeMapping(final TextureAtlas atlas){
         final Array<TextureAtlas.AtlasRegion> regions = atlas.getRegions();
         TextureAtlas.AtlasRegion item;
-        final LinkedHashMap<String, Animation<TextureRegion>> lhm = new LinkedHashMap<>(regions.size, 0.5f);
+        final OrderedMap<String, Animation<TextureRegion>> lhm = new OrderedMap<>(regions.size, 0.5f);
         for (int i = 0; i < regions.size; i++) {
             if(!lhm.containsKey((item = regions.get(i)).name))
                 lhm.put(item.name, new Animation<>(0.375f, atlas.findRegions(item.name), Animation.PlayMode.LOOP));
@@ -393,7 +392,7 @@ public class CaveCops extends ApplicationAdapter {
 //        }
 //        System.out.println(sum);
         
-        impassable = new LinkedHashSet<>(creatures.size(), 0.25f);
+        impassable = new OrderedSet<>(creatures.size(), 0.25f);
 
         blockage = new GreasedRegion(visible, 0.0);
         seen = blockage.not().copy();

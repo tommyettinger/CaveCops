@@ -5,7 +5,7 @@
 	<inherits name="com.badlogic.gdx.backends.gdx_backends_gwt" />
 	<inherits name="com.github.tommyettinger.CaveCops" />
 	<inherits name="squidlib-util" />
-	<extend-configuration-property name="gdx.reflect.include" value="com.github.tommyettinger.*" />
+<!--	<extend-configuration-property name="gdx.reflect.include" value="com.github.tommyettinger.*" />-->
 	<entry-point class="com.github.tommyettinger.gwt.GwtLauncher" />
 	<set-configuration-property name="gdx.assetpath" value="../assets" />
 	<set-configuration-property name="xsiframe.failIfScriptTag" value="FALSE"/>
