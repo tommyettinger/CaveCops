@@ -163,8 +163,9 @@ public class CaveCops extends ApplicationAdapter {
 
         // SquidLib has many methods that expect an IRNG instance, and there's several classes to choose from.
         // In this program we'll use SilkRNG, which will behave better on the HTML target than other generators.
-        rng = new StatefulRNG(new Lathe32RNG(Integer.parseInt("CAVE", 36), Integer.parseInt("COPS", 36)));
-        
+        rng = new SilkRNG();
+//        rng = new StatefulRNG(new SilkRNG(Integer.parseInt("CAVE", 36), Integer.parseInt("COPS", 36)));
+
         String[] zodiac = new String[12];
         RNG languageRNG = new RNG(new XoshiroStarPhi32RNG(DiverRNG.determine(startTime)));
         FakeLanguageGen lang = FakeLanguageGen.randomLanguage(languageRNG).mix(FakeLanguageGen.ANCIENT_EGYPTIAN, 0.7);
@@ -174,7 +175,8 @@ public class CaveCops extends ApplicationAdapter {
         }
         String[] phrases = new String[]{" is in retrograde", " ascends", " reaches toward the North", " leans Southward",
                 " stands against the West wind", " charges into the East", " resides in the Castle",
-                " feels pensive", " seizes the day", " looms mightily", " retreats into darkness"},
+                " feels pensive", " seizes the day", " looms mightily", " retreats into darkness", " broods dourly",
+                " winks and waves", " does a happy little dance", " mutters a minced oath"},
                 meanings = new String[]
                         {". It is a dire omen for those under the sign of @.",
                                 ". This bodes ill for the house of @.",
