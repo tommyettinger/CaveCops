@@ -70,7 +70,25 @@ public class CreatureFactory {
         populace.place(cr);
         return cr;
     }
-    
+
+    public Creature place(String faction, Creature.MoveType movement){
+        Coord pt;
+        Creature cr;
+        OrderedMap<String, CreatureArchetype> creatures = CREATURES_BY_MOVEMENT.get(movement);
+        do {
+            int idx = rng.nextSignedInt(creatures.size());
+            CreatureArchetype arch = creatures.getAt(idx);
+            pt = rng.getRandomElement(regions.get(movement));
+            Animation<TextureRegion> anim = mapping.get(arch.name);
+            if(anim == null || anim.getKeyFrames() == null || anim.getKeyFrames().length == 0)
+                System.out.println("UH OH " + arch.name);
+            cr = new Creature(anim, pt, arch);
+            cr.faction = faction;
+        } while (populace.containsKey(pt));
+        populace.place(cr);
+        return cr;
+    }
+
     public static class CreatureArchetype {
         public String name;
         public Creature.MoveType move;
@@ -104,9 +122,15 @@ public class CreatureFactory {
     }
     
     public static final OrderedMap<String, CreatureArchetype> KNOWN_CREATURES = new OrderedMap<>(RawCreatureArchetype.ENTRIES.length);
+    public static final OrderedMap<Creature.MoveType, OrderedMap<String, CreatureArchetype>> CREATURES_BY_MOVEMENT = new OrderedMap<>(Creature.MoveType.ALL.length);
     static {
+        for (int i = 0; i < Creature.MoveType.ALL.length; i++) {
+            CREATURES_BY_MOVEMENT.put(Creature.MoveType.ALL[i], new OrderedMap<>(RawCreatureArchetype.ENTRIES.length));
+        }
         for (int i = 0; i < RawCreatureArchetype.ENTRIES.length; i++) {
-            KNOWN_CREATURES.put(RawCreatureArchetype.ENTRIES[i].name, new CreatureArchetype(RawCreatureArchetype.ENTRIES[i]));
+            CreatureArchetype arch = new CreatureArchetype(RawCreatureArchetype.ENTRIES[i]);
+            KNOWN_CREATURES.put(RawCreatureArchetype.ENTRIES[i].name, arch);
+            CREATURES_BY_MOVEMENT.get(arch.move).put(RawCreatureArchetype.ENTRIES[i].name, arch);
         }
     }
 }

@@ -72,7 +72,7 @@ runtime {
 		imageName = 'CaveCops'
 		skipInstaller = true
 		jpackageHome = javaHome.getOrElse("")
-		mainJar = "${appName}.jar"// jar.archiveFileName.get()
+		mainJar = "${appName}.jar"
 		if (os.contains('win')) {
 			imageOptions = ["--icon", "../logo.ico"]
 		} else if (os.contains('nix' || os.contains('nux') || os.contains('bsd'))) {

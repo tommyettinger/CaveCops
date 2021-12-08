@@ -1,10 +1,9 @@
 buildscript {
 	repositories {
 		mavenCentral()
-		maven { url 'https://jitpack.io' }
 	}
 	dependencies {
-		classpath "org.gretty:gretty:3.0.6"
+		classpath "org.gretty:gretty:3.0.7"
 	}
 }
 apply plugin: "gwt"
@@ -24,6 +23,7 @@ gwt {
 	compiler.strict = true
 	compiler.disableCastChecking = true
 	sourceLevel = 8
+//	compiler.style = org.wisepersist.gradle.plugins.gwt.Style.DETAILED
 }
 
 dependencies {

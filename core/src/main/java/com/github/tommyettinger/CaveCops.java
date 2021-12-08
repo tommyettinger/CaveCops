@@ -4,12 +4,14 @@ import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.InputProcessor;
-import com.badlogic.gdx.graphics.*;
+import com.badlogic.gdx.graphics.Camera;
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Colors;
+import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.graphics.glutils.FrameBuffer;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.*;
@@ -23,9 +25,9 @@ import squidpony.squidai.DijkstraMap;
 import squidpony.squidgrid.mapping.DungeonGenerator;
 import squidpony.squidgrid.mapping.FlowingCaveGenerator;
 import squidpony.squidgrid.mapping.styled.TilesetType;
+import squidpony.squidmath.*;
 import squidpony.squidmath.OrderedMap;
 import squidpony.squidmath.OrderedSet;
-import squidpony.squidmath.*;
 
 import java.util.ArrayList;
 
@@ -61,7 +63,7 @@ public class CaveCops extends ApplicationAdapter {
     private PixelPerfectViewport mainViewport;
     private Camera camera;
 
-    public SilkRNG rng;
+    public IStatefulRNG rng;
 
     private TextureAtlas atlas;
     // This maps chars, such as '#', to specific images, such as a pillar.
@@ -130,14 +132,15 @@ public class CaveCops extends ApplicationAdapter {
     
 
     public static OrderedMap<String, Animation<TextureRegion>> makeMapping(final TextureAtlas atlas){
+        final float frameTime = 0.375f;
         final Array<TextureAtlas.AtlasRegion> regions = atlas.getRegions();
         TextureAtlas.AtlasRegion item;
-        final OrderedMap<String, Animation<TextureRegion>> lhm = new OrderedMap<>(regions.size, 0.5f);
+        final OrderedMap<String, Animation<TextureRegion>> map = new OrderedMap<>(regions.size, 0.5f);
         for (int i = 0; i < regions.size; i++) {
-            if(!lhm.containsKey((item = regions.get(i)).name))
-                lhm.put(item.name, new Animation<>(0.375f, atlas.findRegions(item.name), Animation.PlayMode.LOOP));
+            if(!map.containsKey((item = regions.get(i)).name))
+                map.put(item.name, new Animation<>(frameTime, atlas.findRegions(item.name), Animation.PlayMode.LOOP));
         }
-        return lhm;
+        return map;
     }
 
 
@@ -160,7 +163,7 @@ public class CaveCops extends ApplicationAdapter {
 
         // SquidLib has many methods that expect an IRNG instance, and there's several classes to choose from.
         // In this program we'll use SilkRNG, which will behave better on the HTML target than other generators.
-        rng = new SilkRNG(Long.parseLong("CAVECOPS", 36));
+        rng = new StatefulRNG(new Lathe32RNG(Integer.parseInt("CAVE", 36), Integer.parseInt("COPS", 36)));
         
         String[] zodiac = new String[12];
         RNG languageRNG = new RNG(new XoshiroStarPhi32RNG(DiverRNG.determine(startTime)));
@@ -317,7 +320,7 @@ public class CaveCops extends ApplicationAdapter {
         creatures = new Populace(dl);
         creatureFactory = new CreatureFactory(creatures, mapping);
 
-        playerCreature = creatureFactory.place("cop");
+        playerCreature = creatureFactory.place("cop", Creature.MoveType.WALKING);
         playerCreature.glow.range = 6f;
         playerCreature.glow.color = Palette.ANGEL_WING;//ColorTools.lessenChange(Palette.ANGEL_WING, 0.625f);
         playerCreature.glow.flicker = 0f;//0.5f;

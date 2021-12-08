@@ -17,6 +17,7 @@ dependencies {
   implementation project(':core')
   implementation "com.badlogicgames.gdx:gdx-backend-lwjgl3:$gdxVersion"
   implementation "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
+  implementation 'com.google.code.findbugs:jsr305:3.0.2'
 }
 
 def os = System.properties['os.name'].toLowerCase()
@@ -70,8 +71,9 @@ runtime {
 				 '--no-man-pages',
 				 '--strip-native-commands',
 				 '--vm', 'server'])
-	modules.set(['java.desktop',
-				 'jdk.unsupported'])
+	modules.set([
+			'jdk.unsupported'
+	])
 	distDir.set(file(buildDir))
 	jpackage {
 		imageName = 'CaveCops'
