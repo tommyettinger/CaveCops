@@ -3,7 +3,7 @@ buildscript {
 		gradlePluginPortal()
 	}
 	dependencies {
-		classpath "org.beryx:badass-runtime-plugin:1.12.4"
+		classpath "org.beryx:badass-runtime-plugin:1.12.7"
 	}
 }
 apply plugin: 'org.beryx.runtime'

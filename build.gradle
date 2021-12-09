@@ -1,6 +1,5 @@
 buildscript {
 	repositories {
-		mavenLocal()
 		mavenCentral()
 		google()
 		maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' }
@@ -31,8 +30,9 @@ subprojects {
 	ext.appName = 'CaveCops'
 	repositories {
 		mavenCentral()
-		maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' }
-		maven { url 'https://jitpack.io' }
+		maven { url "https://s01.oss.sonatype.org" }
+		maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
 		gradlePluginPortal()
+		maven { url 'https://jitpack.io' }
 	}
 }
