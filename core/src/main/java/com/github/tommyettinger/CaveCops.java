@@ -18,6 +18,7 @@ import com.badlogic.gdx.utils.*;
 import com.github.tommyettinger.colorful.oklab.ColorTools;
 import com.github.tommyettinger.colorful.oklab.ColorfulBatch;
 import com.github.tommyettinger.colorful.oklab.Palette;
+import com.github.tommyettinger.colorful.oklab.SimplePalette;
 import squidpony.FakeLanguageGen;
 import squidpony.Maker;
 import squidpony.StringKit;
@@ -148,11 +149,7 @@ public class CaveCops extends ApplicationAdapter {
     public void create () {
         startTime = TimeUtils.millis();
         Coord.expandPoolTo(bigWidth, bigHeight);
-        for(Color c : Colors.getColors().values())
-        {
-            final float f = ColorTools.fromColor(c);
-            c.set(channelL(f), channelA(f), channelB(f), c.a);
-        }
+        SimplePalette.editKnownColors();
 
 //        png = new IndexedAPNG(gridWidth * cellWidth * gridHeight * cellHeight * 3 >> 1);
         // gotta have a random number generator. We can seed an RNG with any long we want, or even a String.
@@ -662,34 +659,23 @@ public class CaveCops extends ApplicationAdapter {
                 c = Coord.get(i, j);
                 switch (dl.prunedDungeon[i][j]) {
                 case '~':
-                    dl.lighting.currentBackgrounds[i][j] = toCursor.contains(c) ?
-                        NumberTools.setSelectedByte(dl.lighting.currentBackgrounds[i][j], 0, (byte)230) :
-                            dl.lighting.currentBackgrounds[i][j] >= 0.5f
-                                    ? lighten(dl.lighting.currentBackgrounds[i][j], (
-                                MathUtils.clamp(0.03f + FastNoise.instance.getConfiguredNoise(i * 20f, j * 20f, time * 25f) * 0.15f
-                                                + FastNoise.instance.getFoam(i * 25f, j * 25f, time * 30f) * 0.2f
-                                        , 0f, 1f)))
-                                    : darken(0.5f - dl.lighting.currentBackgrounds[i][j], (
-                                    MathUtils.clamp(0.03f + FastNoise.instance.getConfiguredNoise(i * 20f, j * 20f, time * 25f) * 0.15f
-                                                    + FastNoise.instance.getFoam(i * 25f, j * 25f, time * 30f) * 0.2f
-                                            , 0f, 1f)))
-//                                + (float)FoamNoise.foamNoise(i * 3.0, j * 3.0, time * 5.0, 123456789) * 0.03f
+                    //                                + (float)FoamNoise.foamNoise(i * 3.0, j * 3.0, time * 5.0, 123456789) * 0.03f
+                    if (toCursor.contains(c)) {
+                        dl.lighting.currentBackgrounds[i][j] = NumberTools.setSelectedByte(dl.lighting.currentBackgrounds[i][j], 0, (byte)230)
                         ;
+                    } else {
+                        editOklab(dl.lighting.currentBackgrounds[i][j],
+                                FastNoise.instance.ridged3D(i * 20f, j * 20f, time * 25f, FastNoise.instance.getSeed(), 1) * 0.15f
+                                        + FastNoise.instance.getFoam(i * 25f, j * 25f, time * 30f) * 0.2f, 0f, 0f, 0f);
+                    }
                     break;
                 case '"':
                 case ',':
                     dl.lighting.currentBackgrounds[i][j] = toCursor.contains(c) ?
                         NumberTools.setSelectedByte(dl.lighting.currentBackgrounds[i][j], 0, (byte)230) :
-                            dl.lighting.currentBackgrounds[i][j] >= 0.5f
-                            ? lighten(dl.lighting.currentBackgrounds[i][j], (
-                                MathUtils.clamp(0.05f + FastNoise.instance.getConfiguredNoise(i * 20f, j * 20f, time * 25f) * 0.14f
-                                    + FastNoise.instance.getFoam(i * 25f, j * 25f, time * 30f) * 0.17f
-                                        , 0f, 1f)))
-                                    : darken(0.5f - dl.lighting.currentBackgrounds[i][j], (
-                                    MathUtils.clamp(0.05f + FastNoise.instance.getConfiguredNoise(i * 20f, j * 20f, time * 25f) * 0.14f
-                                                    + FastNoise.instance.getFoam(i * 25f, j * 25f, time * 30f) * 0.17f
-                                            , 0f, 1f)))
-                    ;
+                            editOklab(dl.lighting.currentBackgrounds[i][j],
+                                    FastNoise.instance.getConfiguredNoise(i * 20f, j * 20f, time * 11f) * 0.14f
+                                            + FastNoise.instance.getFoam(i * 25f, j * 25f, time * 7f) * 0.17f, 0f, 0f, 0f);
                     break;
                 default:
                     if (toCursor.contains(c))

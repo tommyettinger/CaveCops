@@ -44,10 +44,10 @@ public class DungeonLevel {
                 int h = IntPointHash.hashAll(x, y, depth);
                 backgrounds[x][y] = ColorTools.oklab(
                     (32 + (h & 7) - (h >>> 3 & 7) + (h >>> 6 & 7) - (h >>> 9 & 7) + (h >>> 12 & 3) - (h >>> 14 & 3)) * 0x1p-8f,
-                    (128 + (h >>> 16 & 7) - (h >>> 19 & 7)) * 0x1p-8f,
+//                    (128 + (h >>> 16 & 7) - (h >>> 19 & 7)) * 0x1p-8f,
+                        0.5f,
                     (128 + (h >>> 22 & 7) - (h >>> 25 & 7)) * 0x1p-8f, 
                     1f
-//                        120 + (h >>> 28) // LSB of alpha/Sat is discarded
                 );
             }
         }
