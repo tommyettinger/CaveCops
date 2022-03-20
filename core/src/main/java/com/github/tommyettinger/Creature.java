@@ -3,7 +3,6 @@ package com.github.tommyettinger;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.utils.IntFloatMap;
-import com.github.tommyettinger.colorful.oklab.ColorTools;
 import com.github.tommyettinger.colorful.oklab.Palette;
 import squidpony.FakeLanguageGen;
 import squidpony.StringKit;
