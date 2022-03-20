@@ -24,9 +24,10 @@ public class Lwjgl3Launcher {
     private static Lwjgl3ApplicationConfiguration getDefaultConfiguration() {
         Lwjgl3ApplicationConfiguration configuration = new Lwjgl3ApplicationConfiguration();
         configuration.setTitle("CaveCops");
-        configuration.useVsync(true);
+//        configuration.useVsync(false);
         configuration.disableAudio(true);
         configuration.setForegroundFPS(300);
+//        configuration.setForegroundFPS(0);
         configuration.setWindowedMode(gridWidth * cellWidth, gridHeight * cellHeight);
         configuration.setWindowIcon("libgdx128.png", "libgdx64.png", "libgdx32.png", "libgdx16.png");
         return configuration;

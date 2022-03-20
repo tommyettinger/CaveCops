@@ -92,9 +92,9 @@ public class CaveCops extends ApplicationAdapter {
     public static final int gridHeight = 24;
 
     /** In number of cells */
-    public static final int bigWidth = gridWidth * 2;
+    public static final int bigWidth = gridWidth * 4;
     /** In number of cells */
-    public static final int bigHeight = gridHeight * 2;
+    public static final int bigHeight = gridHeight * 4;
 
     /** The pixel width of a cell */
     public static final int cellWidth = 16;
@@ -653,9 +653,11 @@ public class CaveCops extends ApplicationAdapter {
         Animation<TextureRegion> decoration;
         Creature creature;
         Coord c;
-        
-        for (int i = 0; i < bigWidth; i++) {
-            for (int j = 0; j < bigHeight; j++) {
+
+        int xLo = Math.max(0, seen.xBound(true) - 1), xHi = Math.min(bigWidth , seen.xBound(false) + 2);
+        int yLo = Math.max(0, seen.yBound(true) - 1), yHi = Math.min(bigHeight, seen.yBound(false) + 2);
+        for (int i = xLo; i < xHi; i++) {
+            for (int j = yLo; j < yHi; j++) {
                 c = Coord.get(i, j);
                 switch (dl.prunedDungeon[i][j]) {
                 case '~':
@@ -686,8 +688,8 @@ public class CaveCops extends ApplicationAdapter {
             }
         }
         batch.setTweak(0.45f, 0.35f, 0.35f, 0.3f);
-        for (int i = 0; i < bigWidth; i++) {
-            for (int j = 0; j < bigHeight; j++) {
+        for (int i = xLo; i < xHi; i++) {
+            for (int j = yLo; j < yHi; j++) {
                 if(visible[i][j] > 0.0) {
                     c = Coord.get(i, j);
 //                    pos.set(i * cellWidth, j * cellHeight, 0f);
