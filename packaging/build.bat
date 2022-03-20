@@ -14,4 +14,4 @@ C:\d\jvm\graal11_old\bin\native-image.cmd ^
 --no-fallback ^
 --allow-incomplete-classpath && ^
 ping 127.0.0.1 -n 2 > nul & ^
-copy /Y CaveCops-Demo.exe agent\CaveCops.exe
+copy /Y CaveCops-Demo.exe build\CaveCops.exe
