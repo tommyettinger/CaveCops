@@ -3,11 +3,17 @@ buildscript {
         gradlePluginPortal()
     }
     dependencies {
-        classpath "org.beryx:badass-runtime-plugin:1.12.7"
+        if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_14)) {
+            classpath "org.beryx:badass-runtime-plugin:1.12.7"
+        }
     }
 }
-apply plugin: 'org.beryx.runtime'
-apply plugin: 'application'
+if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_14)) {
+    apply plugin: 'org.beryx.runtime'
+}
+else {
+    apply plugin: 'application'
+}
 
 sourceSets.main.resources.srcDirs += [rootProject.file('assets').path]
 mainClassName = 'com.github.tommyettinger.lwjgl3.Lwjgl3Launcher'
@@ -21,47 +27,6 @@ dependencies {
 //    compileOnly 'org.graalvm.nativeimage:svm-hosted-native-windows-amd64:22.0.0.2'
     compileOnly "org.graalvm.nativeimage:svm-hosted-native-windows-amd64:21.0.0.2"
     implementation 'com.github.anyicomplex:gdx-graalhelper:1.10.0-beta1'
-//	//Override LWJGL3 version
-//	implementation "org.lwjgl:lwjgl:$lwjgl3Version"
-//	implementation "org.lwjgl:lwjgl:$lwjgl3Version:natives-linux"
-//	implementation "org.lwjgl:lwjgl:$lwjgl3Version:natives-linux-arm32"
-//	implementation "org.lwjgl:lwjgl:$lwjgl3Version:natives-linux-arm64"
-//	implementation "org.lwjgl:lwjgl:$lwjgl3Version:natives-macos"
-//	implementation "org.lwjgl:lwjgl:$lwjgl3Version:natives-macos-arm64"
-//	implementation "org.lwjgl:lwjgl:$lwjgl3Version:natives-windows"
-//	implementation "org.lwjgl:lwjgl:$lwjgl3Version:natives-windows-x86"
-//	implementation "org.lwjgl:lwjgl-glfw:$lwjgl3Version"
-//	implementation "org.lwjgl:lwjgl-glfw:$lwjgl3Version:natives-linux"
-//	implementation "org.lwjgl:lwjgl-glfw:$lwjgl3Version:natives-linux-arm32"
-//	implementation "org.lwjgl:lwjgl-glfw:$lwjgl3Version:natives-linux-arm64"
-//	implementation "org.lwjgl:lwjgl-glfw:$lwjgl3Version:natives-macos"
-//	implementation "org.lwjgl:lwjgl-glfw:$lwjgl3Version:natives-macos-arm64"
-//	implementation "org.lwjgl:lwjgl-glfw:$lwjgl3Version:natives-windows"
-//	implementation "org.lwjgl:lwjgl-glfw:$lwjgl3Version:natives-windows-x86"
-//	implementation "org.lwjgl:lwjgl-jemalloc:$lwjgl3Version"
-//	implementation "org.lwjgl:lwjgl-jemalloc:$lwjgl3Version:natives-linux"
-//	implementation "org.lwjgl:lwjgl-jemalloc:$lwjgl3Version:natives-linux-arm32"
-//	implementation "org.lwjgl:lwjgl-jemalloc:$lwjgl3Version:natives-linux-arm64"
-//	implementation "org.lwjgl:lwjgl-jemalloc:$lwjgl3Version:natives-macos"
-//	implementation "org.lwjgl:lwjgl-jemalloc:$lwjgl3Version:natives-macos-arm64"
-//	implementation "org.lwjgl:lwjgl-jemalloc:$lwjgl3Version:natives-windows"
-//	implementation "org.lwjgl:lwjgl-jemalloc:$lwjgl3Version:natives-windows-x86"
-//	implementation "org.lwjgl:lwjgl-opengl:$lwjgl3Version"
-//	implementation "org.lwjgl:lwjgl-opengl:$lwjgl3Version:natives-linux"
-//	implementation "org.lwjgl:lwjgl-opengl:$lwjgl3Version:natives-linux-arm32"
-//	implementation "org.lwjgl:lwjgl-opengl:$lwjgl3Version:natives-linux-arm64"
-//	implementation "org.lwjgl:lwjgl-opengl:$lwjgl3Version:natives-macos"
-//	implementation "org.lwjgl:lwjgl-opengl:$lwjgl3Version:natives-macos-arm64"
-//	implementation "org.lwjgl:lwjgl-opengl:$lwjgl3Version:natives-windows"
-//	implementation "org.lwjgl:lwjgl-opengl:$lwjgl3Version:natives-windows-x86"
-//	implementation "org.lwjgl:lwjgl-openal:$lwjgl3Version"
-//	implementation "org.lwjgl:lwjgl-openal:$lwjgl3Version:natives-linux"
-//	implementation "org.lwjgl:lwjgl-openal:$lwjgl3Version:natives-linux-arm32"
-//	implementation "org.lwjgl:lwjgl-openal:$lwjgl3Version:natives-linux-arm64"
-//	implementation "org.lwjgl:lwjgl-openal:$lwjgl3Version:natives-macos"
-//	implementation "org.lwjgl:lwjgl-openal:$lwjgl3Version:natives-macos-arm64"
-//	implementation "org.lwjgl:lwjgl-openal:$lwjgl3Version:natives-windows"
-//	implementation "org.lwjgl:lwjgl-openal:$lwjgl3Version:natives-windows-x86"
 
     implementation 'com.google.code.findbugs:jsr305:3.0.2'
 }
@@ -78,7 +43,7 @@ run {
 }
 
 jar {
-    archiveFileName = "${appName}-Demo.jar"
+    archiveBaseName.set(appName)
     duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
     destinationDirectory = file("$project.buildDir/lib")
     dependsOn configurations.runtimeClasspath
@@ -109,33 +74,35 @@ task proguard(type: proguard.gradle.ProGuardTask) {
 proguard.dependsOn jar
 
 jpackageImage.dependsOn proguard
+if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_14)) {
+    jpackageImage.dependsOn jar
 
-runtime {
-    options.set(['--strip-debug',
-                 '--compress', '2',
-                 '--no-header-files',
-                 '--no-man-pages',
-                 '--strip-native-commands',
-                 '--vm', 'server'])
-    modules.set([
-            'jdk.unsupported'
-    ])
-    distDir.set(file(buildDir))
-    jpackage {
-        imageName = 'CaveCops'
-        skipInstaller = true
-        jpackageHome = javaHome.getOrElse("")
-        mainJar = "${appName}.jar"// jar.archiveFileName.get()
-        if (os.contains('win')) {
-            imageOptions = ["--icon", "../logo.ico"]
-        } else if (os.contains('nix' || os.contains('nux') || os.contains('bsd'))) {
-            imageOptions = ["--icon", "../logo.png"]
-        } else if (os.contains('mac')) {
-            imageOptions = ["--icon", "../logo.icns", " --java-options", "\"XstartOnFirstThread\""]
+    runtime {
+        options.set(['--strip-debug',
+                     '--compress', '2',
+                     '--no-header-files',
+                     '--no-man-pages',
+                     '--strip-native-commands',
+                     '--vm', 'server'])
+        modules.set([
+                'jdk.unsupported'
+        ])
+        distDir.set(file(buildDir))
+        jpackage {
+            imageName = appName
+            skipInstaller = true
+            jpackageHome = javaHome.getOrElse("")
+            mainJar = jar.archiveFileName.get()
+            if (os.contains('win')) {
+                imageOptions = ["--icon", "icons/logo.ico"]
+            } else if (os.contains('nix') || os.contains('nux') || os.contains('bsd')) {
+                imageOptions = ["--icon", "icons/logo.png"]
+            } else if (os.contains('mac')) {
+                imageOptions = ["--icon", "icons/logo.icns", " --java-options", "\"XstartOnFirstThread\""]
+            }
         }
     }
 }
-
 jpackageImage.doLast {
     file("build/jpackage/CaveCops/app/${appName}-Demo.jar").delete()
 }
