@@ -1,6 +1,5 @@
 package com.github.tommyettinger.lwjgl3;
 
-import com.anyicomplex.gdx.lwjgl3.GraalHelper;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
 import com.github.tommyettinger.CaveCops;
@@ -17,7 +16,7 @@ public class Lwjgl3Launcher {
     }
 
     private static Lwjgl3Application createApplication() {
-        GraalHelper.setupSharedLibraryPath();
+        System.setProperty("org.lwjgl.librarypath", ".");
         return new Lwjgl3Application(new CaveCops(), getDefaultConfiguration());
     }
 

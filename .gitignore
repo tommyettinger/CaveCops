@@ -69,7 +69,10 @@ nb-configuration.xml
 ## packaging
 /jpackage/
 
-/packaging/*.jar
-/packaging/*.exe
-/packaging/*.dll
-/packaging/*build_artifacts.txt
+/packaging*/**/*.jar
+/packaging*/**/*.exe
+/packaging*/**/*.dll
+/packaging*/**/*build_artifacts.txt
+
+x86/
+x64/

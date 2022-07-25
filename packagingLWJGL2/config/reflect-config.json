@@ -1,0 +1,126 @@
+[
+
+{
+  "name":"com.badlogic.gdx.backends.lwjgl3.audio.OpenALMusic[]"
+},
+{
+  "name":"com.badlogic.gdx.graphics.g2d.TextureAtlas$AtlasRegion[]"
+},
+{
+  "name":"java.lang.Object[]"
+},
+{
+  "name":"org.lwjgl.glfw.GLFW",
+  "allDeclaredFields":true
+},
+{
+  "name":"org.lwjgl.openal.ALCapabilities",
+  "allPublicFields":true
+},
+{
+  "name":"org.lwjgl.opengl.GLCapabilities",
+  "allPublicFields":true
+},
+{
+  "name":"org.lwjgl.system.CallbackI$B",
+  "methods":[{"name":"callback","parameterTypes":["long"] }]
+},
+{
+  "name":"org.lwjgl.system.CallbackI$D",
+  "methods":[{"name":"callback","parameterTypes":["long"] }]
+},
+{
+  "name":"org.lwjgl.system.CallbackI$F",
+  "methods":[{"name":"callback","parameterTypes":["long"] }]
+},
+{
+  "name":"org.lwjgl.system.CallbackI$I",
+  "methods":[{"name":"callback","parameterTypes":["long"] }]
+},
+{
+  "name":"org.lwjgl.system.CallbackI$J",
+  "methods":[{"name":"callback","parameterTypes":["long"] }]
+},
+{
+  "name":"org.lwjgl.system.CallbackI$N",
+  "methods":[{"name":"callback","parameterTypes":["long"] }]
+},
+{
+  "name":"org.lwjgl.system.CallbackI$P",
+  "methods":[{"name":"callback","parameterTypes":["long"] }]
+},
+{
+  "name":"org.lwjgl.system.CallbackI$S",
+  "methods":[{"name":"callback","parameterTypes":["long"] }]
+},
+{
+  "name":"org.lwjgl.system.CallbackI$V",
+  "methods":[{"name":"callback","parameterTypes":["long"] }]
+},
+{
+  "name":"org.lwjgl.system.CallbackI$Z",
+  "methods":[{"name":"callback","parameterTypes":["long"] }]
+},
+{
+  "name":"org.lwjgl.system.CustomBuffer",
+  "fields":[
+    {"name":"capacity"}, 
+    {"name":"container"}, 
+    {"name":"limit"}, 
+    {"name":"mark"}, 
+    {"name":"position"}
+  ]
+},
+{
+  "name":"org.lwjgl.PointerBuffer",
+    "allDeclaredConstructors" : true,
+    "allPublicConstructors" : true,
+    "allDeclaredMethods" : true,
+    "allPublicMethods" : true,
+    "allDeclaredClasses" : true,
+    "allPublicClasses" : true
+},
+{
+  "name":"org.lwjgl.glfw.GLFWImage",
+    "allDeclaredConstructors" : true,
+    "allPublicConstructors" : true,
+    "allDeclaredMethods" : true,
+    "allPublicMethods" : true,
+    "allDeclaredClasses" : true,
+    "allPublicClasses" : true
+},
+{
+  "name":"org.lwjgl.glfw.GLFWImage$Buffer",
+    "allDeclaredConstructors" : true,
+    "allPublicConstructors" : true,
+    "allDeclaredMethods" : true,
+    "allPublicMethods" : true,
+    "allDeclaredClasses" : true,
+    "allPublicClasses" : true
+},
+{
+  "name":"org.lwjgl.glfw.GLFWVidMode",
+    "allDeclaredConstructors" : true,
+    "allPublicConstructors" : true,
+    "allDeclaredMethods" : true,
+    "allPublicMethods" : true,
+    "allDeclaredClasses" : true,
+    "allPublicClasses" : true
+},
+{
+  "name":"org.lwjgl.system.Pointer$Default",
+  "fields":[{"name":"address"}]
+},
+{
+  "name":"org.lwjgl.system.Struct",
+  "fields":[{"name":"container"}]
+},
+{
+  "name":"org.lwjgl.system.jemalloc.JEmallocAllocator",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"sun.misc.Unsafe",
+  "allDeclaredFields":true
+}
+]

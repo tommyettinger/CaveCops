@@ -1,0 +1,18 @@
+{
+  "resources":{
+  "includes":[
+    {"pattern":".*\\.dll$"},
+    {"pattern":".*\\.png$"},
+    {"pattern":".*\\.txt$"},
+    {"pattern":".*\\.atlas$"},
+    {"pattern":".*\\.fnt$"},
+    {"pattern":".*\\.p$"},
+    {"pattern":".*\\.mp3$"},
+    {"pattern":".*\\.ogg$"},
+    {"pattern":".*\\.wav$"},
+    {"pattern":".*\\.vert$"},
+    {"pattern":".*\\.frag$"},	
+    {"pattern":"\\Qorg/lwjgl/system/APIUtil.class\\E"}
+  ]},
+  "bundles":[]
+}

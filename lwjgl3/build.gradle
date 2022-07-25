@@ -25,9 +25,9 @@ dependencies {
     implementation "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
 
 //    compileOnly 'org.graalvm.nativeimage:svm-hosted-native-windows-amd64:22.0.0.2'
-    compileOnly "org.graalvm.nativeimage:svm-hosted-native-windows-amd64:21.0.0.2"
-    implementation 'com.github.anyicomplex:gdx-graalhelper:1.10.0-beta1'
 
+//    compileOnly "org.graalvm.nativeimage:svm-hosted-native-windows-amd64:21.0.0.2"
+//    implementation 'com.github.anyicomplex:gdx-graalhelper:1.10.0-beta1'
     implementation 'com.google.code.findbugs:jsr305:3.0.2'
 }
 
@@ -43,7 +43,7 @@ run {
 }
 
 jar {
-    archiveBaseName.set(appName)
+    archiveFileName.set("$appName-Demo.jar")
     duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
     destinationDirectory = file("$project.buildDir/lib")
     dependsOn configurations.runtimeClasspath
