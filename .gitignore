@@ -63,8 +63,8 @@ nb-configuration.xml
 ## OS Specific
 .DS_Store
 *.symbolMap
-*.fods#
-*.tsv#
+*.*#
+
 
 ## packaging
 /jpackage/
