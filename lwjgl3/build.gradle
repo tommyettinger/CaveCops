@@ -50,7 +50,9 @@ jar {
     from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
     exclude('META-INF/INDEX.LIST', 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA')
     dependencies {
-        exclude('META-INF/INDEX.LIST', 'META-INF/maven/**')
+        exclude('META-INF/INDEX.LIST', 'META-INF/maven/**'
+                , 'META-INF/versions/19/**' // may be needed for ProGuard to work
+        )
     }
     manifest {
         attributes 'Main-Class': project.mainClassName
