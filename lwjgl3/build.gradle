@@ -28,7 +28,7 @@ dependencies {
 
 //    compileOnly "org.graalvm.nativeimage:svm-hosted-native-windows-amd64:21.0.0.2"
 //    implementation 'com.github.anyicomplex:gdx-graalhelper:1.10.0-beta1'
-    implementation 'com.google.code.findbugs:jsr305:3.0.2'
+//    implementation 'com.google.code.findbugs:jsr305:3.0.2'
 }
 
 def os = System.properties['os.name'].toLowerCase()
